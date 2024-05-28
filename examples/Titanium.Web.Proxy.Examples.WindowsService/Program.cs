@@ -1,4 +1,6 @@
-﻿using System.ServiceProcess;
+﻿using System.Runtime.InteropServices;
+using System;
+using System.ServiceProcess;
 
 namespace WindowsServiceExample
 {
@@ -9,12 +11,20 @@ namespace WindowsServiceExample
         /// </summary>
         private static void Main()
         {
+            
             ServiceBase[] servicesToRun;
             servicesToRun = new ServiceBase[]
             {
                 new ProxyService()
             };
-            ServiceBase.Run(servicesToRun);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                ServiceBase.Run(servicesToRun);
+            }
+            else
+            {
+                Console.WriteLine("This application is only supported on Windows.");
+            }
         }
     }
 }
