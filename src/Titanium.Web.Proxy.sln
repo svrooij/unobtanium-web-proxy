@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32228.430
@@ -31,7 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Titanium.Web.Proxy.Examples
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Titanium.Web.Proxy.IntegrationTests", "..\tests\Titanium.Web.Proxy.IntegrationTests\Titanium.Web.Proxy.IntegrationTests.csproj", "{1D053D72-DCB4-4517-ACDD-D35ADC186950}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Titanium.Web.Proxy.Examples.WindowsService", "..\examples\Titanium.Web.Proxy.Examples.WindowsService\Titanium.Web.Proxy.Examples.WindowsService.csproj", "{63635F50-7D6F-4A93-84C6-04CF9D2754C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Titanium.Web.Proxy.Examples.WindowsService", "..\examples\Titanium.Web.Proxy.Examples.WindowsService\Titanium.Web.Proxy.Examples.WindowsService.csproj", "{63635F50-7D6F-4A93-84C6-04CF9D2754C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,7 +100,7 @@ Global
 		{63635F50-7D6F-4A93-84C6-04CF9D2754C5} = {B6DBABDC-C985-4872-9C38-B4E5079CBC4B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {625C1EB5-44CF-47DE-A85A-B4C8C40ED90A}
 		EnterpriseLibraryConfigurationToolBinariesPath = .1.505.2\lib\NET35
+		SolutionGuid = {625C1EB5-44CF-47DE-A85A-B4C8C40ED90A}
 	EndGlobalSection
 EndGlobal
