@@ -139,7 +139,7 @@ public class HttpWebClient
 
         // prepare the request & headers
         var headerBuilder = new HeaderBuilder();
-        headerBuilder.WriteRequestLine(Request.Method, url, Request.HttpVersion);
+        headerBuilder.WriteRequestLine(Request.Method!, url, Request.HttpVersion);
         headerBuilder.WriteHeaders(Request.Headers, !isTransparent, upstreamProxyUserName, upstreamProxyPassword);
 
         // write request headers

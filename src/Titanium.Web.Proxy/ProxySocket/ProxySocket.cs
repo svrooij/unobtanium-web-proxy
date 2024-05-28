@@ -63,7 +63,7 @@ internal enum ProxyTypes
 internal class ProxySocket : Socket
 {
     /// <summary>Holds a pointer to the method that should be called when the Socket is connected to the remote device.</summary>
-    private AsyncCallback callBack;
+    private AsyncCallback? callBack;
 
     /// <summary>Holds the value of the ProxyPass property.</summary>
     private string proxyPass = string.Empty;
@@ -130,7 +130,7 @@ internal class ProxySocket : Socket
     ///     Gets or sets the EndPoint of the proxy server.
     /// </summary>
     /// <value>An IPEndPoint object that holds the IP address and the port of the proxy server.</value>
-    public IPEndPoint ProxyEndPoint { get; set; }
+    public IPEndPoint? ProxyEndPoint { get; set; }
 
     /// <summary>
     ///     Gets or sets the type of proxy server to use.
@@ -142,7 +142,7 @@ internal class ProxySocket : Socket
     ///     Gets or sets a user-defined object.
     /// </summary>
     /// <value>The user-defined object.</value>
-    private object State { get; set; }
+    private object? State { get; set; }
 
     /// <summary>
     ///     Gets or sets the username to use when authenticating with the proxy.
@@ -170,7 +170,7 @@ internal class ProxySocket : Socket
     ///     Gets or sets the asynchronous result object.
     /// </summary>
     /// <value>An instance of the IAsyncProxyResult class.</value>
-    private AsyncProxyResult AsyncResult { get; set; }
+    private AsyncProxyResult? AsyncResult { get; set; }
 
     /// <summary>
     ///     Gets or sets the exception to throw when the EndConnect method is called.
@@ -276,7 +276,7 @@ internal class ProxySocket : Socket
     /// <exception cref="ArgumentNullException">The remoteEP parameter is a null reference (Nothing in Visual Basic).</exception>
     /// <exception cref="SocketException">An operating system error occurs while creating the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    public new IAsyncResult BeginConnect(IPAddress address, int port, AsyncCallback callback, object state)
+    public new IAsyncResult? BeginConnect(IPAddress address, int port, AsyncCallback callback, object state)
     {
         var remoteEp = new IPEndPoint(address, port);
         return BeginConnect(remoteEp, callback, state);
@@ -292,7 +292,7 @@ internal class ProxySocket : Socket
     /// <exception cref="ArgumentNullException">The remoteEP parameter is a null reference (Nothing in Visual Basic).</exception>
     /// <exception cref="SocketException">An operating system error occurs while creating the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    public new IAsyncResult BeginConnect(EndPoint remoteEp, AsyncCallback callback, object state)
+    public new IAsyncResult? BeginConnect(EndPoint remoteEp, AsyncCallback callback, object state)
     {
         if (remoteEp == null)
             throw new ArgumentNullException();
@@ -337,7 +337,7 @@ internal class ProxySocket : Socket
     /// <exception cref="ArgumentException">The port parameter is invalid.</exception>
     /// <exception cref="SocketException">An operating system error occurs while creating the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    public new IAsyncResult BeginConnect(string host, int port, AsyncCallback callback, object state)
+    public new IAsyncResult? BeginConnect(string host, int port, AsyncCallback callback, object state)
     {
         if (host == null)
             throw new ArgumentNullException();
@@ -469,7 +469,12 @@ internal class ProxySocket : Socket
             Close();
 
         ToThrow = error;
-        AsyncResult.Reset();
-        callBack?.Invoke(AsyncResult);
+        if (AsyncResult is not null)
+        {
+            AsyncResult?.Reset();
+            callBack?.Invoke(AsyncResult!);
+        }
+        
+        
     }
 }

@@ -87,20 +87,20 @@ public class ClientHelloInfo
 
                 return SslProtocols.Tls12;
             }
+//#pragma warning disable 618
+//            if (major == 3 && minor == 2)
+//                return SslProtocols.Tls11;
 
-            if (major == 3 && minor == 2)
-                return SslProtocols.Tls11;
+//            if (major == 3 && minor == 1)
+//                return SslProtocols.Tls;
 
-            if (major == 3 && minor == 1)
-                return SslProtocols.Tls;
 
-#pragma warning disable 618
-            if (major == 3 && minor == 0)
-                return SslProtocols.Ssl3;
+//            if (major == 3 && minor == 0)
+//                return SslProtocols.Ssl3;
 
-            if (major == 2 && minor == 0)
-                return SslProtocols.Ssl2;
-#pragma warning restore 618
+//            if (major == 2 && minor == 0)
+//                return SslProtocols.Ssl2;
+//#pragma warning restore 618
 
             return SslProtocols.None;
         }

@@ -6,7 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Titanium.Web.Proxy.Network.Certificate;
-
+// TODO FIX these warnings CS8600, CS8601, CS8618
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8601 // Possible null reference assignment.
+#pragma warning disable CS8618 // Dereference of a possibly null reference.
 /// <inheritdoc />
 /// <summary>
 ///     Certificate Maker - uses MakeCert
@@ -173,10 +176,10 @@ internal class WinCertificateMaker : ICertificateMaker
 
         var requestCert = Activator.CreateInstance(typeRequestCert);
 
-        typeValue = new[] { 1, sharedPrivateKey, string.Empty };
+        typeValue = new object [] { 1, sharedPrivateKey, string.Empty };
         typeRequestCert.InvokeMember("InitializeFromPrivateKey", BindingFlags.InvokeMethod, null, requestCert,
             typeValue);
-        typeValue = new[] { x500CertDn };
+        typeValue = new object [] { x500CertDn };
         typeRequestCert.InvokeMember("Subject", BindingFlags.PutDispProperty, null, requestCert, typeValue);
         typeValue[0] = x500RootCertDn;
         typeRequestCert.InvokeMember("Issuer", BindingFlags.PutDispProperty, null, requestCert, typeValue);
@@ -216,24 +219,23 @@ internal class WinCertificateMaker : ICertificateMaker
             if (IPAddress.TryParse(subject, out ip))
             {
                 var ipBase64 = Convert.ToBase64String(ip.GetAddressBytes());
-                typeValue = new object[]
-                    { AlternativeNameType.XcnCertAltNameIpAddress, EncodingType.XcnCryptStringBase64, ipBase64 };
+                typeValue = [ AlternativeNameType.XcnCertAltNameIpAddress, EncodingType.XcnCryptStringBase64, ipBase64 ];
                 typeCAlternativeName.InvokeMember("InitializeFromRawData", BindingFlags.InvokeMethod, null, altDnsNames,
                     typeValue);
             }
             else
             {
-                typeValue = new object[] { 3, subject }; //3==DNS, 8==IP ADDR
+                typeValue = [ 3, subject ]; //3==DNS, 8==IP ADDR
                 typeCAlternativeName.InvokeMember("InitializeFromString", BindingFlags.InvokeMethod, null, altDnsNames,
                     typeValue);
             }
 
-            typeValue = new[] { altDnsNames };
+            typeValue = [ altDnsNames ];
             typeAltNamesCollection.InvokeMember("Add", BindingFlags.InvokeMethod, null, altNameCollection,
                 typeValue);
 
 
-            typeValue = new[] { altNameCollection };
+            typeValue = [ altNameCollection ];
             typeExtNames.InvokeMember("InitializeEncode", BindingFlags.InvokeMethod, null, extNames, typeValue);
 
             typeValue[0] = extNames;
@@ -244,10 +246,10 @@ internal class WinCertificateMaker : ICertificateMaker
         {
             var signerCertificate = Activator.CreateInstance(typeSignerCertificate);
 
-            typeValue = new object[] { 0, 0, 12, signingCertificate.Thumbprint };
+            typeValue = [ 0, 0, 12, signingCertificate.Thumbprint ];
             typeSignerCertificate.InvokeMember("Initialize", BindingFlags.InvokeMethod, null, signerCertificate,
                 typeValue);
-            typeValue = new[] { signerCertificate };
+            typeValue = [ signerCertificate ];
             typeRequestCert.InvokeMember("SignerCertificate", BindingFlags.PutDispProperty, null, requestCert,
                 typeValue);
         }
@@ -255,19 +257,19 @@ internal class WinCertificateMaker : ICertificateMaker
         {
             var basicConstraints = Activator.CreateInstance(typeBasicConstraints);
 
-            typeValue = new object[] { "true", "0" };
+            typeValue = [ "true", "0" ];
             typeBasicConstraints.InvokeMember("InitializeEncode", BindingFlags.InvokeMethod, null, basicConstraints,
                 typeValue);
-            typeValue = new[] { basicConstraints };
+            typeValue = [ basicConstraints ];
             typeX509Extensions.InvokeMember("Add", BindingFlags.InvokeMethod, null, certificate, typeValue);
         }
 
         oid = Activator.CreateInstance(typeOid);
 
-        typeValue = new object[] { 1, 0, 0, hashAlg };
+        typeValue = [ 1, 0, 0, hashAlg ];
         typeOid.InvokeMember("InitializeFromAlgorithmName", BindingFlags.InvokeMethod, null, oid, typeValue);
 
-        typeValue = new[] { oid };
+        typeValue = [ oid ];
         typeRequestCert.InvokeMember("HashAlgorithm", BindingFlags.PutDispProperty, null, requestCert, typeValue);
         typeRequestCert.InvokeMember("Encode", BindingFlags.InvokeMethod, null, requestCert, null);
 
@@ -288,18 +290,20 @@ internal class WinCertificateMaker : ICertificateMaker
 
         var createCertRequest = typeX509Enrollment.InvokeMember("CreateRequest", BindingFlags.InvokeMethod, null,
             x509Enrollment, typeValue);
-        typeValue = new[] { 2, createCertRequest, 0, string.Empty };
+        typeValue = new object [] { 2, createCertRequest, 0, string.Empty };
 
         typeX509Enrollment.InvokeMember("InstallResponse", BindingFlags.InvokeMethod, null, x509Enrollment,
             typeValue);
         typeValue = new object[] { null!, 0, 1 };
 
-        var empty = (string)typeX509Enrollment.InvokeMember("CreatePFX", BindingFlags.InvokeMethod, null,
+        var empty = (string?)typeX509Enrollment.InvokeMember("CreatePFX", BindingFlags.InvokeMethod, null,
             x509Enrollment, typeValue);
 
-        return new X509Certificate2(Convert.FromBase64String(empty), string.Empty, X509KeyStorageFlags.Exportable);
+        return new X509Certificate2(Convert.FromBase64String(empty ?? string.Empty), string.Empty, X509KeyStorageFlags.Exportable);
     }
 }
+
+#pragma warning restore
 
 public enum EncodingType
 {

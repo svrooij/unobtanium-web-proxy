@@ -247,7 +247,7 @@ internal sealed class Socks4Handler : SocksHandler
 
         try
         {
-            Server.BeginSend(Buffer, 0, BufferCount, SocketFlags.None, OnSent, Server);
+            Server.BeginSend(Buffer!, 0, BufferCount, SocketFlags.None, OnSent, Server);
         }
         catch (Exception e)
         {
@@ -275,7 +275,7 @@ internal sealed class Socks4Handler : SocksHandler
         {
             BufferCount = 8;
             Received = 0;
-            Server.BeginReceive(Buffer, 0, BufferCount, SocketFlags.None, OnReceive, Server);
+            Server.BeginReceive(Buffer!, 0, BufferCount, SocketFlags.None, OnReceive, Server);
         }
         catch (Exception e)
         {
@@ -294,7 +294,7 @@ internal sealed class Socks4Handler : SocksHandler
             HandleEndReceive(ar);
             if (Received == 8)
             {
-                if (Buffer[1] == 90)
+                if (Buffer![1] == 90)
                 {
                     OnProtocolComplete(null);
                 }
@@ -306,7 +306,7 @@ internal sealed class Socks4Handler : SocksHandler
             }
             else
             {
-                Server.BeginReceive(Buffer, Received, BufferCount - Received, SocketFlags.None, OnReceive,
+                Server.BeginReceive(Buffer!, Received, BufferCount - Received, SocketFlags.None, OnReceive,
                     Server);
             }
         }

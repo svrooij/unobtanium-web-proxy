@@ -20,11 +20,19 @@ internal static class StringExtensions
 
     internal static bool ContainsIgnoreCase(this string str, string? value)
     {
+        if (value is null)
+        {
+            return false;
+        }
         return CultureInfo.CurrentCulture.CompareInfo.IndexOf(str, value, CompareOptions.IgnoreCase) >= 0;
     }
 
     internal static int IndexOfIgnoreCase(this string str, string? value)
     {
+        if (value is null)
+        {
+            return -1;
+        }
         return CultureInfo.CurrentCulture.CompareInfo.IndexOf(str, value, CompareOptions.IgnoreCase);
     }
 

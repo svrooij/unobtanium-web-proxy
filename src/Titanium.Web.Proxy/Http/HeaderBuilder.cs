@@ -97,6 +97,6 @@ internal class HeaderBuilder
     public string GetString(Encoding encoding)
     {
         stream.TryGetBuffer(out var buffer);
-        return encoding.GetString(buffer.Array, buffer.Offset, buffer.Count);
+        return encoding.GetString(buffer.Array!, buffer.Offset, buffer.Count);
     }
 }

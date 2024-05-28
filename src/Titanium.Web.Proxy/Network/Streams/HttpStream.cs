@@ -733,7 +733,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     https://github.com/justcoding121/Titanium-Web-Proxy/issues/575
     /// </summary>
     /// <returns></returns>
-    public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
+    public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
     {
         if (!networkStreamHack) return base.BeginRead(buffer, offset, count, callback, state);
 
@@ -744,7 +744,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         {
             // use TaskExtended to pass State as AsyncObject
             // callback will call EndRead (otherwise, it will block)
-            callback?.Invoke(new TaskResult<int>(pAsyncResult, state));
+            callback?.Invoke(new TaskResult<int>(pAsyncResult, state!));
         }, cancellationToken);
 
         return vAsyncResult;
@@ -768,13 +768,13 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     That's why we need to call NetworkStream.BeginWrite only (while read is waiting SemaphoreSlim)
     /// </summary>
     /// <returns></returns>
-    public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
+    public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
     {
         if (!networkStreamHack) return base.BeginWrite(buffer, offset, count, callback, state);
 
         var vAsyncResult = WriteAsync(buffer, offset, count, cancellationToken);
 
-        vAsyncResult.ContinueWith(pAsyncResult => { callback?.Invoke(new TaskResult(pAsyncResult, state)); },
+        vAsyncResult.ContinueWith(pAsyncResult => { callback?.Invoke(new TaskResult(pAsyncResult, state!)); },
             cancellationToken);
 
         return vAsyncResult;
@@ -872,7 +872,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
 
         try
         {
-            await WriteAsync(buffer.Array, buffer.Offset, buffer.Count, true, cancellationToken);
+            await WriteAsync(buffer.Array!, buffer.Offset, buffer.Count, true, cancellationToken);
         }
         catch (IOException e)
         {

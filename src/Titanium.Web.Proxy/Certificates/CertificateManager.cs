@@ -498,7 +498,7 @@ public sealed class CertificateManager : IDisposable
         }
 
         var createdTask = false;
-        Task<X509Certificate2?> createCertificateTask;
+        Task<X509Certificate2?>? createCertificateTask;
         await pendingCertificateCreationTaskLock.WaitAsync();
         try
         {

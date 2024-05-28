@@ -341,7 +341,7 @@ internal sealed class Socks5Handler : SocksHandler
 
         try
         {
-            Buffer[0] = 5;
+            Buffer![0] = 5;
             Buffer[1] = 2;
             Buffer[2] = 0;
             Buffer[3] = 2;
@@ -374,7 +374,7 @@ internal sealed class Socks5Handler : SocksHandler
         {
             BufferCount = 2;
             Received = 0;
-            Server.BeginReceive(Buffer, 0, BufferCount, SocketFlags.None, OnAuthReceive,
+            Server.BeginReceive(Buffer!, 0, BufferCount, SocketFlags.None, OnAuthReceive,
                 Server);
         }
         catch (Exception e)
@@ -403,13 +403,13 @@ internal sealed class Socks5Handler : SocksHandler
         {
             if (Received < BufferCount)
             {
-                Server.BeginReceive(Buffer, Received, BufferCount - Received, SocketFlags.None,
+                Server.BeginReceive(Buffer!, Received, BufferCount - Received, SocketFlags.None,
                     OnAuthReceive, Server);
             }
             else
             {
                 AuthMethod authenticate;
-                switch (Buffer[1])
+                switch (Buffer![1])
                 {
                     case 0:
                         authenticate = new AuthNone(Server);
@@ -435,7 +435,7 @@ internal sealed class Socks5Handler : SocksHandler
     ///     Called when the socket has been successfully authenticated with the server.
     /// </summary>
     /// <param name="e">The exception that has occurred while authenticating, or <em>null</em> if no error occurred.</param>
-    private void OnAuthenticated(Exception e)
+    private void OnAuthenticated(Exception? e)
     {
         if (e != null)
         {
@@ -445,7 +445,7 @@ internal sealed class Socks5Handler : SocksHandler
 
         try
         {
-            Server.BeginSend(Buffer, ConnectOffset, handShakeLength, SocketFlags.None, OnSent,
+            Server.BeginSend(Buffer!, ConnectOffset, handShakeLength, SocketFlags.None, OnSent,
                 Server);
         }
         catch (Exception ex)
@@ -474,7 +474,7 @@ internal sealed class Socks5Handler : SocksHandler
         {
             BufferCount = 5;
             Received = 0;
-            Server.BeginReceive(Buffer, 0, BufferCount, SocketFlags.None, OnReceive,
+            Server.BeginReceive(Buffer!, 0, BufferCount, SocketFlags.None, OnReceive,
                 Server);
         }
         catch (Exception e)
@@ -502,9 +502,9 @@ internal sealed class Socks5Handler : SocksHandler
         try
         {
             if (Received == BufferCount)
-                ProcessReply(Buffer);
+                ProcessReply(Buffer!);
             else
-                Server.BeginReceive(Buffer, Received, BufferCount - Received, SocketFlags.None,
+                Server.BeginReceive(Buffer!, Received, BufferCount - Received, SocketFlags.None,
                     OnReceive, Server);
         }
         catch (Exception e)
@@ -538,7 +538,7 @@ internal sealed class Socks5Handler : SocksHandler
 
         Received = 0;
         BufferCount = lengthToRead;
-        Server.BeginReceive(Buffer, 0, BufferCount, SocketFlags.None, OnReadLast, Server);
+        Server.BeginReceive(Buffer!, 0, BufferCount, SocketFlags.None, OnReadLast, Server);
     }
 
     /// <summary>
@@ -562,7 +562,7 @@ internal sealed class Socks5Handler : SocksHandler
             if (Received == BufferCount)
                 OnProtocolComplete(null);
             else
-                Server.BeginReceive(Buffer, Received, BufferCount - Received, SocketFlags.None,
+                Server.BeginReceive(Buffer!, Received, BufferCount - Received, SocketFlags.None,
                     OnReadLast, Server);
         }
         catch (Exception e)

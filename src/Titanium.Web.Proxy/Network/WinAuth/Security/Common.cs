@@ -193,7 +193,7 @@ internal class Common
 
             if (cBuffers == 1)
             {
-                var thisSecBuffer = (SecurityBuffer)Marshal.PtrToStructure(pBuffers, typeof(SecurityBuffer));
+                var thisSecBuffer = (SecurityBuffer)Marshal.PtrToStructure(pBuffers, typeof(SecurityBuffer))!;
 
                 if (thisSecBuffer.cbBuffer > 0)
                 {

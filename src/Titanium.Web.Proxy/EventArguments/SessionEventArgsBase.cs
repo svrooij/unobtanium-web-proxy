@@ -100,15 +100,15 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     ///     Client Local End Point.
     /// </summary>
-    public IPEndPoint ClientLocalEndPoint => (IPEndPoint)ClientConnection.LocalEndPoint;
+    public IPEndPoint? ClientLocalEndPoint => ClientConnection.LocalEndPoint as IPEndPoint;
 
     /// <summary>
     ///     Client Remote End Point.
     /// </summary>
-    public IPEndPoint ClientRemoteEndPoint => (IPEndPoint)ClientConnection.RemoteEndPoint;
+    public IPEndPoint? ClientRemoteEndPoint => ClientConnection.RemoteEndPoint as IPEndPoint;
 
     [Obsolete("Use ClientRemoteEndPoint instead.")]
-    public IPEndPoint ClientEndPoint => ClientRemoteEndPoint;
+    public IPEndPoint? ClientEndPoint => ClientRemoteEndPoint;
 
     /// <summary>
     ///     The web client used to communicate with server for this session.

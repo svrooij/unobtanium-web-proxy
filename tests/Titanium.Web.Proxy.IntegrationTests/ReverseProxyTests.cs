@@ -147,6 +147,7 @@ public class ReverseProxyTests
         {
             e.DecryptSsl = false;
             e.ForwardHttpsPort = server.HttpsListeningPort;
+            await Task.CompletedTask;
         };
 
         var client = testSuite.GetReverseProxyClient();
