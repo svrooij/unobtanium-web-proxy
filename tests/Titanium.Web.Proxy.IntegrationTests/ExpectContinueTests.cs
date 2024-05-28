@@ -11,7 +11,7 @@ namespace Titanium.Web.Proxy.IntegrationTests;
 [TestClass]
 public class ExpectContinueTests
 {
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task ReverseProxy_GotContinueAndOkResponse()
     {
         var testSuite = new TestSuite();
@@ -38,7 +38,7 @@ public class ExpectContinueTests
         Assert.AreEqual(continueServer.ResponseBody, response.BodyString);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task ReverseProxy_GotExpectationFailedResponse()
     {
         var testSuite = new TestSuite();
@@ -61,7 +61,7 @@ public class ExpectContinueTests
         Assert.AreEqual((int)HttpStatusCode.ExpectationFailed, response.StatusCode);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task ReverseProxy_GotNotFoundResponse()
     {
         var testSuite = new TestSuite();
@@ -84,7 +84,7 @@ public class ExpectContinueTests
         Assert.AreEqual((int)HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task ReverseProxy_BeforeRequestThrows()
     {
         var testSuite = new TestSuite();

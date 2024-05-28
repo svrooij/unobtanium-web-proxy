@@ -12,7 +12,7 @@ namespace Titanium.Web.Proxy.IntegrationTests;
 [TestClass]
 public class ReverseProxyTests
 {
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Smoke_Test_Http_To_Http_Reverse_Proxy()
     {
         var testSuite = new TestSuite();
@@ -41,7 +41,7 @@ public class ReverseProxyTests
         Assert.AreEqual("I am server. I received your greetings.", body);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Smoke_Test_Https_To_Http_Reverse_Proxy()
     {
         var testSuite = new TestSuite();
@@ -70,7 +70,7 @@ public class ReverseProxyTests
         Assert.AreEqual("I am server. I received your greetings.", body);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Smoke_Test_Http_To_Https_Reverse_Proxy()
     {
         var testSuite = new TestSuite();
@@ -99,7 +99,7 @@ public class ReverseProxyTests
         Assert.AreEqual("I am server. I received your greetings.", body);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Smoke_Test_Https_To_Https_Reverse_Proxy()
     {
         var testSuite = new TestSuite();
@@ -128,7 +128,7 @@ public class ReverseProxyTests
         Assert.AreEqual("I am server. I received your greetings.", body);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Smoke_Test_Https_To_Https_Reverse_Proxy_Tunnel_Without_Decryption()
     {
         var testSuite = new TestSuite();

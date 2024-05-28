@@ -12,7 +12,7 @@ namespace Titanium.Web.Proxy.IntegrationTests;
 [TestClass]
 public class NestedProxyTests
 {
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Smoke_Test_Nested_Proxy()
     {
         var testSuite = new TestSuite();
@@ -37,7 +37,7 @@ public class NestedProxyTests
         Assert.AreEqual("I am server. I received your greetings.", body);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Smoke_Test_Nested_Proxy_UserData()
     {
         var testSuite = new TestSuite();
