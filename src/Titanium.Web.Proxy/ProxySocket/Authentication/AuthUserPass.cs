@@ -41,11 +41,11 @@ namespace Titanium.Web.Proxy.ProxySocket.Authentication;
 internal sealed class AuthUserPass : AuthMethod
 {
     /// <summary>Holds the value of the Password property.</summary>
-    private string password;
+    private string? password;
 
     // private variables
     /// <summary>Holds the value of the Username property.</summary>
-    private string username;
+    private string? username;
 
     /// <summary>
     ///     Initializes a new AuthUserPass instance.
@@ -67,7 +67,7 @@ internal sealed class AuthUserPass : AuthMethod
     /// <exception cref="ArgumentNullException">The specified value is null.</exception>
     private string Username
     {
-        get => username;
+        get => username!;
         set => username = value ?? throw new ArgumentNullException();
     }
 
@@ -78,7 +78,7 @@ internal sealed class AuthUserPass : AuthMethod
     /// <exception cref="ArgumentNullException">The specified value is null.</exception>
     private string Password
     {
-        get => password;
+        get => password!;
         set => password = value ?? throw new ArgumentNullException();
     }
 
@@ -163,7 +163,7 @@ internal sealed class AuthUserPass : AuthMethod
             if (Server.EndSend(ar) < GetAuthenticationLength())
                 throw new SocketException(10054);
 
-            Server.BeginReceive(Buffer, 0, 2, SocketFlags.None, OnReceive, Server);
+            Server.BeginReceive(Buffer!, 0, 2, SocketFlags.None, OnReceive, Server);
         }
         catch (Exception e)
         {
@@ -185,12 +185,12 @@ internal sealed class AuthUserPass : AuthMethod
 
             Received += recv;
             if (Received == 2)
-                if (Buffer[1] == 0)
+                if (Buffer![1] == 0)
                     OnCallBack(null);
                 else
                     throw new ProxyException("Username/password combination not accepted.");
             else
-                Server.BeginReceive(Buffer, Received, 2 - Received, SocketFlags.None,
+                Server.BeginReceive(Buffer!, Received, 2 - Received, SocketFlags.None,
                     OnReceive, Server);
         }
         catch (Exception e)
@@ -201,7 +201,11 @@ internal sealed class AuthUserPass : AuthMethod
 
     private void OnCallBack(Exception? exception)
     {
-        ArrayPool<byte>.Shared.Return(Buffer);
-        CallBack(exception);
+        ArrayPool<byte>.Shared.Return(Buffer!);
+        if (CallBack is not null)
+        {
+            CallBack(exception);
+        }
+        
     }
 }

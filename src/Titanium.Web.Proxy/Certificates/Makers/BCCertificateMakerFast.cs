@@ -205,7 +205,7 @@ internal class BcCertificateMakerFast : ICertificateMaker
         if (signingCertificate == null)
             return GenerateCertificate(null, subjectName, subjectName, validFrom, validTo, KeyPair);
 
-        var kp = DotNetUtilities.GetKeyPair(signingCertificate.PrivateKey);
+        var kp = DotNetUtilities.GetKeyPair(signingCertificate.GetRSAPrivateKey());
         return GenerateCertificate(hostName, subjectName, signingCertificate.Subject, validFrom, validTo, KeyPair,
             issuerPrivateKey: kp.Private);
     }

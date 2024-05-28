@@ -28,15 +28,15 @@ internal class TcpClientConnection : IDisposable
         ProxyServer.UpdateClientConnectionCount(true);
     }
 
-    public object ClientUserData { get; set; }
+    public object? ClientUserData { get; set; }
 
     private ProxyServer ProxyServer { get; }
 
     public Guid Id { get; } = Guid.NewGuid();
 
-    public EndPoint LocalEndPoint => tcpClientSocket.LocalEndPoint;
+    public EndPoint? LocalEndPoint => tcpClientSocket.LocalEndPoint;
 
-    public EndPoint RemoteEndPoint => tcpClientSocket.RemoteEndPoint;
+    public EndPoint? RemoteEndPoint => tcpClientSocket.RemoteEndPoint;
 
     internal SslProtocols SslProtocol { get; set; }
 
@@ -59,10 +59,10 @@ internal class TcpClientConnection : IDisposable
 
         if (RunTime.IsWindows)
         {
-            var remoteEndPoint = (IPEndPoint)RemoteEndPoint;
+            var remoteEndPoint = RemoteEndPoint as IPEndPoint;
 
             // If client is localhost get the process id
-            if (NetworkHelper.IsLocalIpAddress(remoteEndPoint.Address))
+            if (remoteEndPoint is not null && NetworkHelper.IsLocalIpAddress(remoteEndPoint.Address))
                 processId = TcpHelper.GetProcessIdByLocalPort(endPoint.IpAddress.AddressFamily, remoteEndPoint.Port);
             else
                 // can't access process Id of remote request from remote machine

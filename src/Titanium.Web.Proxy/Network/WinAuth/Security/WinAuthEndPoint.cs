@@ -130,7 +130,7 @@ internal class WinAuthEndPoint
             if (clientToken.cBuffers == 1)
             {
                 var thisSecBuffer =
-                    (SecurityBuffer)Marshal.PtrToStructure(clientToken.pBuffers, typeof(SecurityBuffer));
+                    (SecurityBuffer)Marshal.PtrToStructure(clientToken.pBuffers, typeof(SecurityBuffer))!;
                 DisposeSecBuffer(thisSecBuffer);
             }
             else

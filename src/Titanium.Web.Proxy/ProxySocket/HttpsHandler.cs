@@ -42,7 +42,7 @@ internal sealed class HttpsHandler : SocksHandler
 {
     // private variables
     /// <summary>Holds the value of the Password property.</summary>
-    private string password;
+    private string? password;
 
     /// <summary>Holds the count of newline characters received.</summary>
     private int receivedNewlineChars;
@@ -84,7 +84,7 @@ internal sealed class HttpsHandler : SocksHandler
     /// <value>The password to use when authenticating with the HTTPS server.</value>
     private string Password
     {
-        get => password;
+        get => password!;
         set => password = value ?? throw new ArgumentNullException();
     }
 
@@ -233,7 +233,7 @@ internal sealed class HttpsHandler : SocksHandler
 
         try
         {
-            Server.BeginSend(Buffer, 0, Buffer.Length, SocketFlags.None, OnConnectSent,
+            Server.BeginSend(Buffer!, 0, Buffer!.Length, SocketFlags.None, OnConnectSent,
                 null);
         }
         catch (Exception e)
@@ -250,10 +250,10 @@ internal sealed class HttpsHandler : SocksHandler
     {
         try
         {
-            HandleEndSend(ar, Buffer.Length);
+            HandleEndSend(ar, Buffer!.Length);
             Buffer = new byte[13];
             Received = 0;
-            Server.BeginReceive(Buffer, 0, 13, SocketFlags.None, OnConnectReceive, Server);
+            Server.BeginReceive(Buffer!, 0, 13, SocketFlags.None, OnConnectReceive, Server);
         }
         catch (Exception e)
         {
@@ -281,12 +281,12 @@ internal sealed class HttpsHandler : SocksHandler
         {
             if (Received < 13)
             {
-                Server.BeginReceive(Buffer, Received, 13 - Received, SocketFlags.None,
+                Server.BeginReceive(Buffer!, Received, 13 - Received, SocketFlags.None,
                     OnConnectReceive, Server);
             }
             else
             {
-                VerifyConnectHeader(Buffer, 13);
+                VerifyConnectHeader(Buffer!, 13);
                 ReadUntilHeadersEnd(true);
             }
         }
@@ -310,12 +310,12 @@ internal sealed class HttpsHandler : SocksHandler
             }
             else
             {
-                var recv = Server.Receive(Buffer, 0, 1, SocketFlags.None);
+                var recv = Server.Receive(Buffer!, 0, 1, SocketFlags.None);
                 if (recv == 0)
                     throw new SocketException(10054);
             }
 
-            if (Buffer[0] == (receivedNewlineChars % 2 == 0 ? '\r' : '\n'))
+            if (Buffer![0] == (receivedNewlineChars % 2 == 0 ? '\r' : '\n'))
                 receivedNewlineChars++;
             else
                 receivedNewlineChars = Buffer[0] == '\r' ? 1 : 0;
@@ -324,7 +324,7 @@ internal sealed class HttpsHandler : SocksHandler
         if (receivedNewlineChars == 4)
             OnProtocolComplete(null);
         else
-            Server.BeginReceive(Buffer, 0, 1, SocketFlags.None, OnEndHeadersReceive,
+            Server.BeginReceive(Buffer!, 0, 1, SocketFlags.None, OnEndHeadersReceive,
                 Server);
     }
 
@@ -350,6 +350,9 @@ internal sealed class HttpsHandler : SocksHandler
     protected override void OnProtocolComplete(Exception? exception)
     {
         // do not return the base Buffer
-        ProtocolComplete(exception);
+        if (ProtocolComplete is not null)
+        {
+            ProtocolComplete(exception);
+        }
     }
 }

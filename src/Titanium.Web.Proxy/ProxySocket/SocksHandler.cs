@@ -46,11 +46,11 @@ internal delegate void HandShakeComplete(Exception? error);
 internal abstract class SocksHandler
 {
     /// <summary>Holds the address of the method to call when the SOCKS protocol has been completed.</summary>
-    protected HandShakeComplete ProtocolComplete;
+    protected HandShakeComplete? ProtocolComplete;
 
     // private variables
     /// <summary>Holds the value of the Server property.</summary>
-    private Socket server;
+    private Socket? server;
 
     /// <summary>Holds the value of the Username property.</summary>
     private string username = string.Empty;
@@ -74,7 +74,7 @@ internal abstract class SocksHandler
     /// <exception cref="ArgumentNullException">The specified value is null.</exception>
     protected Socket Server
     {
-        get => server;
+        get => server!;
         set => server = value ?? throw new ArgumentNullException();
     }
 
@@ -93,13 +93,13 @@ internal abstract class SocksHandler
     ///     Gets or sets the return value of the BeginConnect call.
     /// </summary>
     /// <value>An IAsyncProxyResult object that is the return value of the BeginConnect call.</value>
-    protected AsyncProxyResult AsyncResult { get; set; }
+    protected AsyncProxyResult? AsyncResult { get; set; }
 
     /// <summary>
     ///     Gets or sets a byte buffer.
     /// </summary>
     /// <value>An array of bytes.</value>
-    protected byte[] Buffer { get; set; }
+    protected byte[]? Buffer { get; set; }
 
     /// <summary>
     ///     Gets or sets actual data count in the buffer.
@@ -193,7 +193,11 @@ internal abstract class SocksHandler
     {
         if (Buffer != null) ArrayPool<byte>.Shared.Return(Buffer);
 
-        ProtocolComplete(exception);
+        if (ProtocolComplete is not null)
+        {
+            ProtocolComplete(exception);
+        }
+        
     }
 
     /// <summary>

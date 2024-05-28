@@ -414,7 +414,8 @@ namespace Titanium.Web.Proxy.Http2.Hpack
             while (e != null)
             {
                 var next = e.Next;
-                if (e == eldest)
+                // TODO this line was if (e == eldest) and is not changed to if (e == eldest && next is not null)
+                if (e == eldest && next is not null)
                 {
                     if (prev == eldest)
                     {
@@ -442,10 +443,16 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// </summary>
         private void Clear()
         {
-            for (int i = 0; i < headerFields.Length; i++)
+            // TODO validate change
+            while(headerFields.Length > 0)
             {
-                headerFields[i] = null;
+                headerFields[0].Remove();
             }
+
+            //for (int i = 0; i < headerFields.Length; i++)
+            //{
+            //    headerFields[i] = null;
+            //}
 
             head.Before = head.After = head;
             size = 0;

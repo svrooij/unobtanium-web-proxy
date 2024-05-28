@@ -191,9 +191,13 @@ namespace Titanium.Web.Proxy.Http2
                             args = sessionFactory();
                             args.IsPromise = true;
                             if (!sessions.TryAdd(streamId, args))
-                                ;
+                            {
+
+                            }
                             if (!sessions.TryAdd(promisedStreamId, args))
-                                ;
+                            {
+
+                            }
                         }
 
                         System.Diagnostics.Debug.WriteLine("PROMISE STREAM: " + streamId + ", " + promisedStreamId +
@@ -212,7 +216,8 @@ namespace Titanium.Web.Proxy.Http2
                         {
                             args = sessionFactory();
                             if (!sessions.TryAdd(streamId, args))
-                                ;
+                            { }
+                            
                         }
 
                         rr = isClient ? (RequestResponseBase)args.HttpClient.Request : args.HttpClient.Response;
@@ -473,7 +478,7 @@ namespace Titanium.Web.Proxy.Http2
             if (rr is Request request)
             {
                 var uri = request.RequestUri;
-                encoder.EncodeHeader(writer, StaticTable.KnownHeaderMethod, request.Method.GetByteString());
+                encoder.EncodeHeader(writer, StaticTable.KnownHeaderMethod, request.Method!.GetByteString());
                 encoder.EncodeHeader(writer, StaticTable.KnownHeaderAuhtority, uri.Authority.GetByteString());
                 encoder.EncodeHeader(writer, StaticTable.KnownHeaderScheme, uri.Scheme.GetByteString());
                 encoder.EncodeHeader(writer, StaticTable.KnownHeaderPath, request.RequestUriString8, false,

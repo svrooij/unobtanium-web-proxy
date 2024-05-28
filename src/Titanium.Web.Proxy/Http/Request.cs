@@ -17,7 +17,7 @@ public class Request : RequestResponseBase
     /// <summary>
     ///     Request Method.
     /// </summary>
-    public string Method { get; set; }
+    public string? Method { get; set; }
 
     /// <summary>
     ///     Is Https?
@@ -191,7 +191,7 @@ public class Request : RequestResponseBase
         get
         {
             var headerBuilder = new HeaderBuilder();
-            headerBuilder.WriteRequestLine(Method, RequestUriString, HttpVersion);
+            headerBuilder.WriteRequestLine(Method!, RequestUriString, HttpVersion);
             headerBuilder.WriteHeaders(Headers);
             return headerBuilder.GetString(HttpHeader.Encoding);
         }

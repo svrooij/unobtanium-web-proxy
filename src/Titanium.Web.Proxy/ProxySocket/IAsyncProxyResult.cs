@@ -42,13 +42,13 @@ internal class AsyncProxyResult : IAsyncResult
     // private variables
 
     /// <summary>Holds the value of the WaitHandle property.</summary>
-    private ManualResetEvent waitHandle;
+    private ManualResetEvent? waitHandle;
 
     /// <summary>Initializes the internal variables of this object</summary>
     /// <param name="stateObject">An object that contains state information for this request.</param>
-    internal AsyncProxyResult(object stateObject = null)
+    internal AsyncProxyResult(object? stateObject = null)
     {
-        AsyncState = stateObject;
+        AsyncState = stateObject ?? new object();
         IsCompleted = false;
         waitHandle?.Reset();
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,7 +11,7 @@ namespace Titanium.Web.Proxy.IntegrationTests;
 [TestClass]
 public class HttpsTests
 {
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Can_Handle_Https_Request()
     {
         var testSuite = new TestSuite();
@@ -33,7 +34,7 @@ public class HttpsTests
         Assert.AreEqual("I am server. I received your greetings.", body);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Can_Handle_Https_Fake_Tunnel_Request()
     {
         var testSuite = new TestSuite();
@@ -62,7 +63,7 @@ public class HttpsTests
         Assert.AreEqual("I am server. I received your greetings.", body);
     }
 
-    [TestMethod]
+    [TestMethod, Timeout(10000)]
     public async Task Can_Handle_Https_Mutual_Tls_Request()
     {
         var testSuite = new TestSuite(true);

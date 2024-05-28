@@ -78,7 +78,7 @@ public partial class ProxyServer
                                       await CertificateManager.CreateServerCertificate(certName);
 
                         // Successfully managed to authenticate the client using the certificate
-                        await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls12, false);
+                        await sslStream.AuthenticateAsServerAsync(certificate!, false, SslProtocols.Tls12, false);
 
                         // HTTPS server created - we can now decrypt the client's traffic
                         clientStream = new HttpClientStream(this, clientStream.Connection, sslStream, BufferPool,

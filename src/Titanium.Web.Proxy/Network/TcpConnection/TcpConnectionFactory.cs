@@ -523,11 +523,11 @@ internal class TcpConnectionFactory : IDisposable
             {
                 var sslStream = new SslStream(stream, false,
                     (sender, certificate, chain, sslPolicyErrors) =>
-                        proxyServer.ValidateServerCertificate(sender, sessionArgs, certificate, chain,
+                        proxyServer.ValidateServerCertificate(sender, sessionArgs, certificate!, chain!,
                             sslPolicyErrors),
                     (sender, targetHost, localCertificates, remoteCertificate, acceptableIssuers) =>
                         proxyServer.SelectClientCertificate(sender, sessionArgs, targetHost, localCertificates,
-                            remoteCertificate, acceptableIssuers));
+                            remoteCertificate, acceptableIssuers)!);
                 stream = new HttpServerStream(proxyServer, sslStream, proxyServer.BufferPool, cancellationToken);
 
                 var options = new SslClientAuthenticationOptions
@@ -547,7 +547,7 @@ internal class TcpConnectionFactory : IDisposable
             }
         }
         catch (IOException ex) when (ex.HResult == unchecked((int)0x80131620) && retry &&
-                                     enabledSslProtocols >= SslProtocols.Tls11)
+                                     enabledSslProtocols >= SslProtocols.Tls12)
         {
             stream?.Dispose();
             tcpServerSocket?.Close();
@@ -562,7 +562,7 @@ internal class TcpConnectionFactory : IDisposable
             goto retry;
         }
         catch (AuthenticationException ex) when (ex.HResult == unchecked((int)0x80131501) && retry &&
-                                                 enabledSslProtocols >= SslProtocols.Tls11)
+                                                 enabledSslProtocols >= SslProtocols.Tls12)
         {
             stream?.Dispose();
             tcpServerSocket?.Close();
@@ -747,15 +747,15 @@ internal class TcpConnectionFactory : IDisposable
 
     private static class SocketConnectionTaskFactory
     {
-        private static IAsyncResult BeginConnect(IPAddress address, int port, AsyncCallback requestCallback,
-            object state)
+        private static IAsyncResult BeginConnect(IPAddress address, int port, AsyncCallback? requestCallback,
+            object? state)
         {
-            return ((Socket)state).BeginConnect(address, port, requestCallback, state);
+            return (state as Socket)!.BeginConnect(address, port, requestCallback, state);
         }
 
         private static void EndConnect(IAsyncResult asyncResult)
         {
-            ((Socket)asyncResult.AsyncState).EndConnect(asyncResult);
+            (asyncResult.AsyncState as Socket)!.EndConnect(asyncResult);
         }
 
         public static Task CreateTask(Socket socket, IPAddress ipAddress, int port)
@@ -766,30 +766,30 @@ internal class TcpConnectionFactory : IDisposable
 
     private static class ProxySocketConnectionTaskFactory
     {
-        private static IAsyncResult BeginConnect(IPAddress address, int port, AsyncCallback requestCallback,
-            object state)
+        private static IAsyncResult? BeginConnect(IPAddress address, int port, AsyncCallback requestCallback,
+            object? state)
         {
-            return ((ProxySocket.ProxySocket)state).BeginConnect(address, port, requestCallback, state);
+            return (state as ProxySocket.ProxySocket)!.BeginConnect(address, port, requestCallback, state);
         }
 
-        private static IAsyncResult BeginConnect(string hostName, int port, AsyncCallback requestCallback, object state)
+        private static IAsyncResult? BeginConnect(string hostName, int port, AsyncCallback requestCallback, object? state)
         {
-            return ((ProxySocket.ProxySocket)state).BeginConnect(hostName, port, requestCallback, state);
+            return (state as ProxySocket.ProxySocket)!.BeginConnect(hostName, port, requestCallback, state);
         }
 
         private static void EndConnect(IAsyncResult asyncResult)
         {
-            ((ProxySocket.ProxySocket)asyncResult.AsyncState).EndConnect(asyncResult);
+            (asyncResult.AsyncState as ProxySocket.ProxySocket)!.EndConnect(asyncResult);
         }
 
         public static Task CreateTask(ProxySocket.ProxySocket socket, IPAddress ipAddress, int port)
         {
-            return Task.Factory.FromAsync(BeginConnect, EndConnect, ipAddress, port, socket);
+            return Task.Factory.FromAsync(BeginConnect!, EndConnect, ipAddress, port, socket);
         }
 
         public static Task CreateTask(ProxySocket.ProxySocket socket, string hostName, int port)
         {
-            return Task.Factory.FromAsync(BeginConnect, EndConnect, hostName, port, socket);
+            return Task.Factory.FromAsync(BeginConnect!, EndConnect, hostName, port, socket);
         }
     }
 }

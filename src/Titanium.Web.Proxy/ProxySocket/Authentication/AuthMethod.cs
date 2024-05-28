@@ -41,12 +41,12 @@ namespace Titanium.Web.Proxy.ProxySocket.Authentication;
 internal abstract class AuthMethod
 {
     /// <summary>Holds the address of the method to call when the proxy has authenticated the client.</summary>
-    protected HandShakeComplete CallBack;
+    protected HandShakeComplete? CallBack;
 
     // private variables
 
     /// <summary>Holds the value of the Server property.</summary>
-    private Socket server;
+    private Socket? server;
 
     /// <summary>
     ///     Initializes an AuthMethod instance.
@@ -63,7 +63,7 @@ internal abstract class AuthMethod
     /// <value>The socket connection with the proxy server.</value>
     protected Socket Server
     {
-        get => server;
+        get => server!;
         set => server = value ?? throw new ArgumentNullException();
     }
 
@@ -71,7 +71,7 @@ internal abstract class AuthMethod
     ///     Gets or sets a byt array that can be used to store data.
     /// </summary>
     /// <value>A byte array to store data.</value>
-    protected byte[] Buffer { get; set; }
+    protected byte[]? Buffer { get; set; }
 
     /// <summary>
     ///     Gets or sets the number of bytes that have been received from the remote proxy server.
