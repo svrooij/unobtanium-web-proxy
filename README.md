@@ -1,71 +1,94 @@
-## Titanium Web Proxy
+# Titanium Web Proxy
 
-A lightweight HTTP(S) proxy server written in C#.
+A lightweight HTTP(S) proxy server written in C# `NET8.0`.
 
-[![.NET Core](https://github.com/justcoding121/titanium-web-proxy/actions/workflows/dotnetcore.yml/badge.svg?branch=develop)](https://github.com/justcoding121/titanium-web-proxy/actions/workflows/dotnetcore.yml) [![Join the chat at https://gitter.im/Titanium-Web-Proxy/Lobby](https://badges.gitter.im/Titanium-Web-Proxy/Lobby.svg)](https://gitter.im/Titanium-Web-Proxy/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Titanium web proxy][badge_twp-repo]][link_twp-repo]
+[![github issues][badge_issues]][link_issues]
+[![Build status][badge_twp_build]][link_build]
+[![Support me on Github][badge_sponsor]][link_sponsor]
 
-Report bugs or raise issues here. For programming help use [StackOverflow](http://stackoverflow.com/questions/tagged/titanium-web-proxy) with the tag Titanium-Web-Proxy.
+Report bugs or raise issues here.
 
-* [API Documentation](https://justcoding121.github.io/titanium-web-proxy/docs/api/Titanium.Web.Proxy.ProxyServer.html)
-* [Wiki & Contribution guidelines](https://github.com/justcoding121/Titanium-Web-Proxy/wiki)
+## Project reboot
 
-### Features
+[![Titanium web proxy][badge_twp-repo]][link_twp-repo]
 
+This project is a reboot of the original [Titanium-Web-Proxy](https://github.com/justcoding121/titanium-web-proxy) project. The original project was last updated two years ago, has been archived by the author on July 9th 2023 and has been inactive since then. This project aims to continue the development of the original project and provide a stable and reliable proxy server library for .NET developers.
+
+Documentation and nuget packages will be released soon.
+
+### Reboot focus
+
+* `net8.0` only (no support for older versions of .NET!)
+* Support for `ILogger`
+* Support for diagnostic events using `ActivitySource` and `Activity`
+* Using the latest .NET features like `Span<T>` and `Memory<T>` to improve performance
+* Update dependencies to the latest versions
+* `TLS 1.2` and `TLS 1.3` only support
+* Event-handlers with `HttpRequestMessage` and `HttpResponseMessage`, to greatly improve the portability of the library
+* `HttpClient` as the default client, and using the IHttpClientFactory to handle pooling of the clients
+* Testing, testing, testing!
+
+## Features
+
+* ~~[API Documentation](https://justcoding121.github.io/titanium-web-proxy/docs/api/Titanium.Web.Proxy.ProxyServer.html)~~
+* ~~[Wiki & Contribution guidelines](https://github.com/justcoding121/Titanium-Web-Proxy/wiki)~~
 * Multithreaded and asynchronous proxy employing server connection pooling, certificate cache, and buffer pooling
 * View, modify, redirect and block requests or responses
 * Supports mutual SSL authentication, proxy authentication & automatic upstream proxy detection
 * Supports kerberos, NTLM authentication over HTTP protocols on windows domain controlled networks
 * SOCKS4/5 Proxy support
 
-### Installation
-Install by [nuget](https://www.nuget.org/packages/Titanium.Web.Proxy)
+## Installation
 
-For beta releases on [beta branch](https://github.com/justcoding121/Titanium-Web-Proxy/tree/beta)
-
-    Install-Package Titanium.Web.Proxy -Pre
-
-For stable releases on [stable branch](https://github.com/justcoding121/Titanium-Web-Proxy/tree/stable)
-
-    Install-Package Titanium.Web.Proxy
+Package not yet available on NuGet.
 
 Supports
 
- * .NET Standard 2.0 or above
- * .NET Framework 4.5 or above
+* `.NET 8.0` and above
 
-###  Note to contributors
+## Note to contributors
 
-#### Road map
+### Road map
 
-* Fix [outstanding bugs](https://github.com/justcoding121/Titanium-Web-Proxy/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
+* Fix [outstanding bugs](https://github.com/svrooij/Titanium-Web-Proxy/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
 * Support reading request and response body as stream [#823](https://github.com/justcoding121/Titanium-Web-Proxy/issues/823)
-* Stop throwing new exceptions [#634](https://github.com/justcoding121/Titanium-Web-Proxy/issues/634)
-* Support HTTP 2.0 
+* Support HTTP 2.0
 
-#### Collaborators
+### Collaborators
 
-The owner of this project, [justcoding121](https://github.com/justcoding121), is considered to be inactive from this project due to his busy work schedule. However, we have a collaborator listed below who time and again shows up to maintain this project. Please create pull requests prioritizing bug fixes for the attention of collaborators.
+The owner of this project, [justcoding121](https://github.com/justcoding121), is considered to be inactive from this project due to his busy work schedule. See [project reboot](#project-reboot) for more information.
 
+Previous contributors:
+
+* [justcoding121](https://github.com/justcoding121) *owner*
 * [honfika](https://github.com/honfika)
- 
-### Development environment
 
-#### Windows
-* Visual Studio Code as IDE for .NET
-* Visual Studio 2022 as IDE for .NET Framework/.NET
+Current contributors:
 
-#### Mac OS
-* Visual Studio Code as IDE for .NET
-* Visual Studio 2022 as IDE for Mono
+* [svrooij](https://github.com/svrooij)
 
-#### Linux
-* Visual Studio Code as IDE for .NET
-* Mono develop as IDE for Mono
+You contributions are more then welcome! Let's make this project great again!
 
-### Usage
+## Development environment
 
-Refer the HTTP Proxy Server library in your project and look up the test project to learn usage. 
- 
+### Windows
+
+* Visual Studio Code as IDE
+* Visual Studio 2022 as IDE
+
+### Mac OS
+
+* Visual Studio Code as IDE
+
+### Linux
+
+* Visual Studio Code as IDE
+
+## Usage
+
+Refer the HTTP Proxy Server library in your project and look up the test project to learn usage.
+
 Setup HTTP proxy:
 
 ```csharp
@@ -136,10 +159,10 @@ proxyServer.ClientCertificateSelectionCallback -= OnCertificateSelection;
 proxyServer.Stop();
     
 ```
+
 Sample request and response event handlers
 
-```csharp        
-
+```csharp
 private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
 {
     string hostname = e.HttpClient.Request.RequestUri.Host;
@@ -243,10 +266,20 @@ public Task OnCertificateSelection(object sender, CertificateSelectionEventArgs 
 }
 ```
 
-**Console example application screenshot**
+### Console example application screenshot
 
-![alt tag](https://raw.githubusercontent.com/justcoding121/Titanium-Web-Proxy/develop/examples/Titanium.Web.Proxy.Examples.Basic/Capture.PNG)
+![alt tag](https://raw.githubusercontent.com/svrooij/Titanium-Web-Proxy/develop/examples/Titanium.Web.Proxy.Examples.Basic/Capture.PNG)
 
-**GUI example application screenshot**
+### GUI example application screenshot
 
-![alt tag](https://raw.githubusercontent.com/justcoding121/Titanium-Web-Proxy/develop/examples/Titanium.Web.Proxy.Examples.Wpf/Capture.PNG)
+![alt tag](https://raw.githubusercontent.com/svrooij/Titanium-Web-Proxy/develop/examples/Titanium.Web.Proxy.Examples.Wpf/Capture.PNG)
+
+[badge_issues]: https://img.shields.io/github/issues/svrooij/titanium-web-proxy?style=for-the-badge
+[badge_sponsor]: https://img.shields.io/github/sponsors/svrooij?style=for-the-badge&logo=github
+[badge_twp-repo]: https://img.shields.io/badge/Titanium--Web--Proxy-Reboot-blue?style=for-the-badge
+[badge_twp_build]: https://img.shields.io/github/check-runs/svrooij/titanium-web-proxy/develop?style=for-the-badge
+
+[link_build]: https://github.com/svrooij/titanium-web-proxy/actions/workflows/dotnetcore.yml
+[link_issues]: https://github.com/svrooij/titanium-web-proxy/issues
+[link_twp-repo]: https://github.com/svrooij/titanium-web-proxy
+[link_sponsor]: https://github.com/sponsors/svrooij
