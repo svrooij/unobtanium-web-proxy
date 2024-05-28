@@ -43,10 +43,12 @@ jobs:
     - name: 🧪 Test 
       shell: pwsh
       run: |
-        .\.github\install-unit-test-certificate.ps1
+
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## 🧪 Unit Tests'
         dotnet test tests/Titanium.Web.Proxy.UnitTests/Titanium.Web.Proxy.UnitTests.csproj --configuration Release -v minimal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
         dotnet test tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj -v normal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
+
+    #         .\.github\install-unit-test-certificate.ps1
 
     - name: 📝 Code Coverage report
       if: always()
