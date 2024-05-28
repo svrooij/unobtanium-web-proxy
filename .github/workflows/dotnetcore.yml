@@ -48,22 +48,21 @@ jobs:
     # dotnet test tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj --configuration Release -v minimal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
 
     - name: 📝 Code Coverage report
+      shell: pwsh
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.3.4
         reportgenerator -reports:${{github.workspace}}/coverage.cobertura.xml -targetdir:${{github.workspace}}/report -reporttypes:MarkdownSummaryGithub -filefilters:-*.g.cs -verbosity:Warning
+        $report = Get-Content ${{github.workspace}}\report\SummaryGithub.md -Raw
+        $report = $report.Replace('# Summary', '## 📝 Code Coverage').Replace('## Coverage', '### 📝 Code Coverage details')
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $report
 
     - name: 📦 Upload Code Coverage report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: ${{github.workspace}}/report
-
-    - name: 📝 Code Coverage summary
-      shell: bash
-      run: |
-        sed -i 's/# Summary/## 📝 Code Coverage/g' ${{github.workspace}}/report/SummaryGithub.md
-        sed -i 's/## Coverage/### 📝 Code Coverage details/g' ${{github.workspace}}/report/SummaryGithub.md
-        cat ${{github.workspace}}/report/*.md >> $GITHUB_STEP_SUMMARY
+        path: ${{github.workspace}}\report
+        if-no-files-found: ignore
+        retention-days: 5
 
     # - name: Update Documentation
     #   if: github.ref == 'refs/heads/develop'
