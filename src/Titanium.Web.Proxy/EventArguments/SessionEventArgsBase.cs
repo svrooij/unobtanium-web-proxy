@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
@@ -23,6 +24,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
 
     internal readonly CancellationTokenSource CancellationTokenSource;
     protected readonly ExceptionHandler? ExceptionFunc;
+    internal readonly ILogger logger;
 
     private bool disposed;
     private bool enableWinAuth;
@@ -45,6 +47,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
             new Lazy<int>(() => clientStream.Connection.GetProcessId(endPoint)));
         ProxyEndPoint = endPoint;
         EnableWinAuth = server.EnableWinAuth && IsWindowsAuthenticationSupported;
+        logger = server.loggerFactory.CreateLogger<SessionEventArgsBase>();
     }
 
     private static bool IsWindowsAuthenticationSupported => RunTime.IsWindows;
@@ -80,13 +83,19 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     ///     Enable/disable Windows Authentication (NTLM/Kerberos) for the current session.
     /// </summary>
+    /// <exception cref="NotSupportedException">Windows Authentication is not supported</exception>
     public bool EnableWinAuth
     {
         get => enableWinAuth;
         set
         {
             if (value && !IsWindowsAuthenticationSupported)
-                throw new Exception("Windows Authentication is not supported");
+            {
+                var ex = new NotSupportedException("Windows Authentication is not supported");
+                logger.LogWarning(ex, "You cannot enable Windows Authentication on this session");
+                throw ex;
+            }
+                
 
             enableWinAuth = value;
         }
@@ -107,15 +116,10 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// </summary>
     public IPEndPoint? ClientRemoteEndPoint => ClientConnection.RemoteEndPoint as IPEndPoint;
 
-    [Obsolete("Use ClientRemoteEndPoint instead.")]
-    public IPEndPoint? ClientEndPoint => ClientRemoteEndPoint;
-
     /// <summary>
     ///     The web client used to communicate with server for this session.
     /// </summary>
     public HttpWebClient HttpClient { get; }
-
-    [Obsolete("Use HttpClient instead.")] public HttpWebClient WebSession => HttpClient;
 
     /// <summary>
     ///     Gets or sets the custom up stream proxy.
@@ -134,9 +138,6 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     ///     Local endpoint via which we make the request.
     /// </summary>
     public ProxyEndPoint ProxyEndPoint { get; }
-
-    [Obsolete("Use ProxyEndPoint instead.")]
-    public ProxyEndPoint LocalEndPoint => ProxyEndPoint;
 
     /// <summary>
     ///     Is this a transparent endpoint?

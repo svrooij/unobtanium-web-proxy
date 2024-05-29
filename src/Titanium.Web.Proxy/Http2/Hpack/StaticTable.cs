@@ -25,7 +25,7 @@ internal static class StaticTable
     /// <summary>
     ///     Appendix A: Static Table Definition
     /// </summary>
-    /// <see cref="http://tools.ietf.org/html/rfc7541#appendix-A" />
+    /// <see href="http://tools.ietf.org/html/rfc7541%23appendix-A" />
     private static readonly List<HttpHeader> staticTable;
 
     private static readonly Dictionary<ByteString, int> staticIndexByName;
