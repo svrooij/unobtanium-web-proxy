@@ -5,12 +5,12 @@ on:
     branches:
         - develop
         - beta
-        - stable
+    tags:
+        - v* 
   pull_request:
     branches:
         - develop
         - beta
-        - stable
   workflow_dispatch:
       
 jobs:
@@ -37,7 +37,7 @@ jobs:
       run: |
         dotnet build src/Titanium.Web.Proxy/Titanium.Web.Proxy.csproj --configuration Release
         dotnet build tests/Titanium.Web.Proxy.UnitTests/Titanium.Web.Proxy.UnitTests.csproj --configuration Release
-        dotnet build tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj
+        dotnet build tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj -v minimal
 
     - name: 🧪 Test 
       shell: pwsh
@@ -45,7 +45,7 @@ jobs:
 
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## 🧪 Unit Tests'
         dotnet test tests/Titanium.Web.Proxy.UnitTests/Titanium.Web.Proxy.UnitTests.csproj --configuration Release -v minimal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
-        dotnet test tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj -v normal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
+        dotnet test tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj -v minimal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
 
     - name: 📝 Code Coverage report
       if: always()
@@ -79,14 +79,39 @@ jobs:
     #     committer_name: GitHub Actions
     #     committer_email: actions@github.com
 
-    # - name: Publish Beta
-    #   if: github.ref == 'refs/heads/beta'
-    #   run: |
-    #    dotnet pack src/Titanium.Web.Proxy/Titanium.Web.Proxy.csproj --version-suffix "beta"
-    #    dotnet nuget push **\*.nupkg -s "nuget" -k "${{ secrets.NUGET_TOKEN }}"
+  publish:
+    name: 🚀 Publish
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+    - name: 👨‍💻 Check-out code
+      uses: actions/checkout@v4
 
-    # - name: Publish Stable
-    #   if: github.ref == 'refs/heads/stable'
-    #   run: |
-    #    dotnet pack src/Titanium.Web.Proxy/Titanium.Web.Proxy.csproj
-    #    dotnet nuget push **\*.nupkg -s "nuget" -k "${{ secrets.NUGET_TOKEN }}"
+    - name: 👨‍🔧 Setup .NET Core SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.x
+
+    - name: 🔍 Enable problem matchers
+      run: echo "::add-matcher::.github/matchers/dotnet.json"
+
+    - name: 📦 Package
+      shell: pwsh
+      run: |
+        dotnet pack src/Titanium.Web.Proxy/Titanium.Web.Proxy.csproj --configuration Release -p:Version=$("${{ github.ref_name }}".Substring(1))
+
+    - name: 🚀 Publish
+      run: |
+        dotnet nuget push **\*.nupkg -s "nuget" -k $NUGET_AUTH_TOKEN
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
+    
+    - name: 📝 Publish summary
+      shell: pwsh
+      run: |
+        $version = $("${{ github.ref_name }}".Substring(1));
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## 🚀 Published'
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Code [tag ${{ github.ref_name }}](https://github.com/svrooij/titanium-web-proxy/tree/${{ github.ref_name }}) has been published to NuGet."
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Nuget [$version](https://www.nuget.org/packages/Unobtanium.Web.Proxy/$version) has been published to NuGet."
+      
