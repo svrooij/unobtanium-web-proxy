@@ -259,12 +259,12 @@ public partial class ProxyServer
                 noCache,
                 cancellationToken);
 
-        /// Retry with new connection if the initial stream.WriteAsync call to server fails.
-        /// i.e if request line and headers failed to get send.
-        /// Do not retry after reading data from client stream, 
-        /// because subsequent try will not have data to read from client 
-        /// and will hang at clientStream.ReadAsync call.
-        /// So, throw RetryableServerConnectionException only when we are sure we can retry safely.
+        // Retry with new connection if the initial stream.WriteAsync call to server fails.
+        // i.e if request line and headers failed to get send.
+        // Do not retry after reading data from client stream, 
+        // because subsequent try will not have data to read from client 
+        // and will hang at clientStream.ReadAsync call.
+        // So, throw RetryableServerConnectionException only when we are sure we can retry safely.
         return await RetryPolicy<RetryableServerConnectionException>().ExecuteAsync(async connection =>
         {
             // set the connection and send request headers

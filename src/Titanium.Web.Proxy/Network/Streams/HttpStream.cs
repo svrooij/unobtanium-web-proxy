@@ -68,6 +68,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <summary>
     ///     Initializes a new instance of the <see cref="HttpStream" /> class.
     /// </summary>
+    /// <param name="server"><see cref="ProxyServer"/> where this stream is coming from</param>
     /// <param name="baseStream">The base stream.</param>
     /// <param name="bufferPool">Bufferpool.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -989,7 +990,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="writer"></param>
     /// <param name="isChunked"></param>
     /// <param name="contentLength"></param>
-    /// <param name="onCopy"></param>
+    /// <param name="isRequest"></param>
+    /// <param name="args"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public Task CopyBodyAsync(IHttpStreamWriter writer, bool isChunked, long contentLength,
@@ -1062,7 +1064,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     Copies the streams chunked
     /// </summary>
     /// <param name="writer"></param>
-    /// <param name="onCopy"></param>
+    /// <param name="isRequest"></param>
+    /// <param name="args"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     private async Task CopyBodyChunkedAsync(IHttpStreamWriter writer, bool isRequest, SessionEventArgs args,
@@ -1097,7 +1100,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// </summary>
     /// <param name="writer"></param>
     /// <param name="count"></param>
-    /// <param name="onCopy"></param>
+    /// <param name="isRequest"></param>
+    /// <param name="args"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     private async Task CopyBytesToStream(IHttpStreamWriter writer, long count, bool isRequest, SessionEventArgs args,

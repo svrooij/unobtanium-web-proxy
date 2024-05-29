@@ -60,9 +60,6 @@ public class SessionEventArgs : SessionEventArgsBase
         }
     }
 
-    [Obsolete("Use [WebSocketDecoderReceive] instead")]
-    public WebSocketDecoder WebSocketDecoder => WebSocketDecoderReceive;
-
     public WebSocketDecoder WebSocketDecoderSend => webSocketDecoderSend ??= new WebSocketDecoder(BufferPool);
 
     public WebSocketDecoder WebSocketDecoderReceive => webSocketDecoderReceive ??= new WebSocketDecoder(BufferPool);

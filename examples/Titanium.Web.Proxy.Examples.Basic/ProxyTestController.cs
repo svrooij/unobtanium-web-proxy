@@ -222,7 +222,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             var color = sent ? ConsoleColor.Green : ConsoleColor.Blue;
 
-            foreach (var frame in args.WebSocketDecoder.Decode(e.Buffer, e.Offset, e.Count))
+            foreach (var frame in args.WebSocketDecoderReceive.Decode(e.Buffer, e.Offset, e.Count))
             {
                 if (frame.OpCode == WebsocketOpCode.Binary)
                 {

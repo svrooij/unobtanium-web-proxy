@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -16,6 +17,9 @@ using Titanium.Web.Proxy.Models;
 using Titanium.Web.Proxy.Network;
 using Titanium.Web.Proxy.Network.Tcp;
 using Titanium.Web.Proxy.StreamExtended.BufferPool;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using System.Runtime.CompilerServices;
 
 namespace Titanium.Web.Proxy;
 
@@ -56,6 +60,17 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     private WinHttpWebProxyFinder? systemProxyResolver;
 
+    /// <summary>
+    /// <see cref="ActivitySource"/> that can be supplied to support distributed tracing
+    /// </summary>
+    internal readonly ActivitySource? activitySource;
+
+    /// <summary>
+    /// Logger factory to create loggers for various types
+    /// </summary>
+    internal readonly ILoggerFactory loggerFactory;
+    
+    private readonly ILogger<ProxyServer> logger;
 
     /// <inheritdoc />
     /// <summary>
@@ -70,9 +85,11 @@ public partial class ProxyServer : IDisposable
     ///     Should we attempt to trust certificates with elevated permissions by
     ///     prompting for UAC if required?
     /// </param>
+    /// <param name="activitySource"><see cref="ActivitySource"/> to be used for distributed tracing</param>
+    /// <param name="loggerFactory"><see cref="ILoggerFactory"/> to be used for all logging, will use <see cref="NullLoggerFactory"/> is not specified</param>
     public ProxyServer(bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
-        bool trustRootCertificateAsAdmin = false) : this(null, null, userTrustRootCertificate,
-        machineTrustRootCertificate, trustRootCertificateAsAdmin)
+        bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null) : this(null, null, userTrustRootCertificate,
+        machineTrustRootCertificate, trustRootCertificateAsAdmin, activitySource, loggerFactory)
     {
     }
 
@@ -90,10 +107,16 @@ public partial class ProxyServer : IDisposable
     ///     Should we attempt to trust certificates with elevated permissions by
     ///     prompting for UAC if required?
     /// </param>
+    /// <param name="activitySource"><see cref="ActivitySource"/> to be used for distributed tracing</param>
+    /// <param name="loggerFactory"><see cref="ILoggerFactory"/> to be used for all logging, will use <see cref="NullLoggerFactory"/> is not specified</param>
     public ProxyServer(string? rootCertificateName, string? rootCertificateIssuerName,
         bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
-        bool trustRootCertificateAsAdmin = false)
+        bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null)
     {
+        this.activitySource = activitySource;
+        this.loggerFactory = loggerFactory ?? new NullLoggerFactory();
+        logger = this.loggerFactory.CreateLogger<ProxyServer>();
+
         BufferPool = new DefaultBufferPool();
         ProxyEndPoints = new List<ProxyEndPoint>();
         TcpConnectionFactory = new TcpConnectionFactory(this);
@@ -417,8 +440,13 @@ public partial class ProxyServer : IDisposable
     {
         if (ProxyEndPoints.Any(x =>
                 x.IpAddress.Equals(endPoint.IpAddress) && endPoint.Port != 0 && x.Port == endPoint.Port))
-            throw new Exception("Cannot add another endpoint to same port & ip address");
-
+        {
+            var ex =  new Exception("Cannot add another endpoint to same port & ip address");
+            logger.LogWarning(ex, "Cannot add another endpoint to same port & ip address");
+            throw ex;
+        }
+            
+        logger.LogInformation("Adding endpoint at Ip {0} and port: {1}", endPoint.IpAddress, endPoint.Port);
         ProxyEndPoints.Add(endPoint);
 
         if (ProxyRunning) Listen(endPoint);
@@ -432,8 +460,14 @@ public partial class ProxyServer : IDisposable
     public void RemoveEndPoint(ProxyEndPoint endPoint)
     {
         if (ProxyEndPoints.Contains(endPoint) == false)
-            throw new Exception("Cannot remove endPoints not added to proxy");
+        {
+            var ex = new Exception("Cannot remove endPoints not added to proxy");
 
+            logger.LogWarning(ex, "Cannot remove endPoints not added to proxy");
+            throw ex;
+        }
+            
+        logger.LogInformation("Removing endpoint at Ip {0} and port: {1}", endPoint.IpAddress, endPoint.Port);
         ProxyEndPoints.Remove(endPoint);
 
         if (ProxyRunning) QuitListen(endPoint);
@@ -465,8 +499,11 @@ public partial class ProxyServer : IDisposable
     public void SetAsSystemProxy(ExplicitProxyEndPoint endPoint, ProxyProtocolType protocolType)
     {
         if (SystemProxySettingsManager == null)
-            throw new NotSupportedException(@"Setting system proxy settings are only supported in Windows.
-                            Please manually configure you operating system to use this proxy's port and address.");
+        {
+            ThrowNotSupportedException();
+            return;
+        }
+
 
         ValidateEndPointAsSystemProxy(endPoint);
 
@@ -517,8 +554,11 @@ public partial class ProxyServer : IDisposable
         }
 
         if (protocolType != ProxyProtocolType.None)
-            Console.WriteLine("Set endpoint at Ip {0} and port: {1} as System {2} Proxy", endPoint.IpAddress,
+        {
+            logger.LogInformation("Set endpoint at Ip {ip} and port: {port} as System {proxyType} Proxy", endPoint.IpAddress,
                 endPoint.Port, proxyType);
+        }
+            
     }
 
     /// <summary>
@@ -543,8 +583,10 @@ public partial class ProxyServer : IDisposable
     public void RestoreOriginalProxySettings()
     {
         if (SystemProxySettingsManager == null)
-            throw new NotSupportedException(@"Setting system proxy settings are only supported in Windows.
-                            Please manually configure your operating system to use this proxy's port and address.");
+        {
+            ThrowNotSupportedException();
+            return;
+        }
 
         SystemProxySettingsManager.RestoreOriginalSettings();
     }
@@ -555,8 +597,10 @@ public partial class ProxyServer : IDisposable
     public void DisableSystemProxy(ProxyProtocolType protocolType)
     {
         if (SystemProxySettingsManager == null)
-            throw new NotSupportedException(@"Setting system proxy settings are only supported in Windows.
-                            Please manually configure your operating system to use this proxy's port and address.");
+        {
+            ThrowNotSupportedException();
+            return;
+        }
 
         SystemProxySettingsManager.RemoveProxy(protocolType);
     }
@@ -884,6 +928,17 @@ public partial class ProxyServer : IDisposable
         return new RetryPolicy<T>(NetworkFailureRetryAttempts, TcpConnectionFactory);
     }
 
+    /// <summary>
+    ///    Throw not supported exception, only supported in Windows.
+    /// </summary>
+    /// <param name="caller">Method name, automatically filled by <see cref="CallerMemberNameAttribute"/></param>
+    private void ThrowNotSupportedException([CallerMemberName]string? caller = null)
+    {
+        var ex = new NotSupportedException(@"Setting system proxy settings are only supported in Windows.");
+        logger.LogWarning(ex, "Setting system proxy settings are only supported in Windows. {caller}", caller);
+        throw ex;
+    }
+
     private bool disposed;
 
     protected virtual void Dispose(bool disposing)
@@ -906,6 +961,8 @@ public partial class ProxyServer : IDisposable
         {
             CertificateManager?.Dispose();
             BufferPool?.Dispose();
+            loggerFactory.Dispose();
+            activitySource?.Dispose();
         }
     }
 

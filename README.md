@@ -1,9 +1,11 @@
-# Titanium Web Proxy
+# Unobtanium Web Proxy
 
 A lightweight HTTP(S) proxy server written in C# `NET8.0`.
 
-[![Titanium web proxy][badge_twp-repo]][link_twp-repo]
+[![Unobtanium web proxy][badge_twp-repo]][link_twp-repo]
+[![nuget][badge_nuget]][link_nuget]
 [![github issues][badge_issues]][link_issues]
+[![License][badle_license]][link_license]
 [![Build status][badge_twp_build]][link_build]
 [![Support me on Github][badge_sponsor]][link_sponsor]
 
@@ -11,21 +13,21 @@ Report bugs or raise issues here.
 
 ## Project reboot
 
-[![Titanium web proxy][badge_twp-repo]][link_twp-repo]
+[![Unobtanium web proxy][badge_twp-repo]][link_twp-repo]
 
 This project is a reboot of the original [Titanium-Web-Proxy](https://github.com/justcoding121/titanium-web-proxy) project. The original project was last updated two years ago, has been archived by the author on July 9th 2023 and has been inactive since then. This project aims to continue the development of the original project and provide a stable and reliable proxy server library for .NET developers.
 
-Documentation and nuget packages will be released soon.
+[Announcement](https://github.com/svrooij/titanium-web-proxy/discussions/2) [Reboot discussion](https://github.com/svrooij/titanium-web-proxy/discussions/7) [Issues](https://github.com/svrooij/titanium-web-proxy/issues?q=is%3Aissue+is%3Aopen+label%3Areboot)
 
 ### Reboot focus
 
 * `net8.0` only (no support for older versions of .NET!)
-* Support for `ILogger`
-* Support for diagnostic events using `ActivitySource` and `Activity`
+* Support for `ILogger` [See #4](https://github.com/svrooij/titanium-web-proxy/issues/4)
+* Support for diagnostic events using `ActivitySource` and `Activity` [See #3](https://github.com/svrooij/titanium-web-proxy/issues/3)
 * Using the latest .NET features like `Span<T>` and `Memory<T>` to improve performance
 * Update dependencies to the latest versions
 * `TLS 1.2` and `TLS 1.3` only support
-* Event-handlers with `HttpRequestMessage` and `HttpResponseMessage`, to greatly improve the portability of the library
+* Event-handlers with `HttpRequestMessage` and `HttpResponseMessage`, to greatly improve the portability of the library [See #6](https://github.com/svrooij/titanium-web-proxy/issues/6)
 * `HttpClient` as the default client, and using the IHttpClientFactory to handle pooling of the clients
 * Testing, testing, testing!
 
@@ -41,21 +43,19 @@ Documentation and nuget packages will be released soon.
 
 ## Installation
 
-Package not yet available on NuGet.
+Package on [NuGet][link_nuget], `Unobtanium.Web.Proxy` will be a partial drop-in replacement for `Titanium.Web.Proxy`, if you're on `NET8.0 or higher`.
+
+```bash
+dotnet add package Unobtanium.Web.Proxy
+```
 
 Supports
 
 * `.NET 8.0` and above
 
-## Note to contributors
+As stated [above](#project-reboot), this project is a reboot of the original project. Expect things to change, everything marked as `obsolete` in the original project will be removed in this project. And until this is `v1.0.0`, expect [breaking changes](#reboot-focus).
 
-### Road map
-
-* Fix [outstanding bugs](https://github.com/svrooij/Titanium-Web-Proxy/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
-* Support reading request and response body as stream [#823](https://github.com/justcoding121/Titanium-Web-Proxy/issues/823)
-* Support HTTP 2.0
-
-### Collaborators
+## Collaborators
 
 The owner of this project, [justcoding121](https://github.com/justcoding121), is considered to be inactive from this project due to his busy work schedule. See [project reboot](#project-reboot) for more information.
 
@@ -72,26 +72,17 @@ You contributions are more then welcome! Let's make this project great again!
 
 ## Development environment
 
-### Windows
-
-* Visual Studio Code as IDE
-* Visual Studio 2022 as IDE
-
-### Mac OS
-
-* Visual Studio Code as IDE
-
-### Linux
-
-* Visual Studio Code as IDE
+Since this is a `dotnet` project I would suggest to use `Visual Studio 2022` or `Visual Studio Code` as your development environment. The project is set up to use the `dotnet` CLI, so you can also use that to build and run the project.
 
 ## Usage
 
-Refer the HTTP Proxy Server library in your project and look up the test project to learn usage.
+Refer the `Unobtanium.Web.Proxy` in your project and check one of the [example projects](https://github.com/svrooij/titanium-web-proxy/tree/develop/examples).
 
 Setup HTTP proxy:
 
 ```csharp
+using Titanium.Web.Proxy;
+...
 var proxyServer = new ProxyServer();
 
 // locally trust root certificate used by this proxy 
@@ -157,7 +148,6 @@ proxyServer.ServerCertificateValidationCallback -= OnCertificateValidation;
 proxyServer.ClientCertificateSelectionCallback -= OnCertificateSelection;
 
 proxyServer.Stop();
-    
 ```
 
 Sample request and response event handlers
@@ -275,11 +265,15 @@ public Task OnCertificateSelection(object sender, CertificateSelectionEventArgs 
 ![alt tag](https://raw.githubusercontent.com/svrooij/Titanium-Web-Proxy/develop/examples/Titanium.Web.Proxy.Examples.Wpf/Capture.PNG)
 
 [badge_issues]: https://img.shields.io/github/issues/svrooij/titanium-web-proxy?style=for-the-badge
+[badle_license]: https://img.shields.io/github/license/svrooij/titanium-web-proxy?style=for-the-badge
+[badge_nuget]: https://img.shields.io/nuget/v/Unobtanium.Web.Proxy?style=for-the-badge
 [badge_sponsor]: https://img.shields.io/github/sponsors/svrooij?style=for-the-badge&logo=github
-[badge_twp-repo]: https://img.shields.io/badge/Titanium--Web--Proxy-Reboot-blue?style=for-the-badge
+[badge_twp-repo]: https://img.shields.io/badge/Unobtanium--Web--Proxy-Reboot-blue?style=for-the-badge
 [badge_twp_build]: https://img.shields.io/github/check-runs/svrooij/titanium-web-proxy/develop?style=for-the-badge
 
 [link_build]: https://github.com/svrooij/titanium-web-proxy/actions/workflows/dotnetcore.yml
 [link_issues]: https://github.com/svrooij/titanium-web-proxy/issues
+[link_license]: https://github.com/svrooij/titanium-web-proxy?tab=MIT-1-ov-file
+[link_nuget]: https://www.nuget.org/packages/Unobtanium.Web.Proxy
 [link_twp-repo]: https://github.com/svrooij/titanium-web-proxy
 [link_sponsor]: https://github.com/sponsors/svrooij

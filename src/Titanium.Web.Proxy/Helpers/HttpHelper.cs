@@ -82,6 +82,7 @@ internal static class HttpHelper
     ///     https://stackoverflow.com/questions/16473838/get-domain-name-of-a-url-in-c-sharp-net
     /// </summary>
     /// <param name="hostname"></param>
+    /// <param name="disableWildCardCertificates"></param>
     /// <returns></returns>
     internal static string GetWildCardDomainName(string hostname, bool disableWildCardCertificates)
     {
