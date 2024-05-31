@@ -14,28 +14,28 @@ using Titanium.Web.Proxy.Shared;
 namespace Titanium.Web.Proxy.Network;
 
 /// <summary>
-///     Certificate Engine option.
+/// Certificate Engine option.
 /// </summary>
 public enum CertificateEngine
 {
     /// <summary>
-    ///     Uses BouncyCastle 3rd party library.
-    ///     Default.
+    /// Uses BouncyCastle 3rd party library.
+    /// Default.
     /// </summary>
     BouncyCastle = 0,
 
     BouncyCastleFast = 2,
 
     /// <summary>
-    ///     Uses Windows Certification Generation API and only valid in Windows OS.
-    ///     Observed to be faster than BouncyCastle.
-    ///     Bug #468 Reported.
+    /// Uses Windows Certification Generation API and only valid in Windows OS.
+    /// Observed to be faster than BouncyCastle.
+    /// Bug #468 Reported.
     /// </summary>
     DefaultWindows = 1
 }
 
 /// <summary>
-///     A class to manage SSL certificates used by this proxy server.
+/// A class to manage SSL certificates used by this proxy server.
 /// </summary>
 public sealed class CertificateManager : IDisposable
 {
@@ -46,20 +46,20 @@ public sealed class CertificateManager : IDisposable
     private static readonly ConcurrentDictionary<string, object> _saveCertificateLocks = new();
 
     /// <summary>
-    ///     Cache dictionary
+    /// Cache dictionary
     /// </summary>
     private readonly ConcurrentDictionary<string, CachedCertificate> cachedCertificates = new();
 
     private readonly CancellationTokenSource clearCertificatesTokenSource = new();
 
     /// <summary>
-    ///     Used to prevent multiple threads working on same certificate generation
-    ///     when burst certificate generation requests happen for same certificate.
+    /// Used to prevent multiple threads working on same certificate generation
+    /// when burst certificate generation requests happen for same certificate.
     /// </summary>
     private readonly SemaphoreSlim pendingCertificateCreationTaskLock = new(1);
 
     /// <summary>
-    ///     A list of pending certificate creation tasks.
+    /// A list of pending certificate creation tasks.
     /// </summary>
     private readonly Dictionary<string, Task<X509Certificate2?>> pendingCertificateCreationTasks = new();
 
@@ -80,18 +80,18 @@ public sealed class CertificateManager : IDisposable
     private string? rootCertificateName;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="CertificateManager" /> class.
+    /// Initializes a new instance of the <see cref="CertificateManager" /> class.
     /// </summary>
     /// <param name="rootCertificateName"></param>
     /// <param name="rootCertificateIssuerName"></param>
     /// <param name="userTrustRootCertificate">
-    ///     Should fake HTTPS certificate be trusted by this machine's user certificate
-    ///     store?
+    /// Should fake HTTPS certificate be trusted by this machine's user certificate
+    /// store?
     /// </param>
     /// <param name="machineTrustRootCertificate">Should fake HTTPS certificate be trusted by this machine's certificate store?</param>
     /// <param name="trustRootCertificateAsAdmin">
-    ///     Should we attempt to trust certificates with elevated permissions by
-    ///     prompting for UAC if required?
+    /// Should we attempt to trust certificates with elevated permissions by
+    /// prompting for UAC if required?
     /// </param>
     /// <param name="exceptionFunc"></param>
     internal CertificateManager(string? rootCertificateName, string? rootCertificateIssuerName,
@@ -136,36 +136,36 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Is the root certificate used by this proxy is valid?
+    /// Is the root certificate used by this proxy is valid?
     /// </summary>
     internal bool CertValidated => RootCertificate != null;
 
     /// <summary>
-    ///     Trust the RootCertificate used by this proxy server for current user
+    /// Trust the RootCertificate used by this proxy server for current user
     /// </summary>
     internal bool UserTrustRoot { get; set; }
 
     /// <summary>
-    ///     Trust the RootCertificate used by this proxy server for current machine
-    ///     Needs elevated permission, otherwise will fail silently.
+    /// Trust the RootCertificate used by this proxy server for current machine
+    /// Needs elevated permission, otherwise will fail silently.
     /// </summary>
     internal bool MachineTrustRoot { get; set; }
 
     /// <summary>
-    ///     Whether trust operations should be done with elevated privileges
-    ///     Will prompt with UAC if required. Works only on Windows.
+    /// Whether trust operations should be done with elevated privileges
+    /// Will prompt with UAC if required. Works only on Windows.
     /// </summary>
     internal bool TrustRootAsAdministrator { get; set; }
 
     /// <summary>
-    ///     Exception handler
+    /// Exception handler
     /// </summary>
     internal ExceptionHandler? ExceptionFunc { get; set; }
 
     /// <summary>
-    ///     Select Certificate Engine.
-    ///     Optionally set to BouncyCastle.
-    ///     Mono only support BouncyCastle and it is the default.
+    /// Select Certificate Engine.
+    /// Optionally set to BouncyCastle.
+    /// Mono only support BouncyCastle and it is the default.
     /// </summary>
     public CertificateEngine CertificateEngine
     {
@@ -184,29 +184,29 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Password of the Root certificate file.
-    ///     <para>Set a password for the .pfx file</para>
+    /// Password of the Root certificate file.
+    /// <para>Set a password for the .pfx file</para>
     /// </summary>
     public string PfxPassword { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Name(path) of the Root certificate file.
-    ///     <para>
-    ///         Set the name(path) of the .pfx file. If it is string.Empty Root certificate file will be named as
-    ///         "rootCert.pfx" (and will be saved in proxy dll directory)
-    ///     </para>
+    /// Name(path) of the Root certificate file.
+    /// <para>
+    /// Set the name(path) of the .pfx file. If it is string.Empty Root certificate file will be named as
+    /// "rootCert.pfx" (and will be saved in proxy dll directory)
+    /// </para>
     /// </summary>
     public string PfxFilePath { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Number of Days generated HTTPS certificates are valid for.
-    ///     Maximum allowed on iOS 13 is 825 days and it is the default.
+    /// Number of Days generated HTTPS certificates are valid for.
+    /// Maximum allowed on iOS 13 is 825 days and it is the default.
     /// </summary>
     public int CertificateValidDays { get; set; } = 825;
 
     /// <summary>
-    ///     Name of the root certificate issuer.
-    ///     (This is valid only when RootCertificate property is not set.)
+    /// Name of the root certificate issuer.
+    /// (This is valid only when RootCertificate property is not set.)
     /// </summary>
     public string RootCertificateIssuerName
     {
@@ -215,11 +215,11 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Name of the root certificate.
-    ///     (This is valid only when RootCertificate property is not set.)
-    ///     If no certificate is provided then a default Root Certificate will be created and used.
-    ///     The provided root certificate will be stored in proxy exe directory with the private key.
-    ///     Root certificate file will be named as "rootCert.pfx".
+    /// Name of the root certificate.
+    /// (This is valid only when RootCertificate property is not set.)
+    /// If no certificate is provided then a default Root Certificate will be created and used.
+    /// The provided root certificate will be stored in proxy exe directory with the private key.
+    /// Root certificate file will be named as "rootCert.pfx".
     /// </summary>
     public string RootCertificateName
     {
@@ -228,7 +228,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     The root certificate.
+    /// The root certificate.
     /// </summary>
     public X509Certificate2? RootCertificate
     {
@@ -241,16 +241,16 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Save all fake certificates using <seealso cref="CertificateStorage" />.
-    ///     <para>for can load the certificate and not make new certificate every time. </para>
+    /// Save all fake certificates using <seealso cref="CertificateStorage" />.
+    /// <para>for can load the certificate and not make new certificate every time. </para>
     /// </summary>
     public bool SaveFakeCertificates { get; set; } = false;
 
     /// <summary>
-    ///     The fake certificate cache storage.
-    ///     The default cache storage implementation saves certificates in folder "crts" (will be created in proxy dll
-    ///     directory).
-    ///     Implement ICertificateCache interface and assign concrete class here to customize.
+    /// The fake certificate cache storage.
+    /// The default cache storage implementation saves certificates in folder "crts" (will be created in proxy dll
+    /// directory).
+    /// Implement ICertificateCache interface and assign concrete class here to customize.
     /// </summary>
     public ICertificateCache CertificateStorage
     {
@@ -259,23 +259,23 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Overwrite Root certificate file.
-    ///     <para>true : replace an existing .pfx file if password is incorrect or if RootCertificate = null.</para>
+    /// Overwrite Root certificate file.
+    /// <para>true : replace an existing .pfx file if password is incorrect or if RootCertificate = null.</para>
     /// </summary>
     public bool OverwritePfxFile { get; set; } = true;
 
     /// <summary>
-    ///     Minutes certificates should be kept in cache when not used.
+    /// Minutes certificates should be kept in cache when not used.
     /// </summary>
     public int CertificateCacheTimeOutMinutes { get; set; } = 60;
 
     /// <summary>
-    ///     Adjust behaviour when certificates are saved to filesystem.
+    /// Adjust behaviour when certificates are saved to filesystem.
     /// </summary>
     public X509KeyStorageFlags StorageFlag { get; set; } = X509KeyStorageFlags.Exportable;
 
     /// <summary>
-    ///     Disable wild card certificates. Disabled by default.
+    /// Disable wild card certificates. Disabled by default.
     /// </summary>
     public bool DisableWildCardCertificates { get; set; } = false;
 
@@ -286,7 +286,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     For CertificateEngine.DefaultWindows to work we need to also check in personal store
+    /// For CertificateEngine.DefaultWindows to work we need to also check in personal store
     /// </summary>
     /// <param name="storeLocation"></param>
     /// <returns></returns>
@@ -316,7 +316,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Make current machine trust the Root Certificate used by this proxy
+    /// Make current machine trust the Root Certificate used by this proxy
     /// </summary>
     /// <param name="storeName"></param>
     /// <param name="storeLocation"></param>
@@ -347,7 +347,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Remove the Root Certificate trust
+    /// Remove the Root Certificate trust
     /// </summary>
     /// <param name="storeName"></param>
     /// <param name="storeLocation"></param>
@@ -404,7 +404,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Create an SSL certificate
+    /// Create an SSL certificate
     /// </summary>
     /// <param name="certificateName"></param>
     /// <param name="isRootCertificate"></param>
@@ -484,7 +484,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Creates a server certificate signed by the root certificate.
+    /// Creates a server certificate signed by the root certificate.
     /// </summary>
     /// <param name="certificateName"></param>
     /// <returns></returns>
@@ -551,7 +551,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     A method to clear outdated certificates
+    /// A method to clear outdated certificates
     /// </summary>
     internal async void ClearIdleCertificates()
     {
@@ -577,7 +577,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Stops the certificate cache clear process
+    /// Stops the certificate cache clear process
     /// </summary>
     internal void StopClearIdleCertificates()
     {
@@ -585,11 +585,11 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Attempts to create a RootCertificate.
+    /// Attempts to create a RootCertificate.
     /// </summary>
     /// <param name="persistToFile">if set to <c>true</c> try to load/save the certificate from rootCert.pfx.</param>
     /// <returns>
-    ///     true if succeeded, else false.
+    /// true if succeeded, else false.
     /// </returns>
     public bool CreateRootCertificate(bool persistToFile = true)
     {
@@ -656,7 +656,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Loads root certificate from current executing assembly location with expected name rootCert.pfx.
+    /// Loads root certificate from current executing assembly location with expected name rootCert.pfx.
     /// </summary>
     /// <returns></returns>
     public X509Certificate2? LoadRootCertificate()
@@ -682,20 +682,20 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Manually load a Root certificate file from give path (.pfx file).
+    /// Manually load a Root certificate file from give path (.pfx file).
     /// </summary>
     /// <param name="pfxFilePath">
-    ///     Set the name(path) of the .pfx file. If it is string.Empty Root certificate file will be
-    ///     named as "rootCert.pfx" (and will be saved in proxy dll directory).
+    /// Set the name(path) of the .pfx file. If it is string.Empty Root certificate file will be
+    /// named as "rootCert.pfx" (and will be saved in proxy dll directory).
     /// </param>
     /// <param name="password">Set a password for the .pfx file.</param>
     /// <param name="overwritePfXFile">
-    ///     true : replace an existing .pfx file if password is incorrect or if
-    ///     RootCertificate==null.
+    /// true : replace an existing .pfx file if password is incorrect or if
+    /// RootCertificate==null.
     /// </param>
     /// <param name="storageFlag"></param>
     /// <returns>
-    ///     true if succeeded, else false.
+    /// true if succeeded, else false.
     /// </returns>
     public bool LoadRootCertificate(string pfxFilePath, string password, bool overwritePfXFile = true,
         X509KeyStorageFlags storageFlag = X509KeyStorageFlags.Exportable)
@@ -711,8 +711,8 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Trusts the root certificate in user store, optionally also in machine store.
-    ///     Machine trust would require elevated permissions (will silently fail otherwise).
+    /// Trusts the root certificate in user store, optionally also in machine store.
+    /// Machine trust would require elevated permissions (will silently fail otherwise).
     /// </summary>
     public void TrustRootCertificate(bool machineTrusted = false)
     {
@@ -735,8 +735,8 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Puts the certificate to the user store, optionally also to machine store.
-    ///     Prompts with UAC if elevated permissions are required. Works only on Windows.
+    /// Puts the certificate to the user store, optionally also to machine store.
+    /// Prompts with UAC if elevated permissions are required. Works only on Windows.
     /// </summary>
     /// <returns>True if success.</returns>
     public bool TrustRootCertificateAsAdmin(bool machineTrusted = false)
@@ -783,8 +783,8 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Ensure certificates are setup (creates root if required).
-    ///     Also makes root certificate trusted based on initial setup from proxy constructor for user/machine trust.
+    /// Ensure certificates are setup (creates root if required).
+    /// Also makes root certificate trusted based on initial setup from proxy constructor for user/machine trust.
     /// </summary>
     public void EnsureRootCertificate()
     {
@@ -796,18 +796,18 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Ensure certificates are setup (creates root if required).
-    ///     Also makes root certificate trusted based on provided parameters.
-    ///     Note:setting machineTrustRootCertificate to true will force userTrustRootCertificate to true.
+    /// Ensure certificates are setup (creates root if required).
+    /// Also makes root certificate trusted based on provided parameters.
+    /// Note:setting machineTrustRootCertificate to true will force userTrustRootCertificate to true.
     /// </summary>
     /// <param name="userTrustRootCertificate">
-    ///     Should fake HTTPS certificate be trusted by this machine's user certificate
-    ///     store?
+    /// Should fake HTTPS certificate be trusted by this machine's user certificate
+    /// store?
     /// </param>
     /// <param name="machineTrustRootCertificate">Should fake HTTPS certificate be trusted by this machine's certificate store?</param>
     /// <param name="trustRootCertificateAsAdmin">
-    ///     Should we attempt to trust certificates with elevated permissions by
-    ///     prompting for UAC if required?
+    /// Should we attempt to trust certificates with elevated permissions by
+    /// prompting for UAC if required?
     /// </param>
     public void EnsureRootCertificate(bool userTrustRootCertificate,
         bool machineTrustRootCertificate, bool trustRootCertificateAsAdmin = false)
@@ -820,7 +820,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Determines whether the root certificate is trusted.
+    /// Determines whether the root certificate is trusted.
     /// </summary>
     public bool IsRootCertificateUserTrusted()
     {
@@ -828,7 +828,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Determines whether the root certificate is machine trusted.
+    /// Determines whether the root certificate is machine trusted.
     /// </summary>
     public bool IsRootCertificateMachineTrusted()
     {
@@ -836,8 +836,8 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Removes the trusted certificates from user store, optionally also from machine store.
-    ///     To remove from machine store elevated permissions are required (will fail silently otherwise).
+    /// Removes the trusted certificates from user store, optionally also from machine store.
+    /// To remove from machine store elevated permissions are required (will fail silently otherwise).
     /// </summary>
     /// <param name="machineTrusted">Should also remove from machine store?</param>
     public void RemoveTrustedRootCertificate(bool machineTrusted = false)
@@ -861,7 +861,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Removes the trusted certificates from user store, optionally also from machine store
+    /// Removes the trusted certificates from user store, optionally also from machine store
     /// </summary>
     /// <returns>Should also remove from machine store?</returns>
     public bool RemoveTrustedRootCertificateAsAdmin(bool machineTrusted = false)
@@ -933,7 +933,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <summary>
-    ///     Clear the root certificate and cache.
+    /// Clear the root certificate and cache.
     /// </summary>
     public void ClearRootCertificate()
     {
