@@ -9,6 +9,13 @@ namespace Titanium.Web.Proxy.EventArguments;
 /// </summary>
 public class CertificateValidationEventArgs : ProxyEventArgsBase
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CertificateValidationEventArgs"/> class.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="certificate">The certificate.</param>
+    /// <param name="chain">The chain.</param>
+    /// <param name="sslPolicyErrors">The SSL policy errors.</param>
     public CertificateValidationEventArgs(SessionEventArgsBase session, X509Certificate certificate, X509Chain chain,
         SslPolicyErrors sslPolicyErrors) : base(session.Server, session.ClientConnection)
     {
