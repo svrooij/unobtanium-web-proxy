@@ -1,13 +1,11 @@
 ﻿#if DEBUG
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Titanium.Web.Proxy.EventArguments
 {
-
+    /// <summary>
+    /// Event arguments for <see cref="BeforeBodyWriteEventArgs"/>.
+    /// </summary>
     public class BeforeBodyWriteEventArgs : ProxyEventArgsBase
     {
         internal BeforeBodyWriteEventArgs(SessionEventArgs session, byte[] bodyBytes, bool isChunked, bool isLastChunk) : base(session.Server, session.ClientConnection)
@@ -18,15 +16,14 @@ namespace Titanium.Web.Proxy.EventArguments
             IsLastChunk = isLastChunk;
         }
 
-
-        /// <value>
-        ///     The session arguments.
-        /// </value>
+        /// <summary>
+        /// Gets the session arguments.
+        /// </summary>
         public SessionEventArgs Session { get; }
 
         /// <summary>
-        ///  Indicates whether body is written chunked stream.
-        ///  If this is true, BeforeRequestBodySend or BeforeResponseBodySend will be called until IsLastChunk is false.
+        /// Indicates whether body is written chunked stream.
+        /// If this is true, BeforeRequestBodySend or BeforeResponseBodySend will be called until IsLastChunk is false.
         /// </summary>
         public bool IsChunked { get; }
 

@@ -6,6 +6,9 @@ using Titanium.Web.Proxy.Helpers;
 
 namespace Titanium.Web.Proxy.Network;
 
+/// <summary>
+/// Provides a default disk-based cache implementation for storing certificates.
+/// </summary>
 public sealed class DefaultCertificateDiskCache : ICertificateCache
 {
     private const string DefaultCertificateDirectoryName = "crts";
@@ -13,12 +16,25 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     private const string DefaultRootCertificateFileName = "rootCert" + DefaultCertificateFileExtension;
     private string? rootCertificatePath;
 
+    /// <summary>
+    /// Loads the root certificate from the specified path or name.
+    /// </summary>
+    /// <param name="pathOrName">The path or name of the root certificate.</param>
+    /// <param name="password">The password for the root certificate.</param>
+    /// <param name="storageFlags">The storage flags for the root certificate.</param>
+    /// <returns>The loaded root certificate, or null if not found.</returns>
     public X509Certificate2? LoadRootCertificate(string pathOrName, string password, X509KeyStorageFlags storageFlags)
     {
         var path = GetRootCertificatePath(pathOrName);
         return LoadCertificate(path, password, storageFlags);
     }
 
+    /// <summary>
+    /// Saves the root certificate to the specified path or name.
+    /// </summary>
+    /// <param name="pathOrName">The path or name where the root certificate will be saved.</param>
+    /// <param name="password">The password for the root certificate.</param>
+    /// <param name="certificate">The root certificate to save.</param>
     public void SaveRootCertificate(string pathOrName, string password, X509Certificate2 certificate)
     {
         var path = GetRootCertificatePath(pathOrName);
@@ -26,14 +42,23 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
         File.WriteAllBytes(path, exported);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Loads a certificate from the specified subject name.
+    /// </summary>
+    /// <param name="subjectName">The subject name of the certificate to load.</param>
+    /// <param name="storageFlags">The storage flags for the certificate.</param>
+    /// <returns>The loaded certificate, or null if not found.</returns>
     public X509Certificate2? LoadCertificate(string subjectName, X509KeyStorageFlags storageFlags)
     {
         var filePath = Path.Combine(GetCertificatePath(false), subjectName + DefaultCertificateFileExtension);
         return LoadCertificate(filePath, string.Empty, storageFlags);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Saves a certificate with the specified subject name.
+    /// </summary>
+    /// <param name="subjectName">The subject name of the certificate to save.</param>
+    /// <param name="certificate">The certificate to save.</param>
     public void SaveCertificate(string subjectName, X509Certificate2 certificate)
     {
         var filePath = Path.Combine(GetCertificatePath(true), subjectName + DefaultCertificateFileExtension);
@@ -41,6 +66,9 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
         File.WriteAllBytes(filePath, exported);
     }
 
+    /// <summary>
+    /// Clears all certificates from the cache.
+    /// </summary>
     public void Clear()
     {
         try

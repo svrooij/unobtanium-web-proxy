@@ -7,6 +7,12 @@ namespace Titanium.Web.Proxy.StreamExtended.Network;
 /// </summary>
 public class DataEventArgs : EventArgs
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DataEventArgs"/> class.
+    /// </summary>
+    /// <param name="buffer">The buffer containing the data.</param>
+    /// <param name="offset">The offset in the buffer where the data begins.</param>
+    /// <param name="count">The number of bytes of data in the buffer.</param>
     public DataEventArgs(byte[] buffer, int offset, int count)
     {
         Buffer = buffer;

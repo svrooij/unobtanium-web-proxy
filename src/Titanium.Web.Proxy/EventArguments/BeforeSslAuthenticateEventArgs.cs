@@ -10,6 +10,13 @@ public class BeforeSslAuthenticateEventArgs : ProxyEventArgsBase
 {
     internal readonly CancellationTokenSource TaskCancellationSource;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BeforeSslAuthenticateEventArgs"/> class.
+    /// </summary>
+    /// <param name="server">The proxy server instance.</param>
+    /// <param name="clientConnection">The client connection.</param>
+    /// <param name="taskCancellationSource">The task cancellation source.</param>
+    /// <param name="sniHostName">The server name indication hostname.</param>
     internal BeforeSslAuthenticateEventArgs(ProxyServer server, TcpClientConnection clientConnection,
         CancellationTokenSource taskCancellationSource, string sniHostName) : base(server, clientConnection)
     {

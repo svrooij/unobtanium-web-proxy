@@ -7,6 +7,14 @@ namespace Titanium.Web.Proxy.EventArguments;
 /// </summary>
 public class CertificateSelectionEventArgs : ProxyEventArgsBase
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CertificateSelectionEventArgs"/> class.
+    /// </summary>
+    /// <param name="session">The session event arguments.</param>
+    /// <param name="targetHost">The target host.</param>
+    /// <param name="localCertificates">The local certificates.</param>
+    /// <param name="remoteCertificate">The remote certificate.</param>
+    /// <param name="acceptableIssuers">The acceptable issuers.</param>
     public CertificateSelectionEventArgs(SessionEventArgsBase session, string targetHost,
         X509CertificateCollection localCertificates, X509Certificate? remoteCertificate, string[] acceptableIssuers) :
         base(session.Server, session.ClientConnection)
