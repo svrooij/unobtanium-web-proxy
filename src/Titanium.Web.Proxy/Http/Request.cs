@@ -7,7 +7,7 @@ using Titanium.Web.Proxy.Models;
 namespace Titanium.Web.Proxy.Http;
 
 /// <summary>
-///     Http(s) request object
+///     Http(s) request object.
 /// </summary>
 [TypeConverter(typeof(ExpandableObjectConverter))]
 public class Request : RequestResponseBase
@@ -15,12 +15,12 @@ public class Request : RequestResponseBase
     private ByteString requestUriString8;
 
     /// <summary>
-    ///     Request Method.
+    ///     Gets or sets the request method.
     /// </summary>
     public string? Method { get; set; }
 
     /// <summary>
-    ///     Is Https?
+    ///     Gets a value indicating whether the request is over HTTPS.
     /// </summary>
     public bool IsHttps { get; internal set; }
 
@@ -38,7 +38,7 @@ public class Request : RequestResponseBase
     internal ByteString Authority { get; set; }
 
     /// <summary>
-    ///     Request HTTP Uri.
+    ///     Gets or sets the request URI.
     /// </summary>
     public Uri RequestUri
     {
@@ -58,7 +58,7 @@ public class Request : RequestResponseBase
     }
 
     /// <summary>
-    ///     The request url as it is in the HTTP header
+    ///     Gets or sets the request URL as it appears in the HTTP header.
     /// </summary>
     public string Url
     {
@@ -83,7 +83,7 @@ public class Request : RequestResponseBase
     }
 
     /// <summary>
-    ///     The request uri as it is in the HTTP header
+    ///     Gets or sets the request URI as a string.
     /// </summary>
     public string RequestUriString
     {
@@ -103,7 +103,7 @@ public class Request : RequestResponseBase
     }
 
     /// <summary>
-    ///     Has request body?
+    ///     Gets a value indicating whether the request has a body.
     /// </summary>
     public override bool HasBody
     {
@@ -125,7 +125,7 @@ public class Request : RequestResponseBase
     }
 
     /// <summary>
-    ///     Http hostname header value if exists.
+    ///     Gets or sets the Http hostname header value if exists.
     ///     Note: Changing this does NOT change host in RequestUri.
     ///     Users can set new RequestUri separately.
     /// </summary>
@@ -136,7 +136,7 @@ public class Request : RequestResponseBase
     }
 
     /// <summary>
-    ///     Does this request has a 100-continue header?
+    ///     Gets a value indicating whether the request has a 100-continue header.
     /// </summary>
     public bool ExpectContinue
     {
@@ -148,7 +148,7 @@ public class Request : RequestResponseBase
     }
 
     /// <summary>
-    ///     Does this request contain multipart/form-data?
+    ///     Gets a value indicating whether the request contains multipart/form-data.
     /// </summary>
     public bool IsMultipartFormData => ContentType?.StartsWith("multipart/form-data") == true;
 
@@ -159,7 +159,7 @@ public class Request : RequestResponseBase
     internal bool CancelRequest { get; set; }
 
     /// <summary>
-    ///     Does this request has an upgrade to websocket header?
+    ///     Gets a value indicating whether the request has an upgrade to websocket header.
     /// </summary>
     public bool UpgradeToWebSocket
     {
@@ -174,12 +174,12 @@ public class Request : RequestResponseBase
     }
 
     /// <summary>
-    ///     Did server respond positively for 100 continue request?
+    ///     Gets a value indicating whether the server responded positively for 100 continue request.
     /// </summary>
     public bool ExpectationSucceeded { get; internal set; }
 
     /// <summary>
-    ///     Did server respond negatively for 100 continue request?
+    ///     Gets a value indicating whether the server responded negatively for 100 continue request.
     /// </summary>
     public bool ExpectationFailed { get; internal set; }
 
