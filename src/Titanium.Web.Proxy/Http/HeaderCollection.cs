@@ -84,6 +84,9 @@ public class HeaderCollection : IEnumerable<HttpHeader>
         return null;
     }
 
+    /// <summary>
+    /// Gets the first header with given name if exists
+    /// </summary>
     public HttpHeader? GetFirstHeader(string name)
     {
         if (headers.TryGetValue(name, out var header)) return header;

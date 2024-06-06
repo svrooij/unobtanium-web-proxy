@@ -13,24 +13,38 @@ using Titanium.Web.Proxy.StreamExtended.Network;
 namespace Titanium.Web.Proxy.EventArguments;
 
 /// <summary>
-///     Holds info related to a single proxy session (single request/response sequence).
-///     A proxy session is bounded to a single connection from client.
-///     A proxy session ends when client terminates connection to proxy
-///     or when server terminates connection from proxy.
+/// Holds info related to a single proxy session (single request/response sequence).
+/// A proxy session is bounded to a single connection from client.
+/// A proxy session ends when client terminates connection to proxy
+/// or when server terminates connection from proxy.
 /// </summary>
 public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
 {
+    /// <summary>
+    /// Buffer pool used for the session.
+    /// </summary>
     protected readonly IBufferPool BufferPool;
 
+    /// <summary>
+    /// Cancellation token source for the session.
+    /// </summary>
     internal readonly CancellationTokenSource CancellationTokenSource;
+
+    /// <summary>
+    /// Exception handler function for the session.
+    /// </summary>
     protected readonly ExceptionHandler? ExceptionFunc;
+
+    /// <summary>
+    /// Logger instance for the session.
+    /// </summary>
     internal readonly ILogger logger;
 
     private bool disposed;
     private bool enableWinAuth;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="SessionEventArgsBase" /> class.
+    /// Initializes a new instance of the <see cref="SessionEventArgsBase" /> class.
     /// </summary>
     private protected SessionEventArgsBase(ProxyServer server, ProxyEndPoint endPoint,
         HttpClientStream clientStream, ConnectRequest? connectRequest, Request request,
@@ -61,8 +75,14 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
 
     internal HttpClientStream ClientStream { get; }
 
+    /// <summary>
+    /// Unique identifier of this session, on the client side.
+    /// </summary>
     public Guid ClientConnectionId => ClientConnection.Id;
 
+    /// <summary>
+    /// Unique identifier of this session, on the server side.
+    /// </summary>
     public Guid ServerConnectionId => HttpClient.HasConnection ? ServerConnection.Id : Guid.Empty;
 
     /// <summary>
@@ -154,17 +174,26 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// </summary>
     public Exception? Exception { get; internal set; }
 
+    /// <summary>
+    /// Dispose this instance.
+    /// </summary>
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    /// Called when an exception is thrown in user event.
+    /// </summary>
     protected void OnException(Exception exception)
     {
         ExceptionFunc?.Invoke(exception);
     }
 
+    /// <summary>
+    ///     Dispose this instance.
+    /// </summary>
     protected virtual void Dispose(bool disposing)
     {
         if (disposed) return;
@@ -183,6 +212,9 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
         disposed = true;
     }
 
+    /// <summary>
+    ///     Finalizer.
+    /// </summary>
     ~SessionEventArgsBase()
     {
 #if DEBUG

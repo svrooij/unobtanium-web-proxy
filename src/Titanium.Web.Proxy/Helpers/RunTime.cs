@@ -52,16 +52,30 @@ public static class RunTime
 #endif
 
     /// <summary>
-    ///     Is running on Mono?
+    /// Is running on Mono?
     /// </summary>
     internal static bool IsRunningOnMono => isRunningOnMono.Value;
 
+    /// <summary>
+    /// Is running on Linux?
+    /// </summary>
     public static bool IsLinux => IsRunningOnLinux;
 
+    /// <summary>
+    /// Is running on Windows?
+    /// </summary>
+    /// <remarks>Don't forget to also check <see cref="IsUwpOnWindows"/></remarks>
     public static bool IsWindows => IsRunningOnWindows;
 
+    /// <summary>
+    /// Is running on UWP on Windows?
+    /// </summary>
+    /// <remarks>Don't forget to also check <see cref="IsWindows"/></remarks> 
     public static bool IsUwpOnWindows => IsWindows && UwpHelper.IsRunningAsUwp();
 
+    /// <summary>
+    /// Is running on Mac?
+    /// </summary>
     public static bool IsMac => IsRunningOnMac;
 
     private static bool? _isSocketReuseAvailable;

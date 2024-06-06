@@ -10,7 +10,7 @@ using Titanium.Web.Proxy.StreamExtended.Models;
 namespace Titanium.Web.Proxy.StreamExtended;
 
 /// <summary>
-///     Wraps up the client SSL hello information.
+/// Represents the client SSL hello information.
 /// </summary>
 public class ClientHelloInfo
 {
@@ -20,6 +20,16 @@ public class ClientHelloInfo
         "DEFLATE"
     };
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClientHelloInfo"/> class.
+    /// </summary>
+    /// <param name="handshakeVersion">The handshake version.</param>
+    /// <param name="majorVersion">The major version.</param>
+    /// <param name="minorVersion">The minor version.</param>
+    /// <param name="random">The random bytes.</param>
+    /// <param name="sessionId">The session ID.</param>
+    /// <param name="ciphers">The ciphers.</param>
+    /// <param name="clientHelloLength">The length of the client hello message.</param>
     internal ClientHelloInfo(int handshakeVersion, int majorVersion, int minorVersion, byte[] random, byte[] sessionId,
         int[] ciphers, int clientHelloLength)
     {
@@ -32,14 +42,29 @@ public class ClientHelloInfo
         ClientHelloLength = clientHelloLength;
     }
 
+    /// <summary>
+    /// Gets the handshake version.
+    /// </summary>
     public int HandshakeVersion { get; }
 
+    /// <summary>
+    /// Gets the major version.
+    /// </summary>
     public int MajorVersion { get; }
 
+    /// <summary>
+    /// Gets the minor version.
+    /// </summary>
     public int MinorVersion { get; }
 
+    /// <summary>
+    /// Gets the random bytes.
+    /// </summary>
     public byte[] Random { get; }
 
+    /// <summary>
+    /// Gets the time derived from the random bytes.
+    /// </summary>
     public DateTime Time
     {
         get
@@ -54,18 +79,39 @@ public class ClientHelloInfo
         }
     }
 
+    /// <summary>
+    /// Gets the session ID.
+    /// </summary>
     public byte[] SessionId { get; }
 
+    /// <summary>
+    /// Gets the ciphers.
+    /// </summary>
     public int[] Ciphers { get; }
 
+    /// <summary>
+    /// Gets or sets the compression data.
+    /// </summary>
     public byte[]? CompressionData { get; internal set; }
 
+    /// <summary>
+    /// Gets the length of the client hello message.
+    /// </summary>
     internal int ClientHelloLength { get; }
 
+    /// <summary>
+    /// Gets or sets the start position of the extensions in the client hello message.
+    /// </summary>
     internal int ExtensionsStartPosition { get; set; }
 
+    /// <summary>
+    /// Gets or sets the extensions in the client hello message.
+    /// </summary>
     public Dictionary<string, SslExtension>? Extensions { get; set; }
 
+    /// <summary>
+    /// Gets the SSL protocol used in the client hello message.
+    /// </summary>
     public SslProtocols SslProtocol
     {
         get

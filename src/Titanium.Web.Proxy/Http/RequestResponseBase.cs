@@ -300,6 +300,9 @@ public abstract class RequestResponseBase
         }
     }
 
+    /// <summary>
+    /// HeaderText as string
+    /// </summary>
     public override string ToString()
     {
         return HeaderText;

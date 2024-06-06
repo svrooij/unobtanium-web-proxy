@@ -76,6 +76,9 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
         }
     }
 
+    /// <summary>
+    /// Dispose the object.
+    /// </summary>
     ~TunnelConnectSessionEventArgs()
     {
 #if DEBUG

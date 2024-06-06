@@ -18,6 +18,16 @@ public class ServerHelloInfo
         "DEFLATE"
     };
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServerHelloInfo"/> class.
+    /// </summary>
+    /// <param name="handshakeVersion">The handshake version.</param>
+    /// <param name="majorVersion">The major version.</param>
+    /// <param name="minorVersion">The minor version.</param>
+    /// <param name="random">The random bytes.</param>
+    /// <param name="sessionId">The session ID.</param>
+    /// <param name="cipherSuite">The cipher suite.</param>
+    /// <param name="serverHelloLength">The length of the server hello message.</param>
     public ServerHelloInfo(int handshakeVersion, int majorVersion, int minorVersion, byte[] random,
         byte[] sessionId, int cipherSuite, int serverHelloLength)
     {
@@ -29,15 +39,29 @@ public class ServerHelloInfo
         CipherSuite = cipherSuite;
         ServerHelloLength = serverHelloLength;
     }
-
+    /// <summary>
+    /// Gets the handshake version.
+    /// </summary>
     public int HandshakeVersion { get; }
 
+    /// <summary>
+    /// Gets the major version.
+    /// </summary>
     public int MajorVersion { get; }
 
+    /// <summary>
+    /// Gets the minor version.
+    /// </summary>
     public int MinorVersion { get; }
 
+    /// <summary>
+    /// Gets the random bytes.
+    /// </summary>
     public byte[] Random { get; }
 
+    /// <summary>
+    /// Gets the time derived from the random bytes.
+    /// </summary>
     public DateTime Time
     {
         get
@@ -52,16 +76,34 @@ public class ServerHelloInfo
         }
     }
 
+    /// <summary>
+    /// Gets the session ID.
+    /// </summary>
     public byte[] SessionId { get; }
 
+    /// <summary>
+    /// Gets the cipher suite.
+    /// </summary>
     public int CipherSuite { get; }
 
+    /// <summary>
+    /// Gets or sets the compression method.
+    /// </summary>
     public byte CompressionMethod { get; set; }
 
+    /// <summary>
+    /// Gets the length of the server hello message.
+    /// </summary>
     internal int ServerHelloLength { get; }
 
-    internal int EntensionsStartPosition { get; set; }
+    /// <summary>
+    /// Gets or sets the start position of the extensions in the server hello message.
+    /// </summary>
+    internal int ExtensionsStartPosition { get; set; }
 
+    /// <summary>
+    /// Gets or sets the extensions in the server hello message.
+    /// </summary>
     public Dictionary<string, SslExtension>? Extensions { get; set; }
 
     private static string SslVersionToString(int major, int minor)

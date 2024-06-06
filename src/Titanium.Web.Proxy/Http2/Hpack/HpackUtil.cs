@@ -17,20 +17,35 @@
 
 namespace Titanium.Web.Proxy.Http2.Hpack;
 
+/// <summary>
+///     HPACK util
+/// </summary>
 public static class HpackUtil
 {
-    // Section 6.2. Literal Header Field Representation
+    /// <summary>
+    /// Section 6.2. Literal Header Field Representation
+    /// http://tools.ietf.org/html/rfc7541#section-6.2
+    /// </summary>
     public enum IndexType
     {
-        Incremental, // Section 6.2.1. Literal Header Field with Incremental Indexing
-        None, // Section 6.2.2. Literal Header Field without Indexing
-        Never // Section 6.2.3. Literal Header Field never Indexed
+        /// <summary>Section 6.2.1. Literal Header Field with Incremental Indexing</summary>
+        Incremental,
+        /// <summary>Section 6.2.2. Literal Header Field without Indexing</summary>
+        None,
+        /// <summary>Section 6.2.3. Literal Header Field never Indexed</summary>
+        Never
     }
 
+    /// <summary>
+    /// Section 6.1. Indexed Header Field Representation
+    /// http://tools.ietf.org/html/rfc7541#section-6.1
+    /// </summary>
     public const int HuffmanEos = 256;
 
-    // Appendix B: Huffman Codes
-    // http://tools.ietf.org/html/rfc7541#appendix-B
+    /// <summary>
+    /// Appendix B: Huffman Codes
+    /// http://tools.ietf.org/html/rfc7541#appendix-B
+    /// </summary>
     public static readonly int[] HuffmanCodes =
     {
         0x1ff8,
@@ -292,6 +307,10 @@ public static class HpackUtil
         0x3fffffff // EOS
     };
 
+    /// <summary>
+    /// The HuffmanCodeLengths array represents the lengths of the Huffman codes used in HPACK, the header compression format for HTTP/2.
+    /// The array contains 257 entries, one for each 8-bit symbol and an additional one for the EOS (end-of-string) symbol.
+    /// </summary>
     public static readonly byte[] HuffmanCodeLengths =
     {
         13, 23, 28, 28, 28, 28, 28, 28, 28, 24, 30, 28, 28, 30, 28, 28,
