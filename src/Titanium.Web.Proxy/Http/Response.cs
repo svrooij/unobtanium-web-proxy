@@ -22,25 +22,29 @@ public class Response : RequestResponseBase
     /// <summary>
     ///     Constructor.
     /// </summary>
+    /// <param name="body">The response body as a byte array.</param>
     public Response(byte[] body)
     {
         Body = body;
     }
 
     /// <summary>
-    ///     Response Status Code.
+    ///     Gets or sets the response status code.
     /// </summary>
     public int StatusCode { get; set; }
 
     /// <summary>
-    ///     Response Status description.
+    ///     Gets or sets the response status description.
     /// </summary>
     public string StatusDescription { get; set; } = string.Empty;
 
+    /// <summary>
+    ///     Gets or sets the request method associated with this response.
+    /// </summary>
     internal string? RequestMethod { get; set; }
 
     /// <summary>
-    ///     Has response body?
+    ///     Gets a value indicating whether the response has a body.
     /// </summary>
     public override bool HasBody
     {
@@ -68,7 +72,7 @@ public class Response : RequestResponseBase
     }
 
     /// <summary>
-    ///     Keep the connection alive?
+    ///     Gets a value indicating whether to keep the connection alive.
     /// </summary>
     public bool KeepAlive
     {
@@ -85,7 +89,7 @@ public class Response : RequestResponseBase
     }
 
     /// <summary>
-    ///     Gets the header text.
+    ///     Gets the header text of the response.
     /// </summary>
     public override string HeaderText
     {
@@ -98,6 +102,10 @@ public class Response : RequestResponseBase
         }
     }
 
+    /// <summary>
+    ///     Ensures the response body is available.
+    /// </summary>
+    /// <param name="throwWhenNotReadYet">If true, throws an exception if the body is not read yet.</param>
     internal override void EnsureBodyAvailable(bool throwWhenNotReadYet = true)
     {
         if (BodyInternal != null) return;
@@ -110,6 +118,13 @@ public class Response : RequestResponseBase
                                 "method to read the response body.");
     }
 
+    /// <summary>
+    ///     Parses the response line.
+    /// </summary>
+    /// <param name="httpStatus">The HTTP status line.</param>
+    /// <param name="version">The HTTP version.</param>
+    /// <param name="statusCode">The status code.</param>
+    /// <param name="statusDescription">The status description.</param>
     internal static void ParseResponseLine(string httpStatus, out Version version, out int statusCode,
         out string statusDescription)
     {
