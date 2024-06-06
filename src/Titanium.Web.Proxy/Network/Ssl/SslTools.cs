@@ -248,7 +248,7 @@ internal class SslTools
                 peekStream.Position)
             {
                 CompressionMethod = compressionMethod,
-                EntensionsStartPosition = extensionsStartPosition,
+                ExtensionsStartPosition = extensionsStartPosition,
                 Extensions = extensions
             };
 

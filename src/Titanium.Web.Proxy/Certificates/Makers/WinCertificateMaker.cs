@@ -305,42 +305,174 @@ internal class WinCertificateMaker : ICertificateMaker
 
 #pragma warning restore
 
+/// <summary>
+/// The EncodingType enumeration represents the different encoding types that can be used when creating a certificate.
+/// </summary>
 public enum EncodingType
 {
+    /// <summary>
+    /// Represents any encoding type.
+    /// </summary>
     XcnCryptStringAny = 7,
+
+    /// <summary>
+    /// Represents Base64 encoding.
+    /// </summary>
     XcnCryptStringBase64 = 1,
+
+    /// <summary>
+    /// Represents any Base64 encoding.
+    /// </summary>
     XcnCryptStringBase64Any = 6,
+
+    /// <summary>
+    /// Represents Base64 encoding with a header.
+    /// </summary>
     XcnCryptStringBase64Header = 0,
+
+    /// <summary>
+    /// Represents Base64 encoding with a request header.
+    /// </summary>
     XcnCryptStringBase64Requestheader = 3,
+
+    /// <summary>
+    /// Represents Base64 encoding for URIs.
+    /// </summary>
     XcnCryptStringBase64Uri = 13,
+
+    /// <summary>
+    /// Represents Base64 encoding with a X509 CRL header.
+    /// </summary>
     XcnCryptStringBase64X509Crlheader = 9,
+
+    /// <summary>
+    /// Represents binary encoding.
+    /// </summary>
     XcnCryptStringBinary = 2,
+
+    /// <summary>
+    /// Represents chain encoding.
+    /// </summary>
     XcnCryptStringChain = 0x100,
+
+    /// <summary>
+    /// Represents the encode mask.
+    /// </summary>
     XcnCryptStringEncodemask = 0xff,
+
+    /// <summary>
+    /// Represents hash data encoding.
+    /// </summary>
     XcnCryptStringHashdata = 0x10000000,
+
+    /// <summary>
+    /// Represents hexadecimal encoding.
+    /// </summary>
     XcnCryptStringHex = 4,
+
+    /// <summary>
+    /// Represents any hexadecimal encoding.
+    /// </summary>
     XcnCryptStringHexAny = 8,
+
+    /// <summary>
+    /// Represents hexadecimal address encoding.
+    /// </summary>
     XcnCryptStringHexaddr = 10,
+
+    /// <summary>
+    /// Represents hexadecimal ASCII encoding.
+    /// </summary>
     XcnCryptStringHexascii = 5,
+
+    /// <summary>
+    /// Represents hexadecimal ASCII address encoding.
+    /// </summary>
     XcnCryptStringHexasciiaddr = 11,
+
+    /// <summary>
+    /// Represents raw hexadecimal encoding.
+    /// </summary>
     XcnCryptStringHexraw = 12,
+
+    /// <summary>
+    /// Represents encoding with no carriage return.
+    /// </summary>
     XcnCryptStringNocr = -2147483648,
+
+    /// <summary>
+    /// Represents encoding with no CRLF.
+    /// </summary>
     XcnCryptStringNocrlf = 0x40000000,
+
+    /// <summary>
+    /// Represents percent escape encoding.
+    /// </summary>
     XcnCryptStringPercentescape = 0x8000000,
+
+    /// <summary>
+    /// Represents strict encoding.
+    /// </summary>
     XcnCryptStringStrict = 0x20000000,
+
+    /// <summary>
+    /// Represents text encoding.
+    /// </summary>
     XcnCryptStringText = 0x200
 }
 
+/// <summary>
+/// The AlternativeNameType enumeration represents the different types of alternative names that can be used in a certificate.
+/// </summary>
 public enum AlternativeNameType
 {
+    /// <summary>
+    /// Represents a directory name.
+    /// </summary>
     XcnCertAltNameDirectoryName = 5,
+
+    /// <summary>
+    /// Represents a DNS name.
+    /// </summary>
     XcnCertAltNameDnsName = 3,
+
+    /// <summary>
+    /// Represents a GUID.
+    /// </summary>
     XcnCertAltNameGuid = 10,
+
+    /// <summary>
+    /// Represents an IP address.
+    /// </summary>
     XcnCertAltNameIpAddress = 8,
+
+    /// <summary>
+    /// Represents an other name.
+    /// </summary>
     XcnCertAltNameOtherName = 1,
+
+    /// <summary>
+    /// Represents a registered ID.
+    /// </summary>
     XcnCertAltNameRegisteredId = 9,
+
+    /// <summary>
+    /// Represents an RFC 822 name.
+    /// </summary>
     XcnCertAltNameRfc822Name = 2,
+
+    /// <summary>
+    /// Represents an unknown name type.
+    /// </summary>
     XcnCertAltNameUnknown = 0,
+
+    /// <summary>
+    /// Represents a URL.
+    /// </summary>
     XcnCertAltNameUrl = 7,
+
+    /// <summary>
+    /// Represents a user principle name.
+    /// </summary>
     XcnCertAltNameUserPrincipleName = 11
 }
