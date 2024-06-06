@@ -19,7 +19,14 @@ using System;
 using System.IO;
 
 namespace Titanium.Web.Proxy.Http2.Hpack;
-
+/// <summary>
+/// The HuffmanDecoder class is responsible for decoding Huffman encoded data.
+/// It uses a Huffman tree built from predefined Huffman codes and lengths.
+/// The decoding process involves traversing the Huffman tree based on the input data,
+/// and outputting the symbol when a terminal node is reached.
+/// This class is designed to be used in the context of HPACK (Header Compression for HTTP/2),
+/// where Huffman coding is used to compress HTTP headers.
+/// </summary>
 public class HuffmanDecoder
 {
     /// <summary>

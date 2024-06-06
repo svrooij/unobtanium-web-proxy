@@ -941,6 +941,9 @@ public partial class ProxyServer : IDisposable
 
     private bool disposed;
 
+    /// <summary>
+    /// Dispose the ProxyServer instance, and stop the proxy server if running.
+    /// </summary>
     protected virtual void Dispose(bool disposing)
     {
         if (disposed) return;
@@ -966,12 +969,14 @@ public partial class ProxyServer : IDisposable
         }
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
+    /// <inheritdoc/>
     ~ProxyServer()
     {
         Dispose(false);

@@ -60,8 +60,14 @@ public class SessionEventArgs : SessionEventArgsBase
         }
     }
 
+    /// <summary>
+    /// WebSocket decoder for sending data to server
+    /// </summary>
     public WebSocketDecoder WebSocketDecoderSend => webSocketDecoderSend ??= new WebSocketDecoder(BufferPool);
 
+    /// <summary>
+    /// WebSocket decoder for receiving data from server
+    /// </summary>
     public WebSocketDecoder WebSocketDecoderReceive => webSocketDecoderReceive ??= new WebSocketDecoder(BufferPool);
 
     /// <summary>
@@ -611,6 +617,7 @@ public class SessionEventArgs : SessionEventArgsBase
         HttpClient.CloseServerConnection = true;
     }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         if (disposed) return;
@@ -621,6 +628,7 @@ public class SessionEventArgs : SessionEventArgsBase
         base.Dispose(disposing);
     }
 
+    /// <inheritdoc/>
     ~SessionEventArgs()
     {
 #if DEBUG

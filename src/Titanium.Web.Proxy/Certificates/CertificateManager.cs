@@ -24,6 +24,10 @@ public enum CertificateEngine
     /// </summary>
     BouncyCastle = 0,
 
+    /// <summary>
+    /// Uses BouncyCastle 3rd party library.
+    /// Observed to be faster than BouncyCastle.
+    /// </summary>
     BouncyCastleFast = 2,
 
     /// <summary>
@@ -279,6 +283,7 @@ public sealed class CertificateManager : IDisposable
     /// </summary>
     public bool DisableWildCardCertificates { get; set; } = false;
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Dispose(true);
@@ -951,6 +956,7 @@ public sealed class CertificateManager : IDisposable
         disposed = true;
     }
 
+    /// <inheritdoc />
     ~CertificateManager()
     {
         Dispose(false);

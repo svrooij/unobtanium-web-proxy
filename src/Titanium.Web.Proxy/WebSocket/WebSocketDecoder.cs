@@ -4,7 +4,11 @@ using System.Runtime.InteropServices;
 using Titanium.Web.Proxy.StreamExtended.BufferPool;
 
 namespace Titanium.Web.Proxy;
-
+/// <summary>
+/// The WebSocketDecoder class is responsible for decoding WebSocket frames from a stream of bytes.
+/// It uses a buffer to store incoming data and decodes frames from this buffer as they become available.
+/// This class is designed to be used in the context of a WebSocket connection, where frames are used to send and receive data.
+/// </summary>
 public class WebSocketDecoder
 {
     private byte[] buffer;
@@ -16,6 +20,13 @@ public class WebSocketDecoder
         buffer = new byte[bufferPool.BufferSize];
     }
 
+    /// <summary>
+    /// Decodes WebSocket frames from the provided data.
+    /// </summary>
+    /// <param name="data">The data to decode frames from.</param>
+    /// <param name="offset">The offset in the data at which to start decoding.</param>
+    /// <param name="count">The number of bytes in the data to decode.</param>
+    /// <returns>An IEnumerable of WebSocketFrame representing the decoded frames.</returns>
     public IEnumerable<WebSocketFrame> Decode(byte[] data, int offset, int count)
     {
         var buffer = data.AsMemory(offset, count);

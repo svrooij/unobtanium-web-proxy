@@ -58,8 +58,14 @@ public class ExternalProxy : IExternalProxy
     /// </summary>
     public bool BypassLocalhost { get; set; }
 
+    /// <summary>
+    ///     Proxy type.
+    /// </summary>
     public ExternalProxyType ProxyType { get; set; }
 
+    /// <summary>
+    ///     Should DNS requests be proxied?
+    /// </summary>
     public bool ProxyDnsRequests { get; set; }
 
     /// <summary>
@@ -110,6 +116,9 @@ public class ExternalProxy : IExternalProxy
     }
 }
 
+/// <summary>
+/// Type of external proxy server.
+/// </summary>
 public enum ExternalProxyType
 {
     /// <summary>A HTTP/HTTPS proxy server.</summary>

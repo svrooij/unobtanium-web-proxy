@@ -36,6 +36,9 @@ public class HttpHeader
 
     internal static readonly Encoding DefaultEncoding = Encoding.GetEncoding("ISO-8859-1");
 
+    /// <summary>
+    ///     Default encoding used in headers.
+    /// </summary>
     public static Encoding Encoding => DefaultEncoding;
 
     internal static readonly HttpHeader ProxyConnectionKeepAlive = new("Proxy-Connection", "keep-alive");
@@ -107,6 +110,9 @@ public class HttpHeader
 
     internal ByteString ValueData { get; private set; }
 
+    /// <summary>
+    ///     Header Size.
+    /// </summary>
     public int Size => Name.Length + Value.Length + HttpHeaderOverhead;
 
     internal static int SizeOf(ByteString name, ByteString value)
