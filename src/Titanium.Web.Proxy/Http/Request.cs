@@ -203,18 +203,14 @@ public class Request : RequestResponseBase
 
         // GET request don't have a request body to read
         if (!HasBody)
-            throw new BodyNotFoundException("Request don't have a body. " +
-                                            "Please verify that this request is a Http POST/PUT/PATCH and request " +
-                                            "content length is greater than zero before accessing the body.");
+            throw new BodyNotFoundException();
 
         if (!IsBodyRead)
         {
-            if (Locked) throw new Exception("You cannot get the request body after request is made to server.");
+            if (Locked) throw new BodyLockedException();
 
             if (throwWhenNotReadYet)
-                throw new Exception("Request body is not read yet. " +
-                                    "Use SessionEventArgs.GetRequestBody() or SessionEventArgs.GetRequestBodyAsString() " +
-                                    "method to read the request body.");
+                throw new BodyNotLoadedException();
         }
     }
 

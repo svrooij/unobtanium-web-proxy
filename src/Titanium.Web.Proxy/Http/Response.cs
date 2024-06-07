@@ -110,12 +110,10 @@ public class Response : RequestResponseBase
     {
         if (BodyInternal != null) return;
 
-        if (!HasBody) throw new BodyNotFoundException("Response don't have a body.");
+        if (!HasBody) throw new BodyNotFoundException("Response has no body.");
 
         if (!IsBodyRead && throwWhenNotReadYet)
-            throw new Exception("Response body is not read yet. " +
-                                "Use SessionEventArgs.GetResponseBody() or SessionEventArgs.GetResponseBodyAsString() " +
-                                "method to read the response body.");
+            throw new BodyNotLoadedException();
     }
 
     /// <summary>
