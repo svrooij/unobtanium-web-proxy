@@ -25,10 +25,10 @@ namespace Titanium.Web.Proxy.Network.Tcp;
 internal class TcpConnectionFactory : IDisposable
 {
     // Tcp server connection pool cache
-    private readonly ConcurrentDictionary<string, ConcurrentQueue<TcpServerConnection>> cache = new();
+    private readonly ConcurrentDictionary<string, ConcurrentQueue<TcpServerConnection>> cache = [];
 
     // Tcp connections waiting to be disposed by cleanup task
-    private readonly ConcurrentBag<TcpServerConnection> disposalBag = new();
+    private readonly ConcurrentBag<TcpServerConnection> disposalBag = [];
 
     // cache object race operations lock
     private readonly SemaphoreSlim @lock = new(1);
@@ -51,7 +51,7 @@ internal class TcpConnectionFactory : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    internal string GetConnectionCacheKey(string remoteHostName, int remotePort,
+    internal static string GetConnectionCacheKey(string remoteHostName, int remotePort,
         bool isHttps, List<SslApplicationProtocol>? applicationProtocols,
         IPEndPoint? upStreamEndPoint, IExternalProxy? externalProxy)
     {
@@ -61,9 +61,9 @@ internal class TcpConnectionFactory : IDisposable
         // http version 2 is separated using applicationProtocols below.
         var cacheKeyBuilder = new StringBuilder();
         cacheKeyBuilder.Append(remoteHostName);
-        cacheKeyBuilder.Append("-");
+        cacheKeyBuilder.Append('-');
         cacheKeyBuilder.Append(remotePort);
-        cacheKeyBuilder.Append("-");
+        cacheKeyBuilder.Append('-');
 
         // when creating Tcp client isConnect won't matter
         cacheKeyBuilder.Append(isHttps);
@@ -71,32 +71,32 @@ internal class TcpConnectionFactory : IDisposable
         if (applicationProtocols != null)
             foreach (var protocol in applicationProtocols.OrderBy(x => x))
             {
-                cacheKeyBuilder.Append("-");
+                cacheKeyBuilder.Append('-');
                 cacheKeyBuilder.Append(protocol);
             }
 
         if (upStreamEndPoint != null)
         {
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(upStreamEndPoint.Address);
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(upStreamEndPoint.Port);
         }
 
         if (externalProxy != null)
         {
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(externalProxy.HostName);
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(externalProxy.Port);
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(externalProxy.ProxyType);
 
             if (externalProxy.UseDefaultCredentials)
             {
-                cacheKeyBuilder.Append("-");
+                cacheKeyBuilder.Append('-');
                 cacheKeyBuilder.Append(externalProxy.UserName);
-                cacheKeyBuilder.Append("-");
+                cacheKeyBuilder.Append('-');
                 cacheKeyBuilder.Append(externalProxy.Password);
             }
         }
@@ -111,12 +111,12 @@ internal class TcpConnectionFactory : IDisposable
     /// <param name="session">The session event arguments.</param>
     /// <param name="applicationProtocol">The application protocol.</param>
     /// <returns></returns>
-    internal async Task<string> GetConnectionCacheKey(ProxyServer server, SessionEventArgsBase session,
+    internal static async Task<string> GetConnectionCacheKey(ProxyServer server, SessionEventArgsBase session,
         SslApplicationProtocol applicationProtocol)
     {
         List<SslApplicationProtocol>? applicationProtocols = null;
         if (applicationProtocol != default)
-            applicationProtocols = new List<SslApplicationProtocol> { applicationProtocol };
+            applicationProtocols = [ applicationProtocol ];
 
         var customUpStreamProxy = session.CustomUpStreamProxy;
 
@@ -150,7 +150,7 @@ internal class TcpConnectionFactory : IDisposable
     {
         List<SslApplicationProtocol>? applicationProtocols = null;
         if (applicationProtocol != default)
-            applicationProtocols = new List<SslApplicationProtocol> { applicationProtocol };
+            applicationProtocols = [ applicationProtocol ];
 
         return GetServerConnection(proxyServer, session, isConnect, applicationProtocols, noCache, false,
             cancellationToken)!;
@@ -194,8 +194,8 @@ internal class TcpConnectionFactory : IDisposable
             }
             else
             {
-                host = authority.Slice(0, idx).GetString();
-                port = int.Parse(authority.Slice(idx + 1).GetString());
+                host = authority[..idx].GetString();
+                port = int.Parse(authority[(idx + 1)..].GetString());
             }
         }
         else
@@ -246,7 +246,7 @@ internal class TcpConnectionFactory : IDisposable
                 {
                     // +3 seconds for potential delay after getting connection
                     var cutOff = DateTime.UtcNow.AddSeconds(-proxyServer.ConnectionTimeOutSeconds + 3);
-                    while (existingConnections.Count > 0)
+                    while (!existingConnections.IsEmpty)
                         if (existingConnections.TryDequeue(out var recentConnection))
                         {
                             if (recentConnection.LastAccess > cutOff
@@ -341,7 +341,7 @@ internal class TcpConnectionFactory : IDisposable
                 port = externalProxy.Port;
             }
 
-            var ipAddresses = await Dns.GetHostAddressesAsync(hostname);
+            var ipAddresses = await Dns.GetHostAddressesAsync(hostname, cancellationToken);
             if (ipAddresses == null || ipAddresses.Length == 0)
             {
                 if (prefetch) return null;
@@ -363,12 +363,13 @@ internal class TcpConnectionFactory : IDisposable
                     if (socks)
                     {
                         var proxySocket =
-                            new ProxySocket.ProxySocket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
-                        proxySocket.ProxyType = externalProxy!.ProxyType == ExternalProxyType.Socks4
-                            ? ProxyTypes.Socks4
-                            : ProxyTypes.Socks5;
-
-                        proxySocket.ProxyEndPoint = new IPEndPoint(ipAddress, port);
+                            new ProxySocket.ProxySocket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
+                            {
+                                ProxyType = externalProxy!.ProxyType == ExternalProxyType.Socks4
+                                    ? ProxyTypes.Socks4
+                                    : ProxyTypes.Socks5,
+                                ProxyEndPoint = new IPEndPoint(ipAddress, port)
+                            };
                         if (!string.IsNullOrEmpty(externalProxy.UserName) && externalProxy.Password != null)
                         {
                             proxySocket.ProxyUser = externalProxy.UserName;
@@ -405,7 +406,7 @@ internal class TcpConnectionFactory : IDisposable
                         else
                         {
                             // todo: resolve only once when the SOCKS proxy has multiple addresses (and the first address fails)
-                            var remoteIpAddresses = await Dns.GetHostAddressesAsync(remoteHostName);
+                            var remoteIpAddresses = await Dns.GetHostAddressesAsync(remoteHostName, cancellationToken);
                             if (remoteIpAddresses == null || remoteIpAddresses.Length == 0)
                                 throw new Exception($"Could not resolve the SOCKS remote hostname {remoteHostName}");
 
@@ -626,7 +627,7 @@ internal class TcpConnectionFactory : IDisposable
                 }
 
                 if (cache.TryAdd(connection.CacheKey,
-                        new ConcurrentQueue<TcpServerConnection>(new[] { connection })))
+                        new ConcurrentQueue<TcpServerConnection>([connection])))
                     break;
             }
         }
@@ -665,7 +666,7 @@ internal class TcpConnectionFactory : IDisposable
                 {
                     var queue = item.Value;
 
-                    while (queue.Count > 0)
+                    while (!queue.IsEmpty)
                         if (queue.TryDequeue(out var connection))
                         {
                             if (!Server.EnableConnectionPool || connection.LastAccess < cutOff)
@@ -685,7 +686,7 @@ internal class TcpConnectionFactory : IDisposable
                     await @lock.WaitAsync();
 
                     // clear empty queues
-                    var emptyKeys = cache.ToArray().Where(x => x.Value.Count == 0).Select(x => x.Key);
+                    var emptyKeys = cache.ToArray().Where(x => x.Value.IsEmpty).Select(x => x.Key);
                     foreach (var key in emptyKeys) cache.TryRemove(key, out _);
                 }
                 finally
