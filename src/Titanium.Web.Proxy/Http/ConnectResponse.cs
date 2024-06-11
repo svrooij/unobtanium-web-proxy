@@ -19,7 +19,7 @@ public class ConnectResponse : Response
     /// </summary>
     /// <param name="httpVersion">The HTTP version.</param>
     /// <returns>The <see cref="ConnectResponse"/>.</returns>
-    internal static ConnectResponse CreateSuccessfulConnectResponse(Version httpVersion)
+    internal static ConnectResponse CreateSuccessfulConnectResponse ( Version httpVersion )
     {
         var response = new ConnectResponse
         {

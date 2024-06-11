@@ -39,29 +39,29 @@ internal sealed class LittleEndian
 
     private static unsafe byte[] GetUShortBytes(byte* bytes)
     {
-        if (BitConverter.IsLittleEndian) return new[] { bytes[0], bytes[1] };
+        if (BitConverter.IsLittleEndian) return [bytes[0], bytes[1]];
 
-        return new[] { bytes[1], bytes[0] };
+        return [bytes[1], bytes[0]];
     }
 
     private static unsafe byte[] GetUIntBytes(byte* bytes)
     {
-        if (BitConverter.IsLittleEndian) return new[] { bytes[0], bytes[1], bytes[2], bytes[3] };
+        if (BitConverter.IsLittleEndian) return [bytes[0], bytes[1], bytes[2], bytes[3]];
 
-        return new[] { bytes[3], bytes[2], bytes[1], bytes[0] };
+        return [bytes[3], bytes[2], bytes[1], bytes[0]];
     }
 
     private static unsafe byte[] GetULongBytes(byte* bytes)
     {
         if (BitConverter.IsLittleEndian)
-            return new[] { bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7] };
+            return [bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]];
 
-        return new[] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] };
+        return [bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]];
     }
 
     internal static byte[] GetBytes(bool value)
     {
-        return new[] { value ? (byte)1 : (byte)0 };
+        return [value ? (byte)1 : (byte)0];
     }
 
     internal static unsafe byte[] GetBytes(char value)

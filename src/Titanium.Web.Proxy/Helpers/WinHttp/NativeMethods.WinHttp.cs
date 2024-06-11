@@ -4,29 +4,31 @@ using System.Runtime.InteropServices;
 // Helper classes for setting system proxy settings
 namespace Titanium.Web.Proxy.Helpers.WinHttp;
 
-internal class NativeMethods
+internal partial class NativeMethods
 {
-    internal static class WinHttp
+    internal static partial class WinHttp
     {
         [DllImport("winhttp.dll", SetLastError = true)]
-        internal static extern bool WinHttpGetIEProxyConfigForCurrentUser(
-            ref WinhttpCurrentUserIeProxyConfig proxyConfig);
+        internal static extern bool WinHttpGetIEProxyConfigForCurrentUser (
+            ref WinhttpCurrentUserIeProxyConfig proxyConfig );
+
+        [LibraryImport("winhttp.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+        internal static partial WinHttpHandle WinHttpOpen ( string? userAgent, AccessType accessType, string? proxyName,
+            string? proxyBypass, int dwFlags );
+
+        [LibraryImport("winhttp.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool WinHttpSetTimeouts ( WinHttpHandle session, int resolveTimeout,
+            int connectTimeout, int sendTimeout, int receiveTimeout );
 
         [DllImport("winhttp.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern WinHttpHandle WinHttpOpen(string? userAgent, AccessType accessType, string? proxyName,
-            string? proxyBypass, int dwFlags);
-
-        [DllImport("winhttp.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool WinHttpSetTimeouts(WinHttpHandle session, int resolveTimeout,
-            int connectTimeout, int sendTimeout, int receiveTimeout);
-
-        [DllImport("winhttp.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool WinHttpGetProxyForUrl(WinHttpHandle session, string url,
+        internal static extern bool WinHttpGetProxyForUrl ( WinHttpHandle session, string url,
             [In] ref WinhttpAutoproxyOptions autoProxyOptions,
-            out WinhttpProxyInfo proxyInfo);
+            out WinhttpProxyInfo proxyInfo );
 
-        [DllImport("winhttp.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern bool WinHttpCloseHandle(IntPtr httpSession);
+        [LibraryImport("winhttp.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool WinHttpCloseHandle ( IntPtr httpSession );
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         internal struct WinhttpCurrentUserIeProxyConfig

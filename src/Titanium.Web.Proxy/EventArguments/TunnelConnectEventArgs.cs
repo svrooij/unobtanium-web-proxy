@@ -14,8 +14,8 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
 {
     private bool? isHttpsConnect;
 
-    internal TunnelConnectSessionEventArgs(ProxyServer server, ProxyEndPoint endPoint, ConnectRequest connectRequest,
-        HttpClientStream clientStream, CancellationTokenSource cancellationTokenSource)
+    internal TunnelConnectSessionEventArgs ( ProxyServer server, ProxyEndPoint endPoint, ConnectRequest connectRequest,
+        HttpClientStream clientStream, CancellationTokenSource cancellationTokenSource )
         : base(server, endPoint, clientStream, connectRequest, connectRequest, cancellationTokenSource)
     {
     }
@@ -52,7 +52,7 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
     /// </summary>
     public event EventHandler<DataEventArgs>? DecryptedDataReceived;
 
-    internal void OnDecryptedDataSent(byte[] buffer, int offset, int count)
+    internal void OnDecryptedDataSent ( byte[] buffer, int offset, int count )
     {
         try
         {
@@ -64,7 +64,7 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
         }
     }
 
-    internal void OnDecryptedDataReceived(byte[] buffer, int offset, int count)
+    internal void OnDecryptedDataReceived ( byte[] buffer, int offset, int count )
     {
         try
         {
@@ -79,11 +79,11 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
     /// <summary>
     /// Dispose the object.
     /// </summary>
-    ~TunnelConnectSessionEventArgs()
+    ~TunnelConnectSessionEventArgs ()
     {
 #if DEBUG
-            // Finalizer should not be called
-            System.Diagnostics.Debugger.Break();
+        // Finalizer should not be called
+        System.Diagnostics.Debugger.Break();
 #endif
 
         Dispose(false);

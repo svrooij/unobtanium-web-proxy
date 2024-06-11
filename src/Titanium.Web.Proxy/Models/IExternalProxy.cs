@@ -50,5 +50,5 @@ public interface IExternalProxy
     /// Returns a string that represents the current object.
     /// </summary>
     /// <returns>A string that represents the current object.</returns>
-    string ToString();
+    string ToString ();
 }

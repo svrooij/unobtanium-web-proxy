@@ -41,7 +41,7 @@ internal class ProxyException : Exception
     /// <summary>
     ///     Initializes a new instance of the ProxyException class.
     /// </summary>
-    public ProxyException() : this("An error occured while talking to the proxy server.")
+    public ProxyException () : this("An error occured while talking to the proxy server.")
     {
     }
 
@@ -49,7 +49,7 @@ internal class ProxyException : Exception
     ///     Initializes a new instance of the ProxyException class.
     /// </summary>
     /// <param name="message">The message that describes the error.</param>
-    public ProxyException(string message) : base(message)
+    public ProxyException ( string message ) : base(message)
     {
     }
 
@@ -57,7 +57,7 @@ internal class ProxyException : Exception
     ///     Initializes a new instance of the ProxyException class.
     /// </summary>
     /// <param name="socks5Error">The error number returned by a SOCKS5 server.</param>
-    public ProxyException(int socks5Error) : this(Socks5ToString(socks5Error))
+    public ProxyException ( int socks5Error ) : this(Socks5ToString(socks5Error))
     {
     }
 
@@ -66,30 +66,20 @@ internal class ProxyException : Exception
     /// </summary>
     /// <param name="socks5Error">The error number returned by a SOCKS5 server.</param>
     /// <returns>A string representation of the specified SOCKS5 error number.</returns>
-    public static string Socks5ToString(int socks5Error)
+    public static string Socks5ToString ( int socks5Error )
     {
-        switch (socks5Error)
+        return socks5Error switch
         {
-            case 0:
-                return "Connection succeeded.";
-            case 1:
-                return "General SOCKS server failure.";
-            case 2:
-                return "Connection not allowed by ruleset.";
-            case 3:
-                return "Network unreachable.";
-            case 4:
-                return "Host unreachable.";
-            case 5:
-                return "Connection refused.";
-            case 6:
-                return "TTL expired.";
-            case 7:
-                return "Command not supported.";
-            case 8:
-                return "Address type not supported.";
-            default:
-                return "Unspecified SOCKS error.";
-        }
+            0 => "Connection succeeded.",
+            1 => "General SOCKS server failure.",
+            2 => "Connection not allowed by ruleset.",
+            3 => "Network unreachable.",
+            4 => "Host unreachable.",
+            5 => "Connection refused.",
+            6 => "TTL expired.",
+            7 => "Command not supported.",
+            8 => "Address type not supported.",
+            _ => "Unspecified SOCKS error.",
+        };
     }
 }

@@ -69,7 +69,7 @@ public class Request : RequestResponseBase
             {
                 var hostAndPath = Host ?? Authority.GetString();
 
-                if (url.StartsWith("/"))
+                if (url.StartsWith('/'))
                 {
                     hostAndPath += url;
                 }
@@ -197,7 +197,7 @@ public class Request : RequestResponseBase
         }
     }
 
-    internal override void EnsureBodyAvailable(bool throwWhenNotReadYet = true)
+    internal override void EnsureBodyAvailable ( bool throwWhenNotReadYet = true )
     {
         if (BodyInternal != null) return;
 
@@ -214,8 +214,8 @@ public class Request : RequestResponseBase
         }
     }
 
-    internal static void ParseRequestLine(string httpCmd, out string method, out ByteString requestUri,
-        out Version version)
+    internal static void ParseRequestLine ( string httpCmd, out string method, out ByteString requestUri,
+        out Version version )
     {
         var firstSpace = httpCmd.IndexOf(' ');
         if (firstSpace == -1)
@@ -227,7 +227,7 @@ public class Request : RequestResponseBase
         // break up the line into three components (method, remote URL & Http Version)
 
         // Find the request Verb
-        method = httpCmd.Substring(0, firstSpace);
+        method = httpCmd[..firstSpace];
         if (!IsAllUpper(method)) method = method.ToUpper();
 
         version = HttpHeader.Version11;
@@ -247,7 +247,7 @@ public class Request : RequestResponseBase
         }
     }
 
-    private static bool IsAllUpper(string input)
+    private static bool IsAllUpper ( string input )
     {
         for (var i = 0; i < input.Length; i++)
         {

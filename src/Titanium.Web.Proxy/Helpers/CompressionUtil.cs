@@ -4,7 +4,7 @@ namespace Titanium.Web.Proxy.Compression;
 
 internal static class CompressionUtil
 {
-    public static HttpCompression CompressionNameToEnum(string name)
+    public static HttpCompression CompressionNameToEnum ( string name )
     {
         if (KnownHeaders.ContentEncodingGzip.Equals(name))
             return HttpCompression.Gzip;

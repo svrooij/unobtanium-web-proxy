@@ -23,7 +23,6 @@ using System.Runtime.CompilerServices;
 
 namespace Titanium.Web.Proxy;
 
-/// <inheritdoc />
 /// <summary>
 ///     This class is the backbone of proxy. One can create as many instances as needed.
 ///     However care should be taken to avoid using the same listening ports across multiple instances.
@@ -118,7 +117,7 @@ public partial class ProxyServer : IDisposable
         logger = this.loggerFactory.CreateLogger<ProxyServer>();
 
         BufferPool = new DefaultBufferPool();
-        ProxyEndPoints = new List<ProxyEndPoint>();
+        ProxyEndPoints = [];
         TcpConnectionFactory = new TcpConnectionFactory(this);
         if (RunTime.IsWindows && !RunTime.IsUwpOnWindows) SystemProxySettingsManager = new SystemProxyManager();
 
@@ -363,7 +362,7 @@ public partial class ProxyServer : IDisposable
     ///     required.
     ///     Works in relation with ProxySchemeAuthenticateFunc.
     /// </summary>
-    public IEnumerable<string> ProxyAuthenticationSchemes { get; set; } = new string[0];
+    public IEnumerable<string> ProxyAuthenticationSchemes { get; set; } = [];
 
     /// <summary>
     ///     Event occurs when client connection count changed.
@@ -446,7 +445,7 @@ public partial class ProxyServer : IDisposable
             throw ex;
         }
             
-        logger.LogInformation("Adding endpoint at Ip {0} and port: {1}", endPoint.IpAddress, endPoint.Port);
+        logger.LogInformation("Adding endpoint at Ip {IpAddress} and port: {Port}", endPoint.IpAddress, endPoint.Port);
         ProxyEndPoints.Add(endPoint);
 
         if (ProxyRunning) Listen(endPoint);
@@ -467,7 +466,7 @@ public partial class ProxyServer : IDisposable
             throw ex;
         }
             
-        logger.LogInformation("Removing endpoint at Ip {0} and port: {1}", endPoint.IpAddress, endPoint.Port);
+        logger.LogInformation("Removing endpoint at Ip {IpAddress} and port: {Port}", endPoint.IpAddress, endPoint.Port);
         ProxyEndPoints.Remove(endPoint);
 
         if (ProxyRunning) QuitListen(endPoint);
@@ -517,7 +516,7 @@ public partial class ProxyServer : IDisposable
             // If certificate was trusted by the machine
             if (!CertificateManager.CertValidated)
             {
-                protocolType = protocolType & ~ProxyProtocolType.Https;
+                protocolType &= ~ProxyProtocolType.Https;
                 isHttps = false;
             }
         }
@@ -731,7 +730,7 @@ public partial class ProxyServer : IDisposable
     /// <param name="endPoint">The end point to validate.</param>
     private void ValidateEndPointAsSystemProxy(ExplicitProxyEndPoint endPoint)
     {
-        if (endPoint == null) throw new ArgumentNullException(nameof(endPoint));
+        ArgumentNullException.ThrowIfNull(endPoint);
 
         if (!ProxyEndPoints.Contains(endPoint))
             throw new Exception("Cannot set endPoints not added to proxy as system proxy");
@@ -801,12 +800,11 @@ public partial class ProxyServer : IDisposable
     /// <param name="workerThreads">minimum Threads allocated in the ThreadPool</param>
     private void SetThreadPoolMinThread(int workerThreads)
     {
-        ThreadPool.GetMinThreads(out var minWorkerThreads, out var minCompletionPortThreads);
+        ThreadPool.GetMinThreads(out _, out var minCompletionPortThreads);
         ThreadPool.GetMaxThreads(out var maxWorkerThreads, out _);
 
-        minWorkerThreads = Math.Min(maxWorkerThreads, Math.Max(workerThreads, Environment.ProcessorCount));
 
-        ThreadPool.SetMinThreads(minWorkerThreads, minCompletionPortThreads);
+        ThreadPool.SetMinThreads(Math.Min(maxWorkerThreads, Math.Max(workerThreads, Environment.ProcessorCount)), minCompletionPortThreads);
     }
 
 
@@ -825,14 +823,12 @@ public partial class ProxyServer : IDisposable
 
         await InvokeClientConnectionCreateEvent(tcpClientSocket);
 
-        using (var clientConnection = new TcpClientConnection(this, tcpClientSocket))
-        {
-            if (endPoint is ExplicitProxyEndPoint eep)
-                await HandleClient(eep, clientConnection);
-            else if (endPoint is TransparentProxyEndPoint tep)
-                await HandleClient(tep, clientConnection);
-            else if (endPoint is SocksProxyEndPoint sep) await HandleClient(sep, clientConnection);
-        }
+        using var clientConnection = new TcpClientConnection(this, tcpClientSocket);
+        if (endPoint is ExplicitProxyEndPoint eep)
+            await HandleClient(eep, clientConnection);
+        else if (endPoint is TransparentProxyEndPoint tep)
+            await HandleClient(tep, clientConnection);
+        else if (endPoint is SocksProxyEndPoint sep) await HandleClient(sep, clientConnection);
     }
 
     /// <summary>
@@ -848,7 +844,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Quit listening on the given end point.
     /// </summary>
-    private void QuitListen(ProxyEndPoint endPoint)
+    private static void QuitListen(ProxyEndPoint endPoint)
     {
         endPoint.Listener!.Stop();
         endPoint.Listener.Server.Dispose();

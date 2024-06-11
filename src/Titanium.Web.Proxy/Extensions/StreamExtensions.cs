@@ -47,7 +47,7 @@ internal static class StreamExtensions
                 int bytesRead;
                 if ((bytesRead = num) != 0 && !cancellationToken.IsCancellationRequested)
                 {
-                    await output.WriteAsync(buffer, 0, bytesRead, CancellationToken.None);
+                    await output.WriteAsync(buffer.AsMemory(0, bytesRead), CancellationToken.None);
                     onCopy?.Invoke(buffer, 0, bytesRead);
                 }
                 else

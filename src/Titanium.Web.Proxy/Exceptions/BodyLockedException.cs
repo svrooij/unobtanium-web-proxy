@@ -9,7 +9,7 @@ public class BodyLockedException : ProxyException
     ///     Constructor.
     /// </summary>
     /// <param name="message"></param>
-    internal BodyLockedException(string message = "You cannot get the request body after request is made to server.") : base(message)
+    internal BodyLockedException ( string message = "You cannot get the request body after request is made to server." ) : base(message)
     {
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
-using Org.BouncyCastle.Asn1;
+﻿using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -16,6 +12,10 @@ using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
+using System;
+using System.IO;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using Titanium.Web.Proxy.Helpers;
 using Titanium.Web.Proxy.Shared;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
@@ -32,14 +32,15 @@ internal class BcCertificateMaker : ICertificateMaker
     // The FriendlyName value cannot be set on Unix.
     // Set this flag to true when exception detected to avoid further exceptions
     private static bool _doNotSetFriendlyName;
+
     private readonly int certificateValidDays;
 
-    private readonly ExceptionHandler? exceptionFunc;
+    //private readonly ExceptionHandler? exceptionFunc;
 
-    internal BcCertificateMaker(ExceptionHandler? exceptionFunc, int certificateValidDays)
+    internal BcCertificateMaker ( int certificateValidDays )
     {
         this.certificateValidDays = certificateValidDays;
-        this.exceptionFunc = exceptionFunc;
+        //this.exceptionFunc = exceptionFunc;
     }
 
     /// <summary>
@@ -48,9 +49,9 @@ internal class BcCertificateMaker : ICertificateMaker
     /// <param name="sSubjectCn">The s subject cn.</param>
     /// <param name="signingCert">The signing cert.</param>
     /// <returns>X509Certificate2 instance.</returns>
-    public X509Certificate2 MakeCertificate(string sSubjectCn, X509Certificate2? signingCert = null)
+    public X509Certificate2 MakeCertificate ( string sSubjectCn, X509Certificate2? signingCert = null )
     {
-        return MakeCertificateInternal(sSubjectCn, true, signingCert);
+        return MakeCertificateInternal(sSubjectCn, signingCert);
     }
 
     /// <summary>
@@ -66,12 +67,12 @@ internal class BcCertificateMaker : ICertificateMaker
     /// <param name="hostName">The host name</param>
     /// <returns>X509Certificate2 instance.</returns>
     /// <exception cref="PemException">Malformed sequence in RSA private key</exception>
-    private static X509Certificate2 GenerateCertificate(string? hostName,
+    private static X509Certificate2 GenerateCertificate ( string? hostName,
         string subjectName,
         string issuerName, DateTime validFrom,
         DateTime validTo, int keyStrength = 2048,
         string signatureAlgorithm = "SHA256WithRSA",
-        AsymmetricKeyParameter? issuerPrivateKey = null)
+        AsymmetricKeyParameter? issuerPrivateKey = null )
     {
         // Generating Random Numbers
         var randomGenerator = new CryptoApiRandomGenerator();
@@ -155,7 +156,7 @@ internal class BcCertificateMaker : ICertificateMaker
         return x509Certificate;
     }
 
-    private static X509Certificate2 WithPrivateKey(X509Certificate certificate, AsymmetricKeyParameter privateKey)
+    private static X509Certificate2 WithPrivateKey ( X509Certificate certificate, AsymmetricKeyParameter privateKey )
     {
         const string password = "password";
 
@@ -168,13 +169,11 @@ internal class BcCertificateMaker : ICertificateMaker
         var store = builder.Build(); var entry = new X509CertificateEntry(certificate);
         store.SetCertificateEntry(certificate.SubjectDN.ToString(), entry);
 
-        store.SetKeyEntry(certificate.SubjectDN.ToString(), new AsymmetricKeyEntry(privateKey), new[] { entry });
-        using (var ms = new MemoryStream())
-        {
-            store.Save(ms, password.ToCharArray(), new SecureRandom(new CryptoApiRandomGenerator()));
+        store.SetKeyEntry(certificate.SubjectDN.ToString(), new AsymmetricKeyEntry(privateKey), [entry]);
+        using var ms = new MemoryStream();
+        store.Save(ms, password.ToCharArray(), new SecureRandom(new CryptoApiRandomGenerator()));
 
-            return new X509Certificate2(ms.ToArray(), password, X509KeyStorageFlags.Exportable);
-        }
+        return new X509Certificate2(ms.ToArray(), password, X509KeyStorageFlags.Exportable);
     }
 
     /// <summary>
@@ -190,8 +189,8 @@ internal class BcCertificateMaker : ICertificateMaker
     ///     You must specify a Signing Certificate if and only if you are not creating a
     ///     root.
     /// </exception>
-    private X509Certificate2 MakeCertificateInternal(string hostName, string subjectName,
-        DateTime validFrom, DateTime validTo, X509Certificate2? signingCertificate)
+    private static X509Certificate2 MakeCertificateInternal ( string hostName, string subjectName,
+        DateTime validFrom, DateTime validTo, X509Certificate2? signingCertificate )
     {
         if (signingCertificate == null) return GenerateCertificate(null, subjectName, subjectName, validFrom, validTo);
 
@@ -204,11 +203,10 @@ internal class BcCertificateMaker : ICertificateMaker
     ///     Makes the certificate internal.
     /// </summary>
     /// <param name="subject">The s subject cn.</param>
-    /// <param name="switchToMtaIfNeeded">if set to <c>true</c> [switch to MTA if needed].</param>
     /// <param name="signingCert">The signing cert.</param>
     /// <returns>X509Certificate2.</returns>
-    private X509Certificate2 MakeCertificateInternal(string subject,
-        bool switchToMtaIfNeeded, X509Certificate2? signingCert = null)
+    private X509Certificate2 MakeCertificateInternal ( string subject,
+        X509Certificate2? signingCert = null )
     {
         return MakeCertificateInternal(subject, $"CN={subject}",
             DateTime.UtcNow.AddDays(-CertificateGraceDays), DateTime.UtcNow.AddDays(certificateValidDays),

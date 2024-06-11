@@ -49,7 +49,7 @@ internal class RetryPolicy<T> where T : Exception
 
             attempts--;
 
-            if (attempts < 0 || exception == null || !(exception is T)) break;
+            if (attempts < 0 || exception == null || exception is not T) break;
 
             exception = null;
 

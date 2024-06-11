@@ -85,7 +85,7 @@ internal sealed class HttpsHandler : SocksHandler
     private string Password
     {
         get => password!;
-        set => password = value ?? throw new ArgumentNullException();
+        set => password = value ?? throw new ArgumentNullException(nameof(Password));
     }
 
     /// <summary>
@@ -114,11 +114,11 @@ internal sealed class HttpsHandler : SocksHandler
     /// </summary>
     /// <param name="buffer">Input data array</param>
     /// <param name="length">The data count in the buffer</param>
-    private void VerifyConnectHeader(byte[] buffer, int length)
+    private static void VerifyConnectHeader(byte[] buffer, int length)
     {
         var header = Encoding.ASCII.GetString(buffer, 0, length);
         if (!header.StartsWith("HTTP/1.1 ", StringComparison.OrdinalIgnoreCase) &&
-            !header.StartsWith("HTTP/1.0 ", StringComparison.OrdinalIgnoreCase) || !header.EndsWith(" "))
+            !header.StartsWith("HTTP/1.0 ", StringComparison.OrdinalIgnoreCase) || !header.EndsWith(' '))
             throw new ProtocolViolationException();
 
         var code = header.Substring(9, 3);
@@ -137,8 +137,7 @@ internal sealed class HttpsHandler : SocksHandler
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
     public override void Negotiate(IPEndPoint remoteEp)
     {
-        if (remoteEp == null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(remoteEp);
         Negotiate(remoteEp.Address.ToString(), remoteEp.Port);
     }
 
@@ -155,11 +154,13 @@ internal sealed class HttpsHandler : SocksHandler
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
     public override void Negotiate(string host, int port)
     {
-        if (host == null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(host);
 
-        if (port <= 0 || port > 65535 || host.Length > 255)
-            throw new ArgumentException();
+        if (port <= 0 || port > 65535)
+            throw new ArgumentOutOfRangeException(nameof(port));
+
+        if (host.Length == 0 || host.Length > 255)
+            throw new ArgumentException("Invalid host name.", nameof(host));
 
         var buffer = GetConnectBytes(host, port);
         if (Server.Send(buffer, 0, buffer.Length, SocketFlags.None) < buffer.Length) throw new SocketException(10054);

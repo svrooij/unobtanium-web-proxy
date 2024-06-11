@@ -17,8 +17,8 @@ public class BeforeSslAuthenticateEventArgs : ProxyEventArgsBase
     /// <param name="clientConnection">The client connection.</param>
     /// <param name="taskCancellationSource">The task cancellation source.</param>
     /// <param name="sniHostName">The server name indication hostname.</param>
-    internal BeforeSslAuthenticateEventArgs(ProxyServer server, TcpClientConnection clientConnection,
-        CancellationTokenSource taskCancellationSource, string sniHostName) : base(server, clientConnection)
+    internal BeforeSslAuthenticateEventArgs ( ProxyServer server, TcpClientConnection clientConnection,
+        CancellationTokenSource taskCancellationSource, string sniHostName ) : base(server, clientConnection)
     {
         TaskCancellationSource = taskCancellationSource;
         SniHostName = sniHostName;
@@ -60,7 +60,7 @@ public class BeforeSslAuthenticateEventArgs : ProxyEventArgsBase
     /// <summary>
     ///     Terminate the request abruptly by closing client/server connections.
     /// </summary>
-    public void TerminateSession()
+    public void TerminateSession ()
     {
         TaskCancellationSource.Cancel();
     }

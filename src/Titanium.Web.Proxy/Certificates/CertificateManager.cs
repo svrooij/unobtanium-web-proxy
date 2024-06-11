@@ -65,7 +65,7 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// A list of pending certificate creation tasks.
     /// </summary>
-    private readonly Dictionary<string, Task<X509Certificate2?>> pendingCertificateCreationTasks = new();
+    private readonly Dictionary<string, Task<X509Certificate2?>> pendingCertificateCreationTasks = [];
 
     private readonly object rootCertCreationLock = new();
 
@@ -120,21 +120,12 @@ public sealed class CertificateManager : IDisposable
     {
         get
         {
-            if (certEngineValue == null)
-                switch (engine)
+            certEngineValue ??= engine switch
                 {
-                    case CertificateEngine.BouncyCastle:
-                        certEngineValue = new BcCertificateMaker(ExceptionFunc, CertificateValidDays);
-                        break;
-                    case CertificateEngine.BouncyCastleFast:
-                        certEngineValue = new BcCertificateMakerFast(ExceptionFunc, CertificateValidDays);
-                        break;
-                    case CertificateEngine.DefaultWindows:
-                    default:
-                        certEngineValue = new WinCertificateMaker(ExceptionFunc, CertificateValidDays);
-                        break;
-                }
-
+                    CertificateEngine.BouncyCastle => new BcCertificateMaker(CertificateValidDays),
+                    CertificateEngine.BouncyCastleFast => new BcCertificateMakerFast(CertificateValidDays),
+                    _ => new WinCertificateMaker(CertificateValidDays),
+                };
             return certEngineValue;
         }
     }
@@ -890,8 +881,7 @@ public sealed class CertificateManager : IDisposable
             });
         else
             infos.AddRange(
-                new List<ProcessStartInfo>
-                {
+                [
                     // currentMachine\Personal
                     new()
                     {
@@ -915,7 +905,7 @@ public sealed class CertificateManager : IDisposable
                         ErrorDialog = false,
                         WindowStyle = ProcessWindowStyle.Hidden
                     }
-                });
+                ]);
 
         var success = true;
         try

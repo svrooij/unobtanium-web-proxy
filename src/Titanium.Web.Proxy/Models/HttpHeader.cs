@@ -18,21 +18,11 @@ public class HttpHeader
     /// </summary>
     public const int HttpHeaderOverhead = 32;
 
-#if NET6_0_OR_GREATER
     internal static Version VersionUnknown => HttpVersion.Unknown;
-#else
-    internal static Version VersionUnknown { get; } = new(0, 0);
-#endif
-
     internal static Version Version10 => HttpVersion.Version10;
 
     internal static Version Version11 => HttpVersion.Version11;
-
-#if NET6_0_OR_GREATER
     internal static Version Version20 => HttpVersion.Version20;
-#else
-    internal static Version Version20 { get; } = new(2, 0);
-#endif
 
     internal static readonly Encoding DefaultEncoding = Encoding.GetEncoding("ISO-8859-1");
 
@@ -83,13 +73,13 @@ public class HttpHeader
 
     internal HttpHeader(ByteString name, ByteString value)
     {
-        if (name.Length == 0) throw new Exception("Name cannot be empty");
+        if (name.Length == 0) throw new ArgumentException("Name cannot be empty");
 
         NameData = name;
         ValueData = value;
     }
 
-    private protected HttpHeader(ByteString name, ByteString value, bool headerEntry)
+    private protected HttpHeader(ByteString name, ByteString value, bool _)
     {
         // special header entry created in inherited class with empty name
         NameData = name;

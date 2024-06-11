@@ -155,6 +155,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     The total number of bytes read into the buffer. This can be less than the number of bytes requested if that many
     ///     bytes are not currently available, or zero (0) if the end of the stream has been reached.
     /// </returns>
+    /// <remarks>Please use the <see cref="ReadAsync(byte[], int, int, CancellationToken)"/> method!</remarks>
     public override int Read(byte[] buffer, int offset, int count)
     {
         if (Available == 0) FillBuffer();

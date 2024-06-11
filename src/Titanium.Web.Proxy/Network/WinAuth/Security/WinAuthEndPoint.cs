@@ -9,7 +9,7 @@ namespace Titanium.Web.Proxy.Network.WinAuth.Security;
 
 using static Common;
 
-internal class WinAuthEndPoint
+internal partial class WinAuthEndPoint
 {
     private const string AuthStateKey = "AuthState";
 
@@ -20,7 +20,7 @@ internal class WinAuthEndPoint
     /// <param name="authScheme"></param>
     /// <param name="data"></param>
     /// <returns></returns>
-    internal static byte[]? AcquireInitialSecurityToken(string hostname, string authScheme, InternalDataStore data)
+    internal static byte[]? AcquireInitialSecurityToken ( string hostname, string authScheme, InternalDataStore data )
     {
         byte[]? token;
 
@@ -81,7 +81,7 @@ internal class WinAuthEndPoint
     /// <param name="serverChallenge"></param>
     /// <param name="data"></param>
     /// <returns></returns>
-    internal static byte[]? AcquireFinalSecurityToken(string hostname, byte[] serverChallenge, InternalDataStore data)
+    internal static byte[]? AcquireFinalSecurityToken ( string hostname, byte[] serverChallenge, InternalDataStore data )
     {
         byte[]? token;
 
@@ -123,7 +123,7 @@ internal class WinAuthEndPoint
         return token;
     }
 
-    private static void DisposeToken(SecurityBufferDesciption clientToken)
+    private static void DisposeToken ( SecurityBufferDesciption clientToken )
     {
         if (clientToken.pBuffers != IntPtr.Zero)
         {
@@ -155,7 +155,7 @@ internal class WinAuthEndPoint
         }
     }
 
-    private static void DisposeSecBuffer(SecurityBuffer thisSecBuffer)
+    private static void DisposeSecBuffer ( SecurityBuffer thisSecBuffer )
     {
         if (thisSecBuffer.pvBuffer != IntPtr.Zero)
         {
@@ -171,7 +171,7 @@ internal class WinAuthEndPoint
     /// <param name="data"></param>
     /// <param name="expectedAuthState"></param>
     /// <returns></returns>
-    internal static bool ValidateWinAuthState(InternalDataStore data, State.WinAuthState expectedAuthState)
+    internal static bool ValidateWinAuthState ( InternalDataStore data, State.WinAuthState expectedAuthState )
     {
         var stateExists = data.TryGetValueAs(AuthStateKey, out State? state);
 
@@ -194,7 +194,7 @@ internal class WinAuthEndPoint
     ///     Set the AuthState to authorized and update the connection state lifetime
     /// </summary>
     /// <param name="data"></param>
-    internal static void AuthenticatedResponse(InternalDataStore data)
+    internal static void AuthenticatedResponse ( InternalDataStore data )
     {
         if (data.TryGetValueAs(AuthStateKey, out State? state))
         {
@@ -205,8 +205,8 @@ internal class WinAuthEndPoint
 
     #region Native calls to secur32.dll
 
-    [DllImport("secur32.dll", SetLastError = true)]
-    private static extern int InitializeSecurityContext(ref SecurityHandle phCredential, // PCredHandle
+    [LibraryImport("secur32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int InitializeSecurityContext ( ref SecurityHandle phCredential, // PCredHandle
         IntPtr phContext, // PCtxtHandle
         string pszTargetName,
         int fContextReq,
@@ -217,10 +217,10 @@ internal class WinAuthEndPoint
         out SecurityHandle phNewContext, // PCtxtHandle
         out SecurityBufferDesciption pOutput, // PSecBufferDesc SecBufferDesc
         out uint pfContextAttr, // managed ulong == 64 bits!!!
-        out SecurityInteger ptsExpiry); // PTimeStamp
+        out SecurityInteger ptsExpiry ); // PTimeStamp
 
-    [DllImport("secur32", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern int InitializeSecurityContext(ref SecurityHandle phCredential, // PCredHandle
+    [LibraryImport("secur32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int InitializeSecurityContext ( ref SecurityHandle phCredential, // PCredHandle
         ref SecurityHandle phContext, // PCtxtHandle
         string pszTargetName,
         int fContextReq,
@@ -231,10 +231,10 @@ internal class WinAuthEndPoint
         out SecurityHandle phNewContext, // PCtxtHandle
         out SecurityBufferDesciption pOutput, // PSecBufferDesc SecBufferDesc
         out uint pfContextAttr, // managed ulong == 64 bits!!!
-        out SecurityInteger ptsExpiry); // PTimeStamp
+        out SecurityInteger ptsExpiry ); // PTimeStamp
 
-    [DllImport("secur32.dll", CharSet = CharSet.Auto, SetLastError = false)]
-    private static extern int AcquireCredentialsHandle(
+    [LibraryImport("secur32.dll", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int AcquireCredentialsHandle (
         string pszPrincipal, // SEC_CHAR*
         string pszPackage, // SEC_CHAR* // "Kerberos","NTLM","Negotiative"
         int fCredentialUse,
@@ -243,7 +243,7 @@ internal class WinAuthEndPoint
         int pGetKeyFn, // SEC_GET_KEY_FN
         IntPtr pvGetKeyArgument, // PVOID
         ref SecurityHandle phCredential, // SecHandle // PCtxtHandle ref
-        ref SecurityInteger ptsExpiry); // PTimeStamp // TimeStamp ref
+        ref SecurityInteger ptsExpiry ); // PTimeStamp // TimeStamp ref
 
     #endregion
 }

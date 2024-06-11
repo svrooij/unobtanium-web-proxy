@@ -16,14 +16,6 @@ public interface IHttpStreamWriter
     bool IsNetworkStream { get; }
 
     /// <summary>
-    /// Writes a sequence of bytes to the stream.
-    /// </summary>
-    /// <param name="buffer">The buffer to write data from.</param>
-    /// <param name="offset">The zero-based byte offset in buffer at which to begin copying bytes to the stream.</param>
-    /// <param name="count">The number of bytes to be written to the stream.</param>
-    void Write(byte[] buffer, int offset, int count);
-
-    /// <summary>
     /// Asynchronously writes a sequence of bytes to the stream.
     /// </summary>
     /// <param name="buffer">The buffer to write data from.</param>

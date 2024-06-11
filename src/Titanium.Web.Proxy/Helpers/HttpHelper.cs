@@ -19,7 +19,7 @@ internal static class HttpHelper
     /// </summary>
     /// <param name="contentType"></param>
     /// <returns></returns>
-    internal static Encoding GetEncodingFromContentType(string? contentType)
+    internal static Encoding GetEncodingFromContentType ( string? contentType )
     {
         try
         {
@@ -32,13 +32,13 @@ internal static class HttpHelper
                 var parameter = p.Span;
                 var equalsIndex = parameter.IndexOf('=');
                 if (equalsIndex != -1 &&
-                    KnownHeaders.ContentTypeCharset.Equals(parameter.Slice(0, equalsIndex).TrimStart()))
+                    KnownHeaders.ContentTypeCharset.Equals(parameter[..equalsIndex].TrimStart()))
                 {
-                    var value = parameter.Slice(equalsIndex + 1);
+                    var value = parameter[(equalsIndex + 1)..];
                     if (value.EqualsIgnoreCase("x-user-defined".AsSpan())) continue;
 
-                    if (value.Length > 2 && value[0] == '"' && value[value.Length - 1] == '"')
-                        value = value.Slice(1, value.Length - 2);
+                    if (value.Length > 2 && value[0] == '"' && value[^1] == '"')
+                        value = value[1..^1];
 
                     return Encoding.GetEncoding(value.ToString());
                 }
@@ -54,7 +54,7 @@ internal static class HttpHelper
         return HttpHeader.DefaultEncoding;
     }
 
-    internal static ReadOnlyMemory<char> GetBoundaryFromContentType(string? contentType)
+    internal static ReadOnlyMemory<char> GetBoundaryFromContentType ( string? contentType )
     {
         if (contentType != null)
             // extract the boundary
@@ -62,11 +62,11 @@ internal static class HttpHelper
             {
                 var equalsIndex = parameter.Span.IndexOf('=');
                 if (equalsIndex != -1 &&
-                    KnownHeaders.ContentTypeBoundary.Equals(parameter.Span.Slice(0, equalsIndex).TrimStart()))
+                    KnownHeaders.ContentTypeBoundary.Equals(parameter.Span[..equalsIndex].TrimStart()))
                 {
-                    var value = parameter.Slice(equalsIndex + 1);
+                    var value = parameter[(equalsIndex + 1)..];
                     if (value.Length > 2 && value.Span[0] == '"' && value.Span[value.Length - 1] == '"')
-                        value = value.Slice(1, value.Length - 2);
+                        value = value[1..^1];
 
                     return value;
                 }
@@ -84,7 +84,7 @@ internal static class HttpHelper
     /// <param name="hostname"></param>
     /// <param name="disableWildCardCertificates"></param>
     /// <returns></returns>
-    internal static string GetWildCardDomainName(string hostname, bool disableWildCardCertificates)
+    internal static string GetWildCardDomainName ( string hostname, bool disableWildCardCertificates )
     {
         // only for subdomains we need wild card
         // example www.google.com or gstatic.google.com
@@ -105,9 +105,9 @@ internal static class HttpHelper
             var idx = hostname.IndexOf(ProxyConstants.DotSplit);
 
             // issue #352
-            if (hostname.Substring(0, idx).Contains("-")) return hostname;
+            if (hostname[..idx].Contains('-')) return hostname;
 
-            var rootDomain = hostname.Substring(idx + 1);
+            var rootDomain = hostname[(idx + 1)..];
             return "*." + rootDomain;
         }
 
@@ -118,8 +118,8 @@ internal static class HttpHelper
     /// <summary>
     ///     Gets the HTTP method from the stream.
     /// </summary>
-    public static async ValueTask<KnownMethod> GetMethod(IPeekStream httpReader, IBufferPool bufferPool,
-        CancellationToken cancellationToken = default)
+    public static async ValueTask<KnownMethod> GetMethod ( IPeekStream httpReader, IBufferPool bufferPool,
+        CancellationToken cancellationToken = default )
     {
         const int lengthToCheck = 20;
         if (bufferPool.BufferSize < lengthToCheck)
@@ -161,7 +161,7 @@ internal static class HttpHelper
         }
     }
 
-    private static KnownMethod GetKnownMethod(ReadOnlySpan<byte> method)
+    private static KnownMethod GetKnownMethod ( ReadOnlySpan<byte> method )
     {
         // the following methods are supported:
         // Connect
@@ -242,44 +242,32 @@ internal static class HttpHelper
         return KnownMethod.Unknown;
     }
 
-    private struct SemicolonSplitEnumerator
+    private struct SemicolonSplitEnumerator ( ReadOnlyMemory<char> data )
     {
-        private readonly ReadOnlyMemory<char> data;
+        private int idx = 0;
 
-        private int idx;
-
-        public SemicolonSplitEnumerator(string str) : this(str.AsMemory())
+        public SemicolonSplitEnumerator ( string str ) : this(str.AsMemory())
         {
         }
 
-        public SemicolonSplitEnumerator(ReadOnlyMemory<char> data)
-        {
-            this.data = data;
-            Current = null;
-            idx = 0;
-        }
+        public readonly SemicolonSplitEnumerator GetEnumerator () => this;
 
-        public SemicolonSplitEnumerator GetEnumerator()
-        {
-            return this;
-        }
-
-        public bool MoveNext()
+        public bool MoveNext ()
         {
             if (this.idx > data.Length) return false;
 
-            var idx = data.Span.Slice(this.idx).IndexOf(';');
+            var idx = data.Span[this.idx..].IndexOf(';');
             if (idx == -1)
                 idx = data.Length;
             else
                 idx += this.idx;
 
-            Current = data.Slice(this.idx, idx - this.idx);
+            Current = data[this.idx..idx];
             this.idx = idx + 1;
             return true;
         }
 
 
-        public ReadOnlyMemory<char> Current { get; private set; }
+        public ReadOnlyMemory<char> Current { get; private set; } = null;
     }
 }

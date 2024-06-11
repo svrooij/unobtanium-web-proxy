@@ -19,7 +19,7 @@ public class TransparentProxyEndPoint : TransparentBaseProxyEndPoint
     /// <param name="ipAddress">Listening Ip address.</param>
     /// <param name="port">Listening port.</param>
     /// <param name="decryptSsl">Should we decrypt ssl?</param>
-    public TransparentProxyEndPoint(IPAddress ipAddress, int port, bool decryptSsl = true) : base(ipAddress, port,
+    public TransparentProxyEndPoint ( IPAddress ipAddress, int port, bool decryptSsl = true ) : base(ipAddress, port,
         decryptSsl)
     {
         GenericCertificateName = "localhost";
@@ -36,8 +36,8 @@ public class TransparentProxyEndPoint : TransparentBaseProxyEndPoint
     /// </summary>
     public event AsyncEventHandler<BeforeSslAuthenticateEventArgs>? BeforeSslAuthenticate;
 
-    internal override async Task InvokeBeforeSslAuthenticate(ProxyServer proxyServer,
-        BeforeSslAuthenticateEventArgs connectArgs, ExceptionHandler? exceptionFunc)
+    internal override async Task InvokeBeforeSslAuthenticate ( ProxyServer proxyServer,
+        BeforeSslAuthenticateEventArgs connectArgs, ExceptionHandler? exceptionFunc )
     {
         if (BeforeSslAuthenticate != null)
             await BeforeSslAuthenticate.InvokeAsync(proxyServer, connectArgs, exceptionFunc);

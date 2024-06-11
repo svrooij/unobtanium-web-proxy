@@ -27,7 +27,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
 
         // a linked hash map of header fields
         private readonly HeaderEntry[] headerFields = new HeaderEntry[BucketSize];
-        private readonly HeaderEntry head = new HeaderEntry(-1, ByteString.Empty, ByteString.Empty, int.MaxValue, null);
+        private readonly HeaderEntry head = new(-1, ByteString.Empty, ByteString.Empty, int.MaxValue, null);
         private int size;
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// </summary>
         /// <param name="output">Output.</param>
         /// <param name="stringData">String data.</param>
-        private void EncodeStringLiteral(BinaryWriter output, ByteString stringData)
+        private static void EncodeStringLiteral(BinaryWriter output, ByteString stringData)
         {
             int huffmanLength = HuffmanEncoder.Instance.GetEncodedLength(stringData);
             if (huffmanLength < stringData.Length)
@@ -214,7 +214,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// <param name="value">Value.</param>
         /// <param name="indexType">Index type.</param>
         /// <param name="nameIndex">Name index.</param>
-        private void EncodeLiteral(BinaryWriter output, ByteString name, ByteString value, HpackUtil.IndexType indexType,
+        private static void EncodeLiteral(BinaryWriter output, ByteString name, ByteString value, HpackUtil.IndexType indexType,
             int nameIndex)
         {
             int mask;

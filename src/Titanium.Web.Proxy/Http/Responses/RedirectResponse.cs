@@ -10,7 +10,7 @@ public sealed class RedirectResponse : Response
     /// <summary>
     ///     Initializes a new instance of the <see cref="RedirectResponse" /> class.
     /// </summary>
-    public RedirectResponse()
+    public RedirectResponse ()
     {
         StatusCode = (int)HttpStatusCode.Found;
         StatusDescription = "Found";

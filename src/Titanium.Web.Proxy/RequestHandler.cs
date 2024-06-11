@@ -213,7 +213,7 @@ public partial class ProxyServer
                             connection = null;
                         }
                     }
-                    catch (Exception e) when (!(e is ProxyHttpException))
+                    catch (Exception e) when (e is not ProxyHttpException)
                     {
                         throw new ProxyHttpException("Error occured whilst handling session request", e, args);
                     }

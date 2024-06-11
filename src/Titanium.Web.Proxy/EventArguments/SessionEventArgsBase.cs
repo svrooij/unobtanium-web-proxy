@@ -88,7 +88,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     ///     Relative milliseconds for various events.
     /// </summary>
-    public Dictionary<string, DateTime> TimeLine { get; } = new();
+    public Dictionary<string, DateTime> TimeLine { get; } = [];
 
     /// <summary>
     ///     Returns a user data for this request/response session which is

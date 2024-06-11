@@ -279,9 +279,10 @@ namespace Titanium.Web.Proxy.Http2
                             response.HttpVersion = HttpVersion.Version20;
 
                             // todo: avoid string conversion
-                            string statusHack = HttpHeader.Encoding.GetString(headerListener.Status.Span);
-                            int.TryParse(statusHack, out int statusCode);
-                            response.StatusCode = statusCode;
+                            //string statusHack = HttpHeader.Encoding.GetString(headerListener.Status.Span);
+                            //int.TryParse(statusHack, out int statusCode);
+                            //response.StatusCode = statusCode;
+                            response.StatusCode = BitConverter.ToInt32(headerListener.Status.Span);
                             response.StatusDescription = string.Empty;
                         }
                     }
@@ -387,7 +388,8 @@ namespace Titanium.Web.Proxy.Http2
                                 using (var zip =
                                     DecompressionFactory.Create(CompressionUtil.CompressionNameToEnum(rr.ContentEncoding), new MemoryStream(body)))
                                 {
-                                    zip.CopyTo(ms);
+                                    await zip.CopyToAsync(ms, cancellationToken);
+                                    await zip.FlushAsync(cancellationToken);
                                 }
 
                                 body = ms.ToArray();
@@ -436,8 +438,8 @@ namespace Titanium.Web.Proxy.Http2
                 {
                     // do not cancel the write operation
                     frameHeader.CopyToBuffer(frameHeaderBuffer);
-                    await output.WriteAsync(frameHeaderBuffer, 0, frameHeaderBuffer.Length/*, cancellationToken*/);
-                    await output.WriteAsync(buffer, 0, length /*, cancellationToken*/);
+                    await output.WriteAsync(frameHeaderBuffer, 0, frameHeaderBuffer.Length, CancellationToken.None);
+                    await output.WriteAsync(buffer, 0, length, CancellationToken.None);
                 }
 
                 if (cancellationToken.IsCancellationRequested)
@@ -519,8 +521,9 @@ namespace Titanium.Web.Proxy.Http2
 
             // send the header
             frameHeader.CopyToBuffer(frameHeaderBuffer);
-            await output.WriteAsync(frameHeaderBuffer, 0, frameHeaderBuffer.Length/*, cancellationToken*/);
-            await output.WriteAsync(data, 0, data.Length /*, cancellationToken*/);
+            // Explicitly don't use cancellation token here
+            await output.WriteAsync(frameHeaderBuffer, 0, frameHeaderBuffer.Length, CancellationToken.None);
+            await output.WriteAsync(data, 0, data.Length, CancellationToken.None);
         }
 
         private static async Task SendBody(Http2Settings settings, RequestResponseBase rr, Http2FrameHeader frameHeader, byte[] frameHeaderBuffer, byte[] buffer, Stream output)
@@ -542,8 +545,9 @@ namespace Titanium.Web.Proxy.Http2
                     frameHeader.Flags = pos < body.Length ? (Http2FrameFlag)0 : Http2FrameFlag.EndStream;
 
                     frameHeader.CopyToBuffer(frameHeaderBuffer);
-                    await output.WriteAsync(frameHeaderBuffer, 0, frameHeaderBuffer.Length/*, cancellationToken*/);
-                    await output.WriteAsync(buffer, 0, bodyFrameLength /*, cancellationToken*/);
+                    // Explicitly don't use cancellation token here
+                    await output.WriteAsync(frameHeaderBuffer, 0, frameHeaderBuffer.Length, CancellationToken.None);
+                    await output.WriteAsync(buffer, 0, bodyFrameLength, CancellationToken.None);
                 }
             }
             else

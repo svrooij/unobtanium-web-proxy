@@ -10,7 +10,7 @@ public sealed class OkResponse : Response
     /// <summary>
     ///     Constructor.
     /// </summary>
-    public OkResponse()
+    public OkResponse ()
     {
         StatusCode = (int)HttpStatusCode.OK;
         StatusDescription = "OK";
@@ -19,7 +19,7 @@ public sealed class OkResponse : Response
     /// <summary>
     ///     Constructor.
     /// </summary>
-    public OkResponse(byte[] body) : this()
+    public OkResponse ( byte[] body ) : this()
     {
         Body = body;
     }

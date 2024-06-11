@@ -91,7 +91,7 @@ internal sealed class Socks5Handler : SocksHandler
     private string Password
     {
         get => password;
-        set => password = value ?? throw new ArgumentNullException();
+        set => password = value ?? throw new ArgumentNullException(nameof(Password));
     }
 
     /// <summary>
@@ -113,20 +113,12 @@ internal sealed class Socks5Handler : SocksHandler
         ReadBytes(buffer, 2);
         if (buffer[1] == 255)
             throw new ProxyException("No authentication method accepted.");
-
-        AuthMethod authenticate;
-        switch (buffer[1])
+        AuthMethod authenticate = buffer[1] switch
         {
-            case 0:
-                authenticate = new AuthNone(Server);
-                break;
-            case 2:
-                authenticate = new AuthUserPass(Server, Username, Password);
-                break;
-            default:
-                throw new ProtocolViolationException();
-        }
-
+            0 => new AuthNone(Server),
+            2 => new AuthUserPass(Server, Username, Password),
+            _ => throw new ProtocolViolationException(),
+        };
         authenticate.Authenticate();
     }
 
@@ -141,15 +133,16 @@ internal sealed class Socks5Handler : SocksHandler
     /// <exception cref="ArgumentException"><c>port</c> or <c>host</c> is invalid.</exception>
     private int GetHostPortBytes(string host, int port, Memory<byte> buffer)
     {
-        if (host == null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(host);
+        if (host.Length == 0 || host.Length > 255)
+            throw new ArgumentException("Hostname invalid", nameof(host));
 
-        if (port <= 0 || port > 65535 || host.Length > 255)
-            throw new ArgumentException();
+        if (port <= 0 || port > 65535)
+            throw new ArgumentOutOfRangeException(nameof(port), "Port must be between 0 and 65535");
 
         var length = 7 + host.Length;
         if (buffer.Length < length)
-            throw new ArgumentException(nameof(buffer));
+            throw new ArgumentException("Buffer is to small", nameof(buffer));
 
         var connect = buffer.Span;
         connect[0] = 5;
@@ -157,8 +150,8 @@ internal sealed class Socks5Handler : SocksHandler
         connect[2] = 0; // reserved
         connect[3] = 3;
         connect[4] = (byte)host.Length;
-        Encoding.ASCII.GetBytes(host).CopyTo(connect.Slice(5));
-        PortToBytes(port, connect.Slice(host.Length + 5));
+        Encoding.ASCII.GetBytes(host).CopyTo(connect[5..]);
+        PortToBytes(port, connect[(host.Length + 5)..]);
         return length;
     }
 
@@ -171,19 +164,18 @@ internal sealed class Socks5Handler : SocksHandler
     /// <exception cref="ArgumentNullException"><c>remoteEP</c> is null.</exception>
     private int GetEndPointBytes(IPEndPoint remoteEp, Memory<byte> buffer)
     {
-        if (remoteEp == null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(remoteEp);
 
         if (buffer.Length < 10)
-            throw new ArgumentException(nameof(buffer));
+            throw new ArgumentOutOfRangeException(nameof(buffer), "Buffer is smaller then 10");
 
         var connect = buffer.Span;
         connect[0] = 5;
         connect[1] = 1;
         connect[2] = 0; // reserved
         connect[3] = 1;
-        remoteEp.Address.GetAddressBytes().CopyTo(connect.Slice(4));
-        PortToBytes(remoteEp.Port, connect.Slice(8));
+        remoteEp.Address.GetAddressBytes().CopyTo(connect[4..]);
+        PortToBytes(remoteEp.Port, connect[8..]);
         return 10;
     }
 
@@ -520,22 +512,13 @@ internal sealed class Socks5Handler : SocksHandler
     /// <exception cref="ProtocolViolationException">The received reply is invalid.</exception>
     private void ProcessReply(byte[] buffer)
     {
-        int lengthToRead;
-        switch (buffer[3])
+        var lengthToRead = buffer[3] switch
         {
-            case 1:
-                lengthToRead = 5; //IPv4 address with port - 1 byte
-                break;
-            case 3:
-                lengthToRead = buffer[4] + 2; //domain name with port
-                break;
-            case 4:
-                lengthToRead = 17; //IPv6 address with port - 1 byte
-                break;
-            default:
-                throw new ProtocolViolationException();
-        }
-
+            1 => 5,//IPv4 address with port - 1 byte
+            3 => buffer[4] + 2,//domain name with port
+            4 => 17,//IPv6 address with port - 1 byte
+            _ => throw new ProtocolViolationException(),
+        };
         Received = 0;
         BufferCount = lengthToRead;
         Server.BeginReceive(Buffer!, 0, BufferCount, SocketFlags.None, OnReadLast, Server);

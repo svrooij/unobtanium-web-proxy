@@ -22,7 +22,7 @@ internal static class WinAuthHandler
     internal static string GetInitialAuthToken(string serverHostname, string authScheme, InternalDataStore data)
     {
         var tokenBytes = WinAuthEndPoint.AcquireInitialSecurityToken(serverHostname, authScheme, data);
-        return string.Concat(" ", Convert.ToBase64String(tokenBytes ?? throw new ArgumentNullException(nameof(tokenBytes))));
+        return string.Concat(" ", Convert.ToBase64String(tokenBytes ?? throw new NullReferenceException($"{nameof(tokenBytes)} is null")));
     }
 
     /// <summary>
@@ -38,6 +38,6 @@ internal static class WinAuthHandler
             WinAuthEndPoint.AcquireFinalSecurityToken(serverHostname, Convert.FromBase64String(serverToken),
                 data);
 
-        return string.Concat(" ", Convert.ToBase64String(tokenBytes ?? throw new ArgumentNullException(nameof(tokenBytes))));
+        return string.Concat(" ", Convert.ToBase64String(tokenBytes ?? throw new NullReferenceException($"{nameof(tokenBytes)} is null")));
     }
 }

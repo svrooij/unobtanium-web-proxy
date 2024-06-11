@@ -11,7 +11,7 @@ public class BodyNotFoundException : ProxyException
     ///     Constructor.
     /// </summary>
     /// <param name="message"></param>
-    internal BodyNotFoundException(string message = "Request does not have a body") : base(message)
+    internal BodyNotFoundException ( string message = "Request does not have a body" ) : base(message)
     {
     }
 }

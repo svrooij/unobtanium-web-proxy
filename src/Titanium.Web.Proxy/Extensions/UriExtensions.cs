@@ -9,7 +9,7 @@ internal static class UriExtensions
     {
         var leftPart = uri.GetLeftPart(UriPartial.Authority);
         if (uri.OriginalString.StartsWith(leftPart))
-            return uri.OriginalString.Substring(leftPart.Length);
+            return uri.OriginalString[leftPart.Length..];
 
         return uri.IsWellFormedOriginalString()
             ? uri.PathAndQuery
@@ -38,6 +38,6 @@ internal static class UriExtensions
 
         if (str[i] != '/') return ByteString.Empty;
 
-        return new ByteString(str.Data.Slice(0, i - 2));
+        return new ByteString(str.Data[..(i - 2)]);
     }
 }

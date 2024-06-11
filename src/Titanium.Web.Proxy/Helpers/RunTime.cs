@@ -12,44 +12,23 @@ namespace Titanium.Web.Proxy.Helpers;
 public static class RunTime
 {
     private static readonly Lazy<bool> isRunningOnMono = new(() => Type.GetType("Mono.Runtime") != null);
-
-#if NET461
     /// <summary>
-    ///     cache for Windows platform check
+    /// cache for Windows platform check
     /// </summary>
     /// <returns></returns>
-    private static bool IsRunningOnWindows => true;
+    private static bool IsRunningOnWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
     /// <summary>
     ///     cache for mono runtime check
     /// </summary>
     /// <returns></returns>
-    private static bool IsRunningOnLinux => false;
+    private static bool IsRunningOnLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
     /// <summary>
     ///     cache for mac runtime check
     /// </summary>
     /// <returns></returns>
-    private static bool IsRunningOnMac => false;
-#else
-        /// <summary>
-        /// cache for Windows platform check
-        /// </summary>
-        /// <returns></returns>
-        private static bool IsRunningOnWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-        /// <summary>
-        ///     cache for mono runtime check
-        /// </summary>
-        /// <returns></returns>
-        private static bool IsRunningOnLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-
-        /// <summary>
-        ///     cache for mac runtime check
-        /// </summary>
-        /// <returns></returns>
-        private static bool IsRunningOnMac => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-#endif
+    private static bool IsRunningOnMac => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
     /// <summary>
     /// Is running on Mono?
@@ -83,7 +62,7 @@ public static class RunTime
     /// <summary>
     ///     Is socket reuse available to use?
     /// </summary>
-    public static bool IsSocketReuseAvailable()
+    public static bool IsSocketReuseAvailable ()
     {
         // use the cached value if we have one
         if (_isSocketReuseAvailable != null)
@@ -149,10 +128,10 @@ public static class RunTime
         }
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern int GetCurrentPackageFullName(ref int packageFullNameLength,
-            StringBuilder packageFullName);
+        private static extern int GetCurrentPackageFullName ( ref int packageFullNameLength,
+            StringBuilder packageFullName );
 
-        internal static bool IsRunningAsUwp()
+        internal static bool IsRunningAsUwp ()
         {
             if (IsWindows7OrLower)
             {

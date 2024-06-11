@@ -47,7 +47,7 @@ public static class HpackUtil
     /// http://tools.ietf.org/html/rfc7541#appendix-B
     /// </summary>
     public static readonly int[] HuffmanCodes =
-    {
+    [
         0x1ff8,
         0x7fffd8,
         0xfffffe2,
@@ -305,14 +305,14 @@ public static class HpackUtil
         0x7fffff0,
         0x3ffffee,
         0x3fffffff // EOS
-    };
+    ];
 
     /// <summary>
     /// The HuffmanCodeLengths array represents the lengths of the Huffman codes used in HPACK, the header compression format for HTTP/2.
     /// The array contains 257 entries, one for each 8-bit symbol and an additional one for the EOS (end-of-string) symbol.
     /// </summary>
     public static readonly byte[] HuffmanCodeLengths =
-    {
+    [
         13, 23, 28, 28, 28, 28, 28, 28, 28, 24, 30, 28, 28, 30, 28, 28,
         28, 28, 28, 28, 28, 28, 30, 28, 28, 28, 28, 28, 28, 28, 28, 28,
         6, 10, 10, 12, 13, 6, 8, 11, 10, 10, 8, 11, 8, 6, 6, 6,
@@ -330,5 +330,5 @@ public static class HpackUtil
         20, 24, 20, 21, 22, 21, 21, 23, 22, 22, 25, 25, 24, 24, 26, 23,
         26, 27, 26, 26, 27, 27, 27, 27, 27, 28, 27, 27, 27, 27, 27, 26,
         30 // EOS
-    };
+    ];
 }

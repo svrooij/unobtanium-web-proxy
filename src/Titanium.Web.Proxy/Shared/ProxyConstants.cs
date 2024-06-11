@@ -13,7 +13,7 @@ internal class ProxyConstants
     internal static readonly char DotSplit = '.';
 
     internal static readonly string NewLine = "\r\n";
-    internal static readonly byte[] NewLineBytes = { (byte)'\r', (byte)'\n' };
+    internal static readonly byte[] NewLineBytes = [(byte)'\r', (byte)'\n'];
 
     internal static readonly HashSet<string> ProxySupportedCompressions =
         new(StringComparer.OrdinalIgnoreCase)

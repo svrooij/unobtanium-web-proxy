@@ -14,9 +14,9 @@ namespace Titanium.Web.Proxy.StreamExtended.Models;
 /// </summary>
 public class SslExtension
 {
-    internal static readonly byte[] Http11Utf8 = new byte[] { 0x68, 0x74, 0x74, 0x70, 0x2f, 0x31, 0x2e, 0x31 }; // "http/1.1"
-    internal static readonly byte[] Http2Utf8 = new byte[] { 0x68, 0x32 }; // "h2"
-    internal static readonly byte[] Http3Utf8 = new byte[] { 0x68, 0x33 }; // "h3"
+    internal static readonly byte[] Http11Utf8 = "http/1.1"u8.ToArray(); // "http/1.1"
+    internal static readonly byte[] Http2Utf8 = "h2"u8.ToArray(); // "h2"
+    internal static readonly byte[] Http3Utf8 = "h3"u8.ToArray(); // "h3"
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="SslExtension" /> class.
@@ -32,7 +32,7 @@ public class SslExtension
         Position = position;
     }
 
-    private ReadOnlyMemory<byte> data;
+    private readonly ReadOnlyMemory<byte> data;
 
     /// <summary>
     ///     Gets the value.
@@ -278,7 +278,7 @@ public class SslExtension
             i += 2;
         }
 
-        return string.Join(", ", list.ToArray());
+        return string.Join(", ", [.. list]);
     }
 
     private static string GetEcPointFormats(ReadOnlySpan<byte> data)
@@ -308,7 +308,7 @@ public class SslExtension
             i += 2;
         }
 
-        return string.Join(", ", list.ToArray());
+        return string.Join(", ", [.. list]);
     }
 
     private static List<string> GetSupportedVersions(ReadOnlySpan<byte> data)
@@ -552,118 +552,56 @@ public class SslExtension
     private static string GetExtensionName(int value)
     {
         // https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml
-        switch (value)
+        return value switch
         {
-            case 0:
-                return "server_name";
-            case 1:
-                return "max_fragment_length";
-            case 2:
-                return "client_certificate_url";
-            case 3:
-                return "trusted_ca_keys";
-            case 4:
-                return "truncated_hmac";
-            case 5:
-                return "status_request";
-            case 6:
-                return "user_mapping";
-            case 7:
-                return "client_authz";
-            case 8:
-                return "server_authz";
-            case 9:
-                return "cert_type";
-            case 10:
-                return "supported_groups"; // renamed from "elliptic_curves" (RFC 7919 / TLS 1.3)
-            case 11:
-                return "ec_point_formats";
-            case 12:
-                return "srp";
-            case 13:
-                return "signature_algorithms";
-            case 14:
-                return "use_srtp";
-            case 15:
-                return "heartbeat";
-            case 16:
-                return "ALPN"; // application_layer_protocol_negotiation
-            case 17:
-                return "status_request_v2";
-            case 18:
-                return "signed_certificate_timestamp";
-            case 19:
-                return "client_certificate_type";
-            case 20:
-                return "server_certificate_type";
-            case 21:
-                return "padding";
-            case 22:
-                return "encrypt_then_mac";
-            case 23:
-                return "extended_master_secret";
-            case 24:
-                return
-                    "token_binding"; // TEMPORARY - registered 2016-02-04, extension registered 2017-01-12, expires 2018-02-04
-            case 25:
-                return "cached_info";
-            case 26:
-                return "quic_transports_parameters"; // Not yet assigned by IANA (QUIC-TLS Draft04)
-            case 35:
-                return "SessionTicket TLS";
+            0 => "server_name",
+            1 => "max_fragment_length",
+            2 => "client_certificate_url",
+            3 => "trusted_ca_keys",
+            4 => "truncated_hmac",
+            5 => "status_request",
+            6 => "user_mapping",
+            7 => "client_authz",
+            8 => "server_authz",
+            9 => "cert_type",
+            10 => "supported_groups",// renamed from "elliptic_curves" (RFC 7919 / TLS 1.3)
+            11 => "ec_point_formats",
+            12 => "srp",
+            13 => "signature_algorithms",
+            14 => "use_srtp",
+            15 => "heartbeat",
+            16 => "ALPN",// application_layer_protocol_negotiation
+            17 => "status_request_v2",
+            18 => "signed_certificate_timestamp",
+            19 => "client_certificate_type",
+            20 => "server_certificate_type",
+            21 => "padding",
+            22 => "encrypt_then_mac",
+            23 => "extended_master_secret",
+            24 => "token_binding",// TEMPORARY - registered 2016-02-04, extension registered 2017-01-12, expires 2018-02-04
+            25 => "cached_info",
+            26 => "quic_transports_parameters",// Not yet assigned by IANA (QUIC-TLS Draft04)
+            35 => "SessionTicket TLS",
             // TLS 1.3 draft: https://tools.ietf.org/html/draft-ietf-tls-tls13
-            case 40:
-                return "key_share";
-            case 41:
-                return "pre_shared_key";
-            case 42:
-                return "early_data";
-            case 43:
-                return "supported_versions";
-            case 44:
-                return "cookie";
-            case 45:
-                return "psk_key_exchange_modes";
-            case 46:
-                return "ticket_early_data_info";
-            case 47:
-                return "certificate_authorities";
-            case 48:
-                return "oid_filters";
-            case 49:
-                return "post_handshake_auth";
-            case 2570: // 0a0a
-            case 6682: // 1a1a
-            case 10794: // 2a2a
-            case 14906: // 3a3a
-            case 19018: // 4a4a
-            case 23130: // 5a5a
-            case 27242: // 6a6a
-            case 31354: // 7a7a
-            case 35466: // 8a8a
-            case 39578: // 9a9a
-            case 43690: // aaaa
-            case 47802: // baba
-            case 51914: // caca
-            case 56026: // dada
-            case 60138: // eaea
-            case 64250: // fafa
-                return "Reserved (GREASE)";
-            case 13172:
-                return "next_protocol_negotiation";
-            case 30031:
-                return "channel_id_old"; // Google
-            case 30032:
-                return "channel_id"; // Google
-            case 35655:
-                return "draft-agl-tls-padding";
-            case 65281:
-                return "renegotiation_info";
-            case 65282:
-                return
-                    "Draft version of TLS 1.3"; // for experimentation only  https://www.ietf.org/mail-archive/web/tls/current/msg20853.html
-            default:
-                return $"unknown_{value:x2}";
-        }
+            40 => "key_share",
+            41 => "pre_shared_key",
+            42 => "early_data",
+            43 => "supported_versions",
+            44 => "cookie",
+            45 => "psk_key_exchange_modes",
+            46 => "ticket_early_data_info",
+            47 => "certificate_authorities",
+            48 => "oid_filters",
+            49 => "post_handshake_auth",
+            // 0a0a
+            2570 or 6682 or 10794 or 14906 or 19018 or 23130 or 27242 or 31354 or 35466 or 39578 or 43690 or 47802 or 51914 or 56026 or 60138 or 64250 => "Reserved (GREASE)",
+            13172 => "next_protocol_negotiation",
+            30031 => "channel_id_old",// Google
+            30032 => "channel_id",// Google
+            35655 => "draft-agl-tls-padding",
+            65281 => "renegotiation_info",
+            65282 => "Draft version of TLS 1.3",// for experimentation only  https://www.ietf.org/mail-archive/web/tls/current/msg20853.html
+            _ => $"unknown_{value:x2}",
+        };
     }
 }

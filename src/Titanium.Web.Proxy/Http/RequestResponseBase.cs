@@ -222,15 +222,13 @@ public abstract class RequestResponseBase
     /// <returns></returns>
     internal byte[] GetCompressedBody(HttpCompression encodingType, byte[] body)
     {
-        using (var ms = new MemoryStream())
+        using var ms = new MemoryStream();
+        using (var zip = CompressionFactory.Create(encodingType, ms))
         {
-            using (var zip = CompressionFactory.Create(encodingType, ms))
-            {
-                zip.Write(body, 0, body.Length);
-            }
-
-            return ms.ToArray();
+            zip.Write(body, 0, body.Length);
         }
+
+        return ms.ToArray();
     }
 
     internal byte[]? CompressBodyAndUpdateContentLength()

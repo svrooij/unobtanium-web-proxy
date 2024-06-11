@@ -40,7 +40,7 @@ namespace Titanium.Web.Proxy.Network.WinAuth.Security;
 
 internal class Message
 {
-    private static readonly byte[] header = { 0x4e, 0x54, 0x4c, 0x4d, 0x53, 0x53, 0x50, 0x00 };
+    private static readonly byte[] header = [0x4e, 0x54, 0x4c, 0x4d, 0x53, 0x53, 0x50, 0x00];
 
     private readonly int type;
 
@@ -48,7 +48,7 @@ internal class Message
     {
         type = 3;
 
-        if (message == null) throw new ArgumentNullException(nameof(message));
+        ArgumentNullException.ThrowIfNull(message);
 
         if (message.Length < 12)
         {

@@ -23,7 +23,7 @@ public class KnownHeader
     /// Initializes a new instance of the <see cref="KnownHeader"/> class.
     /// </summary>
     /// <param name="str">The string representation of the header.</param>
-    private KnownHeader(string str)
+    private KnownHeader ( string str )
     {
         String8 = (ByteString)str;
         String = str;
@@ -33,7 +33,7 @@ public class KnownHeader
     /// Returns a string that represents the current object.
     /// </summary>
     /// <returns>A string that represents the current object.</returns>
-    public override string ToString()
+    public override string ToString ()
     {
         return String;
     }
@@ -43,7 +43,7 @@ public class KnownHeader
     /// </summary>
     /// <param name="value">The value to compare with the current object.</param>
     /// <returns>true if the specified value is equal to the current object; otherwise, false.</returns>
-    internal bool Equals(ReadOnlySpan<char> value)
+    internal bool Equals ( ReadOnlySpan<char> value )
     {
         return String.AsSpan().EqualsIgnoreCase(value);
     }
@@ -53,7 +53,7 @@ public class KnownHeader
     /// </summary>
     /// <param name="value">The value to compare with the current object.</param>
     /// <returns>true if the specified value is equal to the current object; otherwise, false.</returns>
-    internal bool Equals(string? value)
+    internal bool Equals ( string? value )
     {
         return String.EqualsIgnoreCase(value);
     }
@@ -62,7 +62,7 @@ public class KnownHeader
     /// Converts a string to a <see cref="KnownHeader"/>.
     /// </summary>
     /// <param name="str">The string to convert.</param>
-    public static implicit operator KnownHeader(string str)
+    public static implicit operator KnownHeader ( string str )
     {
         return new(str);
     }

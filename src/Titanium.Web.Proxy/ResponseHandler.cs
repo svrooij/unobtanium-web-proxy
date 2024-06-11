@@ -17,7 +17,7 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="args">The session event arguments.</param>
     /// <returns> The task.</returns>
-    private async Task HandleHttpSessionResponse(SessionEventArgs args)
+    private async Task HandleHttpSessionResponse ( SessionEventArgs args )
     {
         var cancellationToken = args.CancellationTokenSource.Token;
 
@@ -119,7 +119,7 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="args"></param>
     /// <returns></returns>
-    private async Task OnBeforeResponse(SessionEventArgs args)
+    private async Task OnBeforeResponse ( SessionEventArgs args )
     {
         if (BeforeResponse != null) await BeforeResponse.InvokeAsync(this, args, ExceptionFunc);
     }
@@ -129,27 +129,27 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="args"></param>
     /// <returns></returns>
-    private async Task OnAfterResponse(SessionEventArgs args)
+    private async Task OnAfterResponse ( SessionEventArgs args )
     {
         if (AfterResponse != null) await AfterResponse.InvokeAsync(this, args, ExceptionFunc);
     }
 #if DEBUG
-        internal bool ShouldCallBeforeResponseBodyWrite()
+    internal bool ShouldCallBeforeResponseBodyWrite ()
+    {
+        if (OnResponseBodyWrite != null)
         {
-            if (OnResponseBodyWrite != null)
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
-        internal async Task OnBeforeResponseBodyWrite(BeforeBodyWriteEventArgs args)
+        return false;
+    }
+
+    internal async Task OnBeforeResponseBodyWrite ( BeforeBodyWriteEventArgs args )
+    {
+        if (OnResponseBodyWrite != null)
         {
-            if (OnResponseBodyWrite != null)
-            {
-                await OnResponseBodyWrite.InvokeAsync(this, args, ExceptionFunc);
-            }
+            await OnResponseBodyWrite.InvokeAsync(this, args, ExceptionFunc);
         }
+    }
 #endif
 }

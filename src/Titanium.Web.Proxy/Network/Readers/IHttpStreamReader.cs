@@ -11,14 +11,14 @@ namespace Titanium.Web.Proxy.StreamExtended.Network;
 /// </summary>
 public interface IHttpStreamReader : ILineStream
 {
-    /// <summary>
-    /// Reads a sequence of bytes from the stream.
-    /// </summary>
-    /// <param name="buffer">The buffer to write data into.</param>
-    /// <param name="offset">The zero-based byte offset in buffer at which to begin storing the data read from the stream.</param>
-    /// <param name="count">The maximum number of bytes to be read from the stream.</param>
-    /// <returns>The total number of bytes read into the buffer.</returns>
-    int Read(byte[] buffer, int offset, int count);
+    ///// <summary>
+    ///// Reads a sequence of bytes from the stream.
+    ///// </summary>
+    ///// <param name="buffer">The buffer to write data into.</param>
+    ///// <param name="offset">The zero-based byte offset in buffer at which to begin storing the data read from the stream.</param>
+    ///// <param name="count">The maximum number of bytes to be read from the stream.</param>
+    ///// <returns>The total number of bytes read into the buffer.</returns>
+    //int Read(byte[] buffer, int offset, int count);
 
     /// <summary>
     /// Asynchronously reads a sequence of bytes from the stream.

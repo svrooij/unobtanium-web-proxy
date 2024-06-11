@@ -17,7 +17,7 @@ public class ProxyConnectException : ProxyException
     ///     Instance of <see cref="EventArguments.TunnelConnectSessionEventArgs" /> associated to the
     ///     exception
     /// </param>
-    internal ProxyConnectException(string message, Exception innerException, SessionEventArgsBase session) : base(
+    internal ProxyConnectException ( string message, Exception innerException, SessionEventArgsBase session ) : base(
         message, innerException)
     {
         Session = session;

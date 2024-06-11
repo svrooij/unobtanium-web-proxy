@@ -12,7 +12,7 @@ public class EmptyProxyEventArgs : ProxyEventArgsBase
     /// </summary>
     /// <param name="server">The proxy server instance.</param>
     /// <param name="clientConnection">The client connection.</param>
-    internal EmptyProxyEventArgs(ProxyServer server, TcpClientConnection clientConnection) : base(server,
+    internal EmptyProxyEventArgs ( ProxyServer server, TcpClientConnection clientConnection ) : base(server,
         clientConnection)
     {
     }

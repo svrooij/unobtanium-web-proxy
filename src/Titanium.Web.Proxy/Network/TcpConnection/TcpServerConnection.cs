@@ -15,9 +15,9 @@ internal class TcpServerConnection : IDisposable
 {
     private bool disposed;
 
-    internal TcpServerConnection(ProxyServer proxyServer, Socket tcpSocket, HttpServerStream stream,
+    internal TcpServerConnection ( ProxyServer proxyServer, Socket tcpSocket, HttpServerStream stream,
         string hostName, int port, bool isHttps, SslApplicationProtocol negotiatedApplicationProtocol,
-        Version version, IExternalProxy? upStreamProxy, IPEndPoint? upStreamEndPoint, string cacheKey)
+        Version version, IExternalProxy? upStreamProxy, IPEndPoint? upStreamEndPoint, string cacheKey )
     {
         TcpSocket = tcpSocket;
         LastAccess = DateTime.UtcNow;
@@ -86,13 +86,13 @@ internal class TcpServerConnection : IDisposable
     /// </summary>
     internal bool IsWinAuthenticated { get; set; }
 
-    public void Dispose()
+    public void Dispose ()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected virtual void Dispose ( bool disposing )
     {
         if (disposed) return;
 
@@ -123,11 +123,11 @@ internal class TcpServerConnection : IDisposable
         disposed = true;
     }
 
-    ~TcpServerConnection()
+    ~TcpServerConnection ()
     {
 #if DEBUG
-            // Finalizer should not be called
-            System.Diagnostics.Debugger.Break();
+        // Finalizer should not be called
+        System.Diagnostics.Debugger.Break();
 #endif
 
         Dispose(false);

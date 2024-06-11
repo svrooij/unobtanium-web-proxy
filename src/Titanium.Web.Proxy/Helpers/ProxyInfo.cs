@@ -7,10 +7,10 @@ using Titanium.Web.Proxy.Models;
 
 namespace Titanium.Web.Proxy.Helpers;
 
-internal class ProxyInfo
+internal partial class ProxyInfo
 {
-    internal ProxyInfo(bool? autoDetect, string? autoConfigUrl, int? proxyEnable, string? proxyServer,
-        string? proxyOverride)
+    internal ProxyInfo ( bool? autoDetect, string? autoConfigUrl, int? proxyEnable, string? proxyServer,
+        string? proxyOverride )
     {
         AutoDetect = autoDetect;
         AutoConfigUrl = autoConfigUrl;
@@ -32,7 +32,7 @@ internal class ProxyInfo
                 else
                     overrides2.Add(BypassStringEscape(overrideHost));
 
-            if (overrides2.Count > 0) BypassList = overrides2.ToArray();
+            if (overrides2.Count > 0) BypassList = [.. overrides2];
 
             Proxies = GetSystemProxyValues(proxyServer).ToDictionary(x => x.ProtocolType);
         }
@@ -56,11 +56,10 @@ internal class ProxyInfo
 
     internal string[]? BypassList { get; }
 
-    private static string BypassStringEscape(string rawString)
+    internal static string BypassStringEscape ( string rawString )
     {
         var match =
-            new Regex("^(?<scheme>.*://)?(?<host>[^:]*)(?<port>:[0-9]{1,5})?$",
-                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant).Match(rawString);
+            StringEscapeRegex().Match(rawString);
         string empty1;
         string rawString1;
         string empty2;
@@ -87,35 +86,43 @@ internal class ProxyInfo
         return "^" + str1 + str2 + str3 + "$";
     }
 
-    private static string ConvertRegexReservedChars(string rawString)
+    internal static string ConvertRegexReservedChars ( string rawString )
     {
-        if (rawString.Length == 0) return rawString;
+        if (string.IsNullOrEmpty(rawString)) return rawString;
 
-        var stringBuilder = new StringBuilder();
+        // Define special characters in a HashSet for O(1) lookups
+        var specialChars = new HashSet<char>("#$()+.?[\\^{|");
+        var stringBuilder = new StringBuilder(rawString.Length * 2); // Estimate capacity to reduce resizing
+
         foreach (var ch in rawString)
         {
-            if ("#$()+.?[\\^{|".IndexOf(ch) != -1)
+            // Check if the character is a special character
+            if (specialChars.Contains(ch))
+            {
                 stringBuilder.Append('\\');
-            else if (ch == 42) stringBuilder.Append('.');
-
+            }
+            else if (ch == '*')
+            {
+                // Replace asterisk with a dot for wildcard matching
+                // Note: This behavior is specific and should be documented.
+                stringBuilder.Append('.');
+                continue; // Skip appending the asterisk itself
+            }
             stringBuilder.Append(ch);
         }
 
         return stringBuilder.ToString();
     }
 
-    internal static ProxyProtocolType? ParseProtocolType(string protocolTypeStr)
+
+    internal static ProxyProtocolType? ParseProtocolType ( string protocolTypeStr )
     {
-        if (protocolTypeStr == null) return null;
-
-        ProxyProtocolType? protocolType = null;
-        if (protocolTypeStr.Equals(Proxy.ProxyServer.UriSchemeHttp, StringComparison.InvariantCultureIgnoreCase))
-            protocolType = ProxyProtocolType.Http;
-        else if (protocolTypeStr.Equals(Proxy.ProxyServer.UriSchemeHttps,
-                     StringComparison.InvariantCultureIgnoreCase))
-            protocolType = ProxyProtocolType.Https;
-
-        return protocolType;
+        return protocolTypeStr?.ToLowerInvariant() switch
+        {
+            "http" => ProxyProtocolType.Http,
+            "https" => ProxyProtocolType.Https,
+            _ => null,
+        };
     }
 
     /// <summary>
@@ -123,7 +130,7 @@ internal class ProxyInfo
     /// </summary>
     /// <param name="proxyServerValues"></param>
     /// <returns></returns>
-    internal static List<HttpSystemProxyValue> GetSystemProxyValues(string? proxyServerValues)
+    internal static List<HttpSystemProxyValue> GetSystemProxyValues ( string? proxyServerValues )
     {
         var result = new List<HttpSystemProxyValue>();
 
@@ -153,23 +160,28 @@ internal class ProxyInfo
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    private static HttpSystemProxyValue? ParseProxyValue(string value)
+    private static HttpSystemProxyValue? ParseProxyValue ( string value )
     {
-        var tmp = Regex.Replace(value, @"\s+", " ").Trim();
+        var tmp = ParseProxyRegex().Replace(value, " ").Trim();
 
-        var equalsIndex = tmp.IndexOf("=", StringComparison.InvariantCulture);
+        var equalsIndex = tmp.IndexOf('=');
         if (equalsIndex >= 0)
         {
-            var protocolTypeStr = tmp.Substring(0, equalsIndex);
+            var protocolTypeStr = tmp[..equalsIndex];
             var protocolType = ParseProtocolType(protocolTypeStr);
 
             if (protocolType.HasValue)
             {
-                var endPointParts = tmp.Substring(equalsIndex + 1).Split(':');
+                var endPointParts = tmp[(equalsIndex + 1)..].Split(':');
                 return new HttpSystemProxyValue(endPointParts[0], int.Parse(endPointParts[1]), protocolType.Value);
             }
         }
 
         return null;
     }
+
+    [GeneratedRegex("^(?<scheme>.*://)?(?<host>[^:]*)(?<port>:[0-9]{1,5})?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex StringEscapeRegex ();
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex ParseProxyRegex ();
 }

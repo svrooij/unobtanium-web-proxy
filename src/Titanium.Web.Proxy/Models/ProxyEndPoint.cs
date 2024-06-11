@@ -15,7 +15,7 @@ public abstract class ProxyEndPoint
     /// <param name="ipAddress"></param>
     /// <param name="port"></param>
     /// <param name="decryptSsl"></param>
-    protected ProxyEndPoint(IPAddress ipAddress, int port, bool decryptSsl)
+    protected ProxyEndPoint ( IPAddress ipAddress, int port, bool decryptSsl )
     {
         IpAddress = ipAddress;
         Port = port;

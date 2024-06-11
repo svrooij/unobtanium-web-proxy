@@ -17,9 +17,9 @@ public partial class ProxyServer
     /// <param name="chain">The certificate chain.</param>
     /// <param name="sslPolicyErrors">Ssl policy errors</param>
     /// <returns>Return true if valid certificate.</returns>
-    internal bool ValidateServerCertificate(object sender, SessionEventArgsBase? sessionArgs,
+    internal bool ValidateServerCertificate ( object sender, SessionEventArgsBase? sessionArgs,
         X509Certificate certificate, X509Chain chain,
-        SslPolicyErrors sslPolicyErrors)
+        SslPolicyErrors sslPolicyErrors )
     {
         // if user callback is registered then do it
         if (ServerCertificateValidationCallback != null)
@@ -48,10 +48,10 @@ public partial class ProxyServer
     /// <param name="remoteCertificate">The remote certificate of server.</param>
     /// <param name="acceptableIssuers">The acceptable issues for client certificate as listed by server.</param>
     /// <returns></returns>
-    internal X509Certificate? SelectClientCertificate(object sender, SessionEventArgsBase? sessionArgs,
+    internal X509Certificate? SelectClientCertificate ( object sender, SessionEventArgsBase? sessionArgs,
         string targetHost,
         X509CertificateCollection localCertificates,
-        X509Certificate? remoteCertificate, string[] acceptableIssuers)
+        X509Certificate? remoteCertificate, string[] acceptableIssuers )
     {
         X509Certificate? clientCertificate = null;
 

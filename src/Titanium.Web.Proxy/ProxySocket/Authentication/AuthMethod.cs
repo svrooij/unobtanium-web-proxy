@@ -52,7 +52,7 @@ internal abstract class AuthMethod
     ///     Initializes an AuthMethod instance.
     /// </summary>
     /// <param name="server">The socket connection with the proxy server.</param>
-    public AuthMethod(Socket server)
+    public AuthMethod ( Socket server )
     {
         Server = server;
     }
@@ -64,7 +64,7 @@ internal abstract class AuthMethod
     protected Socket Server
     {
         get => server!;
-        set => server = value ?? throw new ArgumentNullException();
+        set => server = value ?? throw new ArgumentNullException(nameof(Server));
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ internal abstract class AuthMethod
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    public abstract void Authenticate();
+    public abstract void Authenticate ();
 
     /// <summary>
     ///     Authenticates the user asynchronously.
@@ -96,5 +96,5 @@ internal abstract class AuthMethod
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    public abstract void BeginAuthenticate(HandShakeComplete callback);
+    public abstract void BeginAuthenticate ( HandShakeComplete callback );
 }

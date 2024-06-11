@@ -5,51 +5,42 @@ namespace Titanium.Web.Proxy.EventArguments;
 /// <summary>
 ///     An argument passed on to user for client certificate selection during mutual SSL authentication.
 /// </summary>
-public class CertificateSelectionEventArgs : ProxyEventArgsBase
+/// <remarks>
+/// Initializes a new instance of the <see cref="CertificateSelectionEventArgs"/> class.
+/// </remarks>
+/// <param name="session">The session event arguments.</param>
+/// <param name="targetHost">The target host.</param>
+/// <param name="localCertificates">The local certificates.</param>
+/// <param name="remoteCertificate">The remote certificate.</param>
+/// <param name="acceptableIssuers">The acceptable issuers.</param>
+public class CertificateSelectionEventArgs ( SessionEventArgsBase session, string targetHost,
+    X509CertificateCollection localCertificates, X509Certificate? remoteCertificate, string[] acceptableIssuers ) : ProxyEventArgsBase(session.Server, session.ClientConnection)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CertificateSelectionEventArgs"/> class.
-    /// </summary>
-    /// <param name="session">The session event arguments.</param>
-    /// <param name="targetHost">The target host.</param>
-    /// <param name="localCertificates">The local certificates.</param>
-    /// <param name="remoteCertificate">The remote certificate.</param>
-    /// <param name="acceptableIssuers">The acceptable issuers.</param>
-    public CertificateSelectionEventArgs(SessionEventArgsBase session, string targetHost,
-        X509CertificateCollection localCertificates, X509Certificate? remoteCertificate, string[] acceptableIssuers) :
-        base(session.Server, session.ClientConnection)
-    {
-        Session = session;
-        TargetHost = targetHost;
-        LocalCertificates = localCertificates;
-        RemoteCertificate = remoteCertificate;
-        AcceptableIssuers = acceptableIssuers;
-    }
 
     /// <value>
     ///     The session.
     /// </value>
-    public SessionEventArgsBase Session { get; }
+    public SessionEventArgsBase Session { get; } = session;
 
     /// <summary>
     ///     The remote hostname to which we are authenticating against.
     /// </summary>
-    public string TargetHost { get; }
+    public string TargetHost { get; } = targetHost;
 
     /// <summary>
     ///     Local certificates in store with matching issuers requested by TargetHost website.
     /// </summary>
-    public X509CertificateCollection LocalCertificates { get; }
+    public X509CertificateCollection LocalCertificates { get; } = localCertificates;
 
     /// <summary>
     ///     Certificate of the remote server.
     /// </summary>
-    public X509Certificate? RemoteCertificate { get; }
+    public X509Certificate? RemoteCertificate { get; } = remoteCertificate;
 
     /// <summary>
     ///     Acceptable issuers as listed by remote server.
     /// </summary>
-    public string[] AcceptableIssuers { get; }
+    public string[] AcceptableIssuers { get; } = acceptableIssuers;
 
     /// <summary>
     ///     Client Certificate we selected. Set this value to override.

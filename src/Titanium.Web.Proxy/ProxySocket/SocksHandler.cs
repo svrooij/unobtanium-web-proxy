@@ -75,7 +75,7 @@ internal abstract class SocksHandler
     protected Socket Server
     {
         get => server!;
-        set => server = value ?? throw new ArgumentNullException();
+        set => server = value ?? throw new ArgumentNullException(nameof(Server));
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ internal abstract class SocksHandler
     protected string Username
     {
         get => username;
-        set => username = value ?? throw new ArgumentNullException();
+        set => username = value ?? throw new ArgumentNullException(nameof(Username));
     }
 
     /// <summary>
@@ -151,7 +151,7 @@ internal abstract class SocksHandler
     protected void ReadBytes(byte[] buffer, int count)
     {
         if (count <= 0)
-            throw new ArgumentException();
+            throw new ArgumentOutOfRangeException(nameof(count), "Count must be positive");
 
         var received = 0;
         while (received != count)

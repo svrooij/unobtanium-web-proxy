@@ -36,7 +36,7 @@ internal struct ByteString : IEquatable<ByteString>
 
     public ByteString Slice(int start)
     {
-        return Data.Slice(start);
+        return Data[start..];
     }
 
     public ByteString Slice(int start, int length)

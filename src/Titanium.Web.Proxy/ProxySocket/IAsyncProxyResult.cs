@@ -46,7 +46,7 @@ internal class AsyncProxyResult : IAsyncResult
 
     /// <summary>Initializes the internal variables of this object</summary>
     /// <param name="stateObject">An object that contains state information for this request.</param>
-    internal AsyncProxyResult(object? stateObject = null)
+    internal AsyncProxyResult ( object? stateObject = null )
     {
         AsyncState = stateObject ?? new object();
         IsCompleted = false;
@@ -87,7 +87,7 @@ internal class AsyncProxyResult : IAsyncResult
     public WaitHandle AsyncWaitHandle => waitHandle ??= new ManualResetEvent(false);
 
     /// <summary>Initializes the internal variables of this object</summary>
-    internal void Reset()
+    internal void Reset ()
     {
         //AsyncState = null;
         IsCompleted = true;

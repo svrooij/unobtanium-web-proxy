@@ -101,7 +101,7 @@ internal class Common
         internal IntPtr LowPart;
         internal IntPtr HighPart;
 
-        internal SecurityHandle(int dummy)
+        internal SecurityHandle ( int dummy )
         {
             LowPart = HighPart = IntPtr.Zero;
         }
@@ -109,7 +109,7 @@ internal class Common
         /// <summary>
         ///     Resets all internal pointers to default value
         /// </summary>
-        internal void Reset()
+        internal void Reset ()
         {
             LowPart = HighPart = IntPtr.Zero;
         }
@@ -121,7 +121,7 @@ internal class Common
         internal uint LowPart;
         internal int HighPart;
 
-        internal SecurityInteger(int dummy)
+        internal SecurityInteger ( int dummy )
         {
             LowPart = 0;
             HighPart = 0;
@@ -135,14 +135,14 @@ internal class Common
         internal int cbBufferType;
         internal IntPtr pvBuffer;
 
-        internal SecurityBuffer(int bufferSize)
+        internal SecurityBuffer ( int bufferSize )
         {
             cbBuffer = bufferSize;
             cbBufferType = (int)SecurityBufferType.SecbufferToken;
             pvBuffer = Marshal.AllocHGlobal(bufferSize);
         }
 
-        internal SecurityBuffer(byte[] secBufferBytes)
+        internal SecurityBuffer ( byte[] secBufferBytes )
         {
             cbBuffer = secBufferBytes.Length;
             cbBufferType = (int)SecurityBufferType.SecbufferToken;
@@ -150,7 +150,7 @@ internal class Common
             Marshal.Copy(secBufferBytes, 0, pvBuffer, cbBuffer);
         }
 
-        internal SecurityBuffer(byte[] secBufferBytes, SecurityBufferType bufferType)
+        internal SecurityBuffer ( byte[] secBufferBytes, SecurityBufferType bufferType )
         {
             cbBuffer = secBufferBytes.Length;
             cbBufferType = (int)bufferType;
@@ -166,7 +166,7 @@ internal class Common
         internal int cBuffers;
         internal IntPtr pBuffers; // Point to SecBuffer
 
-        internal SecurityBufferDesciption(int bufferSize)
+        internal SecurityBufferDesciption ( int bufferSize )
         {
             ulVersion = (int)SecurityBufferType.SecbufferVersion;
             cBuffers = 1;
@@ -175,7 +175,7 @@ internal class Common
             Marshal.StructureToPtr(thisSecBuffer, pBuffers, false);
         }
 
-        internal SecurityBufferDesciption(byte[] secBufferBytes)
+        internal SecurityBufferDesciption ( byte[] secBufferBytes )
         {
             ulVersion = (int)SecurityBufferType.SecbufferVersion;
             cBuffers = 1;
@@ -185,7 +185,7 @@ internal class Common
         }
 
 
-        internal byte[]? GetBytes()
+        internal byte[]? GetBytes ()
         {
             byte[]? buffer = null;
 

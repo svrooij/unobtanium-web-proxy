@@ -21,7 +21,7 @@ internal class TcpClientConnection : IDisposable
 
     private int? processId;
 
-    internal TcpClientConnection(ProxyServer proxyServer, Socket tcpClientSocket)
+    internal TcpClientConnection ( ProxyServer proxyServer, Socket tcpClientSocket )
     {
         this.tcpClientSocket = tcpClientSocket;
         ProxyServer = proxyServer;
@@ -42,18 +42,18 @@ internal class TcpClientConnection : IDisposable
 
     internal SslApplicationProtocol NegotiatedApplicationProtocol { get; set; }
 
-    public void Dispose()
+    public void Dispose ()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    public Stream GetStream()
+    public Stream GetStream ()
     {
         return new NetworkStream(tcpClientSocket, true);
     }
 
-    public int GetProcessId(ProxyEndPoint endPoint)
+    public int GetProcessId ( ProxyEndPoint endPoint )
     {
         if (processId.HasValue) return processId.Value;
 
@@ -74,7 +74,7 @@ internal class TcpClientConnection : IDisposable
         throw new PlatformNotSupportedException();
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected virtual void Dispose ( bool disposing )
     {
         if (disposed) return;
 
@@ -100,11 +100,11 @@ internal class TcpClientConnection : IDisposable
         disposed = true;
     }
 
-    ~TcpClientConnection()
+    ~TcpClientConnection ()
     {
 #if DEBUG
-            // Finalizer should not be called
-            System.Diagnostics.Debugger.Break();
+        // Finalizer should not be called
+        System.Diagnostics.Debugger.Break();
 #endif
 
         Dispose(false);

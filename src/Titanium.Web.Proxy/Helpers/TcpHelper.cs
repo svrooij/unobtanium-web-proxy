@@ -15,7 +15,7 @@ internal class TcpHelper
     ///     Gets the process id by local port number.
     /// </summary>
     /// <returns>Process id.</returns>
-    internal static unsafe int GetProcessIdByLocalPort(AddressFamily addressFamily, int localPort)
+    internal static unsafe int GetProcessIdByLocalPort ( AddressFamily addressFamily, int localPort )
     {
         var tcpTable = IntPtr.Zero;
         var tcpTableLength = 0;
@@ -73,7 +73,7 @@ internal class TcpHelper
     /// </summary>
     /// <param name="port"></param>
     /// <returns></returns>
-    private static uint ToNetworkByteOrder(uint port)
+    private static uint ToNetworkByteOrder ( uint port )
     {
         return ((port >> 8) & 0x00FF00FFu) | ((port << 8) & 0xFF00FF00u);
     }
@@ -91,9 +91,9 @@ internal class TcpHelper
     /// <param name="onDataReceive"></param>
     /// <param name="cancellationTokenSource"></param>
     /// <returns></returns>
-    private static async Task SendRawTap(Stream clientStream, Stream serverStream, IBufferPool bufferPool,
+    private static async Task SendRawTap ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
         Action<byte[], int, int>? onDataSend, Action<byte[], int, int>? onDataReceive,
-        CancellationTokenSource cancellationTokenSource)
+        CancellationTokenSource cancellationTokenSource )
     {
         // Now async relay all server=>client & client=>server data
         var sendRelay =
@@ -120,10 +120,10 @@ internal class TcpHelper
     /// <param name="cancellationTokenSource"></param>
     /// <param name="exceptionFunc"></param>
     /// <returns></returns>
-    internal static Task SendRaw(Stream clientStream, Stream serverStream, IBufferPool bufferPool,
+    internal static Task SendRaw ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
         Action<byte[], int, int>? onDataSend, Action<byte[], int, int>? onDataReceive,
         CancellationTokenSource cancellationTokenSource,
-        ExceptionHandler? exceptionFunc)
+        ExceptionHandler? exceptionFunc )
     {
         // todo: fix APM mode
         return SendRawTap(clientStream, serverStream, bufferPool, onDataSend, onDataReceive,

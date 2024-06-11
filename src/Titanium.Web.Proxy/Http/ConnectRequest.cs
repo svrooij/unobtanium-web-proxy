@@ -12,7 +12,7 @@ public class ConnectRequest : Request
     /// Initializes a new instance of the <see cref="ConnectRequest"/> class.
     /// </summary>
     /// <param name="authority">The authority.</param>
-    internal ConnectRequest(ByteString authority)
+    internal ConnectRequest ( ByteString authority )
     {
         Method = "CONNECT";
         Authority = authority;
