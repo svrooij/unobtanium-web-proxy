@@ -9,8 +9,8 @@ namespace Titanium.Web.Proxy.UnitTests
     public class WinAuthTests
     {
         [TestMethod]
-        public void Test_Acquire_Client_Token()
-        {            
+        public void Test_Acquire_Client_Token ()
+        {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var token = WinAuthHandler.GetInitialAuthToken("mylocalserver.com", "NTLM", new InternalDataStore());

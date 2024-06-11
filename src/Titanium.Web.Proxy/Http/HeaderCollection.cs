@@ -21,7 +21,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     /// <summary>
     ///     Initializes a new instance of the <see cref="HeaderCollection" /> class.
     /// </summary>
-    public HeaderCollection()
+    public HeaderCollection ()
     {
         headers = new Dictionary<string, HttpHeader>(StringComparer.OrdinalIgnoreCase);
         nonUniqueHeaders = new Dictionary<string, List<HttpHeader>>(StringComparer.OrdinalIgnoreCase);
@@ -45,12 +45,12 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     /// <returns>
     ///     An enumerator that can be used to iterate through the collection.
     /// </returns>
-    public IEnumerator<HttpHeader> GetEnumerator()
+    public IEnumerator<HttpHeader> GetEnumerator ()
     {
         return headers.Values.Concat(nonUniqueHeaders.Values.SelectMany(x => x)).GetEnumerator();
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
+    IEnumerator IEnumerable.GetEnumerator ()
     {
         return GetEnumerator();
     }
@@ -60,7 +60,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    public bool HeaderExists(string name)
+    public bool HeaderExists ( string name )
     {
         return headers.ContainsKey(name) || nonUniqueHeaders.ContainsKey(name);
     }
@@ -71,7 +71,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    public List<HttpHeader>? GetHeaders(string name)
+    public List<HttpHeader>? GetHeaders ( string name )
     {
         if (headers.TryGetValue(name, out var value))
             return
@@ -87,7 +87,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     /// <summary>
     /// Gets the first header with given name if exists
     /// </summary>
-    public HttpHeader? GetFirstHeader(string name)
+    public HttpHeader? GetFirstHeader ( string name )
     {
         if (headers.TryGetValue(name, out var header)) return header;
 
@@ -96,7 +96,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
         return null;
     }
 
-    internal HttpHeader? GetFirstHeader(KnownHeader name)
+    internal HttpHeader? GetFirstHeader ( KnownHeader name )
     {
         if (headers.TryGetValue(name.String, out var header)) return header;
 
@@ -109,7 +109,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     ///     Returns all headers
     /// </summary>
     /// <returns></returns>
-    public List<HttpHeader> GetAllHeaders()
+    public List<HttpHeader> GetAllHeaders ()
     {
         var result = new List<HttpHeader>();
 
@@ -124,17 +124,17 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     /// </summary>
     /// <param name="name"></param>
     /// <param name="value"></param>
-    public void AddHeader(string name, string value)
+    public void AddHeader ( string name, string value )
     {
         AddHeader(new HttpHeader(name, value));
     }
 
-    internal void AddHeader(KnownHeader name, string value)
+    internal void AddHeader ( KnownHeader name, string value )
     {
         AddHeader(new HttpHeader(name, value));
     }
 
-    internal void AddHeader(KnownHeader name, KnownHeader value)
+    internal void AddHeader ( KnownHeader name, KnownHeader value )
     {
         AddHeader(new HttpHeader(name, value));
     }
@@ -143,7 +143,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     ///     Adds the given header object to Request
     /// </summary>
     /// <param name="newHeader"></param>
-    public void AddHeader(HttpHeader newHeader)
+    public void AddHeader ( HttpHeader newHeader )
     {
         // if header exist in non-unique header collection add it there
         if (nonUniqueHeaders.TryGetValue(newHeader.Name, out var list))
@@ -174,7 +174,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     ///     Adds the given header objects to Request
     /// </summary>
     /// <param name="newHeaders"></param>
-    public void AddHeaders(IEnumerable<HttpHeader>? newHeaders)
+    public void AddHeaders ( IEnumerable<HttpHeader>? newHeaders )
     {
         if (newHeaders == null) return;
 
@@ -185,7 +185,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     ///     Adds the given header objects to Request
     /// </summary>
     /// <param name="newHeaders"></param>
-    public void AddHeaders(IEnumerable<KeyValuePair<string, string>> newHeaders)
+    public void AddHeaders ( IEnumerable<KeyValuePair<string, string>> newHeaders )
     {
         if (newHeaders == null) return;
 
@@ -196,7 +196,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     ///     Adds the given header objects to Request
     /// </summary>
     /// <param name="newHeaders"></param>
-    public void AddHeaders(IEnumerable<KeyValuePair<string, HttpHeader>>? newHeaders)
+    public void AddHeaders ( IEnumerable<KeyValuePair<string, HttpHeader>>? newHeaders )
     {
         if (newHeaders == null) return;
 
@@ -218,7 +218,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     ///     True if header was removed
     ///     False if no header exists with given name
     /// </returns>
-    public bool RemoveHeader(string headerName)
+    public bool RemoveHeader ( string headerName )
     {
         var result = headers.Remove(headerName);
 
@@ -236,7 +236,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     ///     True if header was removed
     ///     False if no header exists with given name
     /// </returns>
-    public bool RemoveHeader(KnownHeader headerName)
+    public bool RemoveHeader ( KnownHeader headerName )
     {
         var result = headers.Remove(headerName.String);
 
@@ -250,7 +250,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     ///     Removes given header object if it exist
     /// </summary>
     /// <param name="header">Returns true if header exists and was removed </param>
-    public bool RemoveHeader(HttpHeader header)
+    public bool RemoveHeader ( HttpHeader header )
     {
         if (headers.TryGetValue(header.Name, out var value))
         {
@@ -271,20 +271,20 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     /// <summary>
     ///     Removes all the headers.
     /// </summary>
-    public void Clear()
+    public void Clear ()
     {
         headers.Clear();
         nonUniqueHeaders.Clear();
     }
 
-    internal string? GetHeaderValueOrNull(KnownHeader headerName)
+    internal string? GetHeaderValueOrNull ( KnownHeader headerName )
     {
         if (headers.TryGetValue(headerName.String, out var header)) return header.Value;
 
         return null;
     }
 
-    internal void SetOrAddHeaderValue(KnownHeader headerName, string? value)
+    internal void SetOrAddHeaderValue ( KnownHeader headerName, string? value )
     {
         if (value == null)
         {
@@ -298,7 +298,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
             headers.Add(headerName.String, new HttpHeader(headerName, value));
     }
 
-    internal void SetOrAddHeaderValue(KnownHeader headerName, KnownHeader value)
+    internal void SetOrAddHeaderValue ( KnownHeader headerName, KnownHeader value )
     {
         if (headers.TryGetValue(headerName.String, out var header))
             header.SetValue(value);
@@ -309,7 +309,7 @@ public class HeaderCollection : IEnumerable<HttpHeader>
     /// <summary>
     ///     Fix proxy specific headers
     /// </summary>
-    internal void FixProxyHeaders()
+    internal void FixProxyHeaders ()
     {
         // If proxy-connection close was returned inform to close the connection
         var proxyHeader = GetHeaderValueOrNull(KnownHeaders.ProxyConnection);

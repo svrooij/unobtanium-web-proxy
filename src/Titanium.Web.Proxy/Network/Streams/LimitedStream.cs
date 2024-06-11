@@ -18,8 +18,8 @@ internal class LimitedStream : Stream
 
     private bool readChunkTrail;
 
-    internal LimitedStream(IHttpStreamReader baseStream, IBufferPool bufferPool, bool isChunked,
-        long contentLength)
+    internal LimitedStream ( IHttpStreamReader baseStream, IBufferPool bufferPool, bool isChunked,
+        long contentLength )
     {
         baseReader = baseStream;
         this.bufferPool = bufferPool;
@@ -86,7 +86,7 @@ internal class LimitedStream : Stream
     //    }
     //}
 
-    private async Task GetNextChunkAsync()
+    private async Task GetNextChunkAsync ()
     {
         if (readChunkTrail)
         {
@@ -125,17 +125,17 @@ internal class LimitedStream : Stream
         }
     }
 
-    public override void Flush()
+    public override void Flush ()
     {
         throw new NotSupportedException();
     }
 
-    public override long Seek(long offset, SeekOrigin origin)
+    public override long Seek ( long offset, SeekOrigin origin )
     {
         throw new NotSupportedException();
     }
 
-    public override void SetLength(long value)
+    public override void SetLength ( long value )
     {
         throw new NotSupportedException();
     }
@@ -153,7 +153,7 @@ internal class LimitedStream : Stream
         throw new NotImplementedException();
     }
 
-    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    public override async Task<int> ReadAsync ( byte[] buffer, int offset, int count, CancellationToken cancellationToken )
     {
         if (bytesRemaining == -1) return 0;
 
@@ -176,7 +176,7 @@ internal class LimitedStream : Stream
         return res;
     }
 
-    public async Task Finish()
+    public async Task Finish ()
     {
         if (bytesRemaining != -1)
         {
@@ -193,7 +193,7 @@ internal class LimitedStream : Stream
         }
     }
 
-    public override void Write(byte[] buffer, int offset, int count)
+    public override void Write ( byte[] buffer, int offset, int count )
     {
         throw new NotSupportedException();
     }

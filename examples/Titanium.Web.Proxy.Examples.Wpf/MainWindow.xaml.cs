@@ -35,7 +35,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
         private int lastSessionNumber;
         private SessionListItem selectedSession;
 
-        public MainWindow()
+        public MainWindow ()
         {
             proxyServer = new ProxyServer();
 
@@ -138,7 +138,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             set => SetValue(ServerConnectionCountProperty, value);
         }
 
-        private async Task ProxyServer_BeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
+        private async Task ProxyServer_BeforeTunnelConnectRequest ( object sender, TunnelConnectSessionEventArgs e )
         {
             var hostname = e.HttpClient.Request.RequestUri.Host;
             if (hostname.EndsWith("webex.com")) e.DecryptSsl = false;
@@ -146,7 +146,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             await Dispatcher.InvokeAsync(() => { AddSession(e); });
         }
 
-        private async Task ProxyServer_BeforeTunnelConnectResponse(object sender, TunnelConnectSessionEventArgs e)
+        private async Task ProxyServer_BeforeTunnelConnectResponse ( object sender, TunnelConnectSessionEventArgs e )
         {
             await Dispatcher.InvokeAsync(() =>
             {
@@ -154,7 +154,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             });
         }
 
-        private async Task ProxyServer_BeforeRequest(object sender, SessionEventArgs e)
+        private async Task ProxyServer_BeforeRequest ( object sender, SessionEventArgs e )
         {
             //if (e.HttpClient.Request.HttpVersion.Major != 2) return;
 
@@ -170,7 +170,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             }
         }
 
-        private async Task ProxyServer_BeforeResponse(object sender, SessionEventArgs e)
+        private async Task ProxyServer_BeforeResponse ( object sender, SessionEventArgs e )
         {
             SessionListItem item = null;
             await Dispatcher.InvokeAsync(() =>
@@ -193,7 +193,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
                 }
         }
 
-        private async Task ProxyServer_AfterResponse(object sender, SessionEventArgs e)
+        private async Task ProxyServer_AfterResponse ( object sender, SessionEventArgs e )
         {
             await Dispatcher.InvokeAsync(() =>
             {
@@ -201,7 +201,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             });
         }
 
-        private SessionListItem AddSession(SessionEventArgsBase e)
+        private SessionListItem AddSession ( SessionEventArgsBase e )
         {
             var item = CreateSessionListItem(e);
             Sessions.Add(item);
@@ -209,7 +209,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             return item;
         }
 
-        private SessionListItem CreateSessionListItem(SessionEventArgsBase e)
+        private SessionListItem CreateSessionListItem ( SessionEventArgsBase e )
         {
             lastSessionNumber++;
             var isTunnelConnect = e is TunnelConnectSessionEventArgs;
@@ -225,7 +225,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             };
 
             //if (isTunnelConnect || e.HttpClient.Request.UpgradeToWebSocket)
-            e.DataReceived += (sender, args) =>
+            e.DataReceived += ( sender, args ) =>
             {
                 var session = (SessionEventArgsBase)sender;
                 if (sessionDictionary.TryGetValue(session.HttpClient, out var li))
@@ -242,7 +242,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
                 }
             };
 
-            e.DataSent += (sender, args) =>
+            e.DataSent += ( sender, args ) =>
             {
                 var session = (SessionEventArgsBase)sender;
                 if (sessionDictionary.TryGetValue(session.HttpClient, out var li))
@@ -261,7 +261,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
 
             if (e is TunnelConnectSessionEventArgs te)
             {
-                te.DecryptedDataReceived += (sender, args) =>
+                te.DecryptedDataReceived += ( sender, args ) =>
                 {
                     var session = (SessionEventArgsBase)sender;
                     //var tunnelType = session.HttpClient.ConnectRequest?.TunnelType ?? TunnelType.Unknown;
@@ -270,7 +270,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
                         args.Count);
                 };
 
-                te.DecryptedDataSent += (sender, args) =>
+                te.DecryptedDataSent += ( sender, args ) =>
                 {
                     var session = (SessionEventArgsBase)sender;
                     //var tunnelType = session.HttpClient.ConnectRequest?.TunnelType ?? TunnelType.Unknown;
@@ -283,7 +283,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             return item;
         }
 
-        private void AppendTransferLog(string fileName, byte[] buffer, int offset, int count)
+        private void AppendTransferLog ( string fileName, byte[] buffer, int offset, int count )
         {
             //string basePath = @"c:\!titanium\";
             //using (var fs = new FileStream(basePath + fileName, FileMode.Append, FileAccess.Write, FileShare.Read))
@@ -292,7 +292,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             //}
         }
 
-        private string TunnelTypeToString(TunnelType tunnelType)
+        private string TunnelTypeToString ( TunnelType tunnelType )
         {
             switch (tunnelType)
             {
@@ -307,7 +307,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             return null;
         }
 
-        private void ListViewSessions_OnKeyDown(object sender, KeyEventArgs e)
+        private void ListViewSessions_OnKeyDown ( object sender, KeyEventArgs e )
         {
             if (e.Key == Key.Delete)
             {
@@ -328,7 +328,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             }
         }
 
-        private void SelectedSessionChanged()
+        private void SelectedSessionChanged ()
         {
             if (SelectedSession == null)
             {
@@ -401,7 +401,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             }
         }
 
-        private void ButtonProxyOnOff_OnClick(object sender, RoutedEventArgs e)
+        private void ButtonProxyOnOff_OnClick ( object sender, RoutedEventArgs e )
         {
             var button = (ToggleButton)sender;
             if (button.IsChecked == true)

@@ -46,9 +46,9 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="SessionEventArgsBase" /> class.
     /// </summary>
-    private protected SessionEventArgsBase(ProxyServer server, ProxyEndPoint endPoint,
+    private protected SessionEventArgsBase ( ProxyServer server, ProxyEndPoint endPoint,
         HttpClientStream clientStream, ConnectRequest? connectRequest, Request request,
-        CancellationTokenSource cancellationTokenSource) : base(server, clientStream.Connection)
+        CancellationTokenSource cancellationTokenSource ) : base(server, clientStream.Connection)
     {
         BufferPool = server.BufferPool;
         ExceptionFunc = server.ExceptionFunc;
@@ -115,7 +115,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
                 logger.LogWarning(ex, "You cannot enable Windows Authentication on this session");
                 throw ex;
             }
-                
+
 
             enableWinAuth = value;
         }
@@ -177,7 +177,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     /// Dispose this instance.
     /// </summary>
-    public void Dispose()
+    public void Dispose ()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
@@ -186,7 +186,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     /// Called when an exception is thrown in user event.
     /// </summary>
-    protected void OnException(Exception exception)
+    protected void OnException ( Exception exception )
     {
         ExceptionFunc?.Invoke(exception);
     }
@@ -194,7 +194,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     ///     Dispose this instance.
     /// </summary>
-    protected virtual void Dispose(bool disposing)
+    protected virtual void Dispose ( bool disposing )
     {
         if (disposed) return;
 
@@ -215,11 +215,11 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     ///     Finalizer.
     /// </summary>
-    ~SessionEventArgsBase()
+    ~SessionEventArgsBase ()
     {
 #if DEBUG
-            // Finalizer should not be called
-            System.Diagnostics.Debugger.Break();
+        // Finalizer should not be called
+        System.Diagnostics.Debugger.Break();
 #endif
 
         Dispose(false);
@@ -235,7 +235,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// </summary>
     public event EventHandler<DataEventArgs>? DataReceived;
 
-    internal void OnDataSent(byte[] buffer, int offset, int count)
+    internal void OnDataSent ( byte[] buffer, int offset, int count )
     {
         try
         {
@@ -247,7 +247,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
         }
     }
 
-    internal void OnDataReceived(byte[] buffer, int offset, int count)
+    internal void OnDataReceived ( byte[] buffer, int offset, int count )
     {
         try
         {
@@ -262,7 +262,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     ///     Terminates the session abruptly by terminating client/server connections.
     /// </summary>
-    public void TerminateSession()
+    public void TerminateSession ()
     {
         CancellationTokenSource.Cancel();
     }

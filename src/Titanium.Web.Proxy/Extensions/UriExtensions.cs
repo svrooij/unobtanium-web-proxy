@@ -5,7 +5,7 @@ namespace Titanium.Web.Proxy.Extensions;
 
 internal static class UriExtensions
 {
-    public static string GetOriginalPathAndQuery(this Uri uri)
+    public static string GetOriginalPathAndQuery ( this Uri uri )
     {
         var leftPart = uri.GetLeftPart(UriPartial.Authority);
         if (uri.OriginalString.StartsWith(leftPart))
@@ -16,7 +16,7 @@ internal static class UriExtensions
             : uri.GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
     }
 
-    public static ByteString GetScheme(ByteString str)
+    public static ByteString GetScheme ( ByteString str )
     {
         if (str.Length < 3) return ByteString.Empty;
 

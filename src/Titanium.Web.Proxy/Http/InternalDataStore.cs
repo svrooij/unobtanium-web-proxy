@@ -4,7 +4,7 @@ namespace Titanium.Web.Proxy.Http;
 
 internal class InternalDataStore : Dictionary<string, object>
 {
-    public bool TryGetValueAs<T>(string key, out T? value)
+    public bool TryGetValueAs<T> ( string key, out T? value )
     {
         var result = TryGetValue(key, out var value1);
         if (result)
@@ -16,7 +16,7 @@ internal class InternalDataStore : Dictionary<string, object>
         return result;
     }
 
-    public T GetAs<T>(string key)
+    public T GetAs<T> ( string key )
     {
         return (T)this[key];
     }

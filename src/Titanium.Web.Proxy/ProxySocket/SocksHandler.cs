@@ -38,7 +38,7 @@ namespace Titanium.Web.Proxy.ProxySocket;
 /// <summary>
 ///     References the callback method to be called when the protocol negotiation is completed.
 /// </summary>
-internal delegate void HandShakeComplete(Exception? error);
+internal delegate void HandShakeComplete ( Exception? error );
 
 /// <summary>
 ///     Implements a specific version of the SOCKS protocol. This is an abstract class; it must be inherited.
@@ -61,7 +61,7 @@ internal abstract class SocksHandler
     /// <param name="server">The socket connection with the proxy server.</param>
     /// <param name="user">The username to use when authenticating with the server.</param>
     /// <exception cref="ArgumentNullException"><c>server</c> -or- <c>user</c> is null.</exception>
-    public SocksHandler(Socket server, string user)
+    public SocksHandler ( Socket server, string user )
     {
         Server = server;
         Username = user;
@@ -118,7 +118,7 @@ internal abstract class SocksHandler
     /// <param name="port">The port to convert.</param>
     /// <param name="buffer">The buffer which contains the result data.</param>
     /// <returns>An array of two bytes that represents the specified port.</returns>
-    protected void PortToBytes(int port, Span<byte> buffer)
+    protected void PortToBytes ( int port, Span<byte> buffer )
     {
         buffer[0] = (byte)(port / 256);
         buffer[1] = (byte)(port % 256);
@@ -129,7 +129,7 @@ internal abstract class SocksHandler
     /// </summary>
     /// <param name="address">The IP address to convert.</param>
     /// <returns>An array of four bytes that represents the specified IP address.</returns>
-    protected byte[] AddressToBytes(long address)
+    protected byte[] AddressToBytes ( long address )
     {
         var ret = new byte[4];
         ret[0] = (byte)(address % 256);
@@ -148,7 +148,7 @@ internal abstract class SocksHandler
     /// <exception cref="ArgumentException">The number of bytes to read is invalid.</exception>
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    protected void ReadBytes(byte[] buffer, int count)
+    protected void ReadBytes ( byte[] buffer, int count )
     {
         if (count <= 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count must be positive");
@@ -168,7 +168,7 @@ internal abstract class SocksHandler
     /// </summary>
     /// <param name="ar">IAsyncResult for receive operation</param>
     /// <returns></returns>
-    protected void HandleEndReceive(IAsyncResult ar)
+    protected void HandleEndReceive ( IAsyncResult ar )
     {
         var recv = Server.EndReceive(ar);
         if (recv <= 0)
@@ -183,13 +183,13 @@ internal abstract class SocksHandler
     /// <param name="ar">IAsyncResult for receive operation</param>
     /// <param name="expectedLength">Length of buffer that was sent</param>
     /// <returns></returns>
-    protected void HandleEndSend(IAsyncResult ar, int expectedLength)
+    protected void HandleEndSend ( IAsyncResult ar, int expectedLength )
     {
         if (Server.EndSend(ar) < expectedLength)
             throw new SocketException(10054);
     }
 
-    protected virtual void OnProtocolComplete(Exception? exception)
+    protected virtual void OnProtocolComplete ( Exception? exception )
     {
         if (Buffer != null) ArrayPool<byte>.Shared.Return(Buffer);
 
@@ -197,7 +197,7 @@ internal abstract class SocksHandler
         {
             ProtocolComplete(exception);
         }
-        
+
     }
 
     /// <summary>
@@ -205,13 +205,13 @@ internal abstract class SocksHandler
     /// </summary>
     /// <param name="host">The remote server to connect to.</param>
     /// <param name="port">The remote port to connect to.</param>
-    public abstract void Negotiate(string host, int port);
+    public abstract void Negotiate ( string host, int port );
 
     /// <summary>
     ///     Starts negotiating with a SOCKS proxy server.
     /// </summary>
     /// <param name="remoteEp">The remote endpoint to connect to.</param>
-    public abstract void Negotiate(IPEndPoint remoteEp);
+    public abstract void Negotiate ( IPEndPoint remoteEp );
 
     /// <summary>
     ///     Starts negotiating asynchronously with a SOCKS proxy server.
@@ -221,8 +221,8 @@ internal abstract class SocksHandler
     /// <param name="proxyEndPoint">The IPEndPoint of the SOCKS proxy server.</param>
     /// <param name="state">The state.</param>
     /// <returns>An IAsyncProxyResult that references the asynchronous connection.</returns>
-    public abstract AsyncProxyResult BeginNegotiate(IPEndPoint remoteEp, HandShakeComplete callback,
-        IPEndPoint proxyEndPoint, object state);
+    public abstract AsyncProxyResult BeginNegotiate ( IPEndPoint remoteEp, HandShakeComplete callback,
+        IPEndPoint proxyEndPoint, object state );
 
     /// <summary>
     ///     Starts negotiating asynchronously with a SOCKS proxy server.
@@ -233,6 +233,6 @@ internal abstract class SocksHandler
     /// <param name="proxyEndPoint">The IPEndPoint of the SOCKS proxy server.</param>
     /// <param name="state">The state.</param>
     /// <returns>An IAsyncProxyResult that references the asynchronous connection.</returns>
-    public abstract AsyncProxyResult BeginNegotiate(string host, int port, HandShakeComplete callback,
-        IPEndPoint proxyEndPoint, object state);
+    public abstract AsyncProxyResult BeginNegotiate ( string host, int port, HandShakeComplete callback,
+        IPEndPoint proxyEndPoint, object state );
 }

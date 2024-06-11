@@ -9,7 +9,7 @@ namespace Titanium.Web.Proxy.UnitTests.Helpers;
 public class ProxyInfoTests
 {
     [TestMethod]
-    public void ConvertRegexReservedChars_WithSpecialCharacters_ReturnsEscapedString()
+    public void ConvertRegexReservedChars_WithSpecialCharacters_ReturnsEscapedString ()
     {
         // Arrange
         var input = "#$()+.?[\\^{|";
@@ -23,7 +23,7 @@ public class ProxyInfoTests
     }
 
     [TestMethod]
-    public void ConvertRegexReservedChars_WithAsterisk_ReplacesWithDot_Regression()
+    public void ConvertRegexReservedChars_WithAsterisk_ReplacesWithDot_Regression ()
     {
         // Arrange
         var input = "example*domain.com";
@@ -37,7 +37,7 @@ public class ProxyInfoTests
     }
 
     [TestMethod]
-    public void ConvertRegexReservedChars_WithEmptyString_ReturnsEmptyString()
+    public void ConvertRegexReservedChars_WithEmptyString_ReturnsEmptyString ()
     {
         // Arrange
         var input = "";
@@ -99,7 +99,7 @@ public class ProxyInfoTests
     [DataRow("https", ProxyProtocolType.Https)]
     [DataRow("ftp", null)]
     [DataRow("", null)]
-    public void ParseProtocol_WithInput_ReturnsExpectedProtocol (string input, ProxyProtocolType? expected)
+    public void ParseProtocol_WithInput_ReturnsExpectedProtocol ( string input, ProxyProtocolType? expected )
     {
         // Arrange
 

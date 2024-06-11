@@ -10,7 +10,7 @@ namespace Titanium.Web.Proxy.UnitTests
     public class TaskResultTests
     {
         [TestMethod]
-        public void TaskResult_ShouldWrapTaskCorrectly()
+        public void TaskResult_ShouldWrapTaskCorrectly ()
         {
             var task = Task.CompletedTask;
             var state = new object();
@@ -22,7 +22,7 @@ namespace Titanium.Web.Proxy.UnitTests
         }
 
         [TestMethod]
-        public void TaskResultT_ShouldWrapTaskCorrectly()
+        public void TaskResultT_ShouldWrapTaskCorrectly ()
         {
             var task = Task.FromResult(42);
             var state = new object();

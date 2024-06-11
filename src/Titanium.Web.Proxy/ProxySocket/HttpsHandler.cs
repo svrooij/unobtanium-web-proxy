@@ -52,7 +52,7 @@ internal sealed class HttpsHandler : SocksHandler
     /// </summary>
     /// <param name="server">The socket connection with the proxy server.</param>
     /// <exception cref="ArgumentNullException"><c>server</c>  is null.</exception>
-    public HttpsHandler(Socket server) : this(server, "")
+    public HttpsHandler ( Socket server ) : this(server, "")
     {
     }
 
@@ -62,7 +62,7 @@ internal sealed class HttpsHandler : SocksHandler
     /// <param name="server">The socket connection with the proxy server.</param>
     /// <param name="user">The username to use.</param>
     /// <exception cref="ArgumentNullException"><c>server</c> -or- <c>user</c> is null.</exception>
-    public HttpsHandler(Socket server, string user) : this(server, user, "")
+    public HttpsHandler ( Socket server, string user ) : this(server, user, "")
     {
     }
 
@@ -73,7 +73,7 @@ internal sealed class HttpsHandler : SocksHandler
     /// <param name="user">The username to use.</param>
     /// <param name="pass">The password to use.</param>
     /// <exception cref="ArgumentNullException"><c>server</c> -or- <c>user</c> -or- <c>pass</c> is null.</exception>
-    public HttpsHandler(Socket server, string user, string pass) : base(server, user)
+    public HttpsHandler ( Socket server, string user, string pass ) : base(server, user)
     {
         Password = pass;
     }
@@ -92,7 +92,7 @@ internal sealed class HttpsHandler : SocksHandler
     ///     Creates an array of bytes that has to be sent when the user wants to connect to a specific IPEndPoint.
     /// </summary>
     /// <returns>An array of bytes that has to be sent when the user wants to connect to a specific IPEndPoint.</returns>
-    private byte[] GetConnectBytes(string host, int port)
+    private byte[] GetConnectBytes ( string host, int port )
     {
         var sb = new StringBuilder();
         sb.AppendLine(string.Format("CONNECT {0}:{1} HTTP/1.1", host, port));
@@ -114,7 +114,7 @@ internal sealed class HttpsHandler : SocksHandler
     /// </summary>
     /// <param name="buffer">Input data array</param>
     /// <param name="length">The data count in the buffer</param>
-    private static void VerifyConnectHeader(byte[] buffer, int length)
+    private static void VerifyConnectHeader ( byte[] buffer, int length )
     {
         var header = Encoding.ASCII.GetString(buffer, 0, length);
         if (!header.StartsWith("HTTP/1.1 ", StringComparison.OrdinalIgnoreCase) &&
@@ -135,7 +135,7 @@ internal sealed class HttpsHandler : SocksHandler
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
-    public override void Negotiate(IPEndPoint remoteEp)
+    public override void Negotiate ( IPEndPoint remoteEp )
     {
         ArgumentNullException.ThrowIfNull(remoteEp);
         Negotiate(remoteEp.Address.ToString(), remoteEp.Port);
@@ -152,7 +152,7 @@ internal sealed class HttpsHandler : SocksHandler
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
-    public override void Negotiate(string host, int port)
+    public override void Negotiate ( string host, int port )
     {
         ArgumentNullException.ThrowIfNullOrWhiteSpace(host);
 
@@ -191,8 +191,8 @@ internal sealed class HttpsHandler : SocksHandler
     /// <param name="proxyEndPoint">The IPEndPoint of the HTTPS proxy server.</param>
     /// <param name="state">The state.</param>
     /// <returns>An IAsyncProxyResult that references the asynchronous connection.</returns>
-    public override AsyncProxyResult BeginNegotiate(IPEndPoint remoteEp, HandShakeComplete callback,
-        IPEndPoint proxyEndPoint, object state)
+    public override AsyncProxyResult BeginNegotiate ( IPEndPoint remoteEp, HandShakeComplete callback,
+        IPEndPoint proxyEndPoint, object state )
     {
         return BeginNegotiate(remoteEp.Address.ToString(), remoteEp.Port, callback, proxyEndPoint, state);
     }
@@ -206,8 +206,8 @@ internal sealed class HttpsHandler : SocksHandler
     /// <param name="proxyEndPoint">The IPEndPoint of the HTTPS proxy server.</param>
     /// <param name="state">The state.</param>
     /// <returns>An IAsyncProxyResult that references the asynchronous connection.</returns>
-    public override AsyncProxyResult BeginNegotiate(string host, int port, HandShakeComplete callback,
-        IPEndPoint proxyEndPoint, object state)
+    public override AsyncProxyResult BeginNegotiate ( string host, int port, HandShakeComplete callback,
+        IPEndPoint proxyEndPoint, object state )
     {
         ProtocolComplete = callback;
         Buffer = GetConnectBytes(host, port);
@@ -220,7 +220,7 @@ internal sealed class HttpsHandler : SocksHandler
     ///     Called when the socket is connected to the remote server.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnConnect(IAsyncResult ar)
+    private void OnConnect ( IAsyncResult ar )
     {
         try
         {
@@ -247,7 +247,7 @@ internal sealed class HttpsHandler : SocksHandler
     ///     Called when the connect request bytes have been sent.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnConnectSent(IAsyncResult ar)
+    private void OnConnectSent ( IAsyncResult ar )
     {
         try
         {
@@ -266,7 +266,7 @@ internal sealed class HttpsHandler : SocksHandler
     ///     Called when an connect reply has been received.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnConnectReceive(IAsyncResult ar)
+    private void OnConnectReceive ( IAsyncResult ar )
     {
         try
         {
@@ -301,7 +301,7 @@ internal sealed class HttpsHandler : SocksHandler
     ///     Reads socket buffer byte by byte until we reach "\r\n\r\n".
     /// </summary>
     /// <param name="readFirstByte"></param>
-    private void ReadUntilHeadersEnd(bool readFirstByte)
+    private void ReadUntilHeadersEnd ( bool readFirstByte )
     {
         while (Server.Available > 0 && receivedNewlineChars < 4)
         {
@@ -335,7 +335,7 @@ internal sealed class HttpsHandler : SocksHandler
     ///     Called when additional headers have been received.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnEndHeadersReceive(IAsyncResult ar)
+    private void OnEndHeadersReceive ( IAsyncResult ar )
     {
         try
         {
@@ -348,7 +348,7 @@ internal sealed class HttpsHandler : SocksHandler
         }
     }
 
-    protected override void OnProtocolComplete(Exception? exception)
+    protected override void OnProtocolComplete ( Exception? exception )
     {
         // do not return the base Buffer
         if (ProtocolComplete is not null)

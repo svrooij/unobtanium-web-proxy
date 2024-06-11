@@ -17,7 +17,7 @@ public interface IPeekStream
     /// <param name="index">The index in the buffer to peek at.</param>
     /// <returns>The byte at the specified index in the buffer.</returns>
     /// <exception cref="Exception">Thrown when the index is out of the buffer size.</exception>
-    byte PeekByteFromBuffer(int index);
+    byte PeekByteFromBuffer ( int index );
 
     /// <summary>
     /// Asynchronously peeks at a single byte from the buffer at the specified index.
@@ -25,7 +25,7 @@ public interface IPeekStream
     /// <param name="index">The index in the buffer to peek at.</param>
     /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
     /// <returns>A ValueTask that completes when the byte has been peeked, yielding the byte as an integer.</returns>
-    ValueTask<int> PeekByteAsync(int index, CancellationToken cancellationToken = default);
+    ValueTask<int> PeekByteAsync ( int index, CancellationToken cancellationToken = default );
 
     /// <summary>
     /// Asynchronously peeks at multiple bytes from the buffer, copying them into the provided buffer.
@@ -36,6 +36,6 @@ public interface IPeekStream
     /// <param name="count">The number of bytes to peek.</param>
     /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
     /// <returns>A ValueTask that completes when the bytes have been peeked, yielding the number of bytes peeked as an integer.</returns>
-    ValueTask<int> PeekBytesAsync(byte[] buffer, int offset, int index, int count,
-        CancellationToken cancellationToken = default);
+    ValueTask<int> PeekBytesAsync ( byte[] buffer, int offset, int index, int count,
+        CancellationToken cancellationToken = default );
 }

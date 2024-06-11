@@ -44,7 +44,7 @@ internal class Message
 
     private readonly int type;
 
-    internal Message(byte[] message)
+    internal Message ( byte[] message )
     {
         type = 3;
 
@@ -96,14 +96,14 @@ internal class Message
 
     internal Common.NtlmFlags Flags { get; set; }
 
-    private string DecodeString(byte[] buffer, int offset, int len)
+    private string DecodeString ( byte[] buffer, int offset, int len )
     {
         if ((Flags & Common.NtlmFlags.NegotiateUnicode) != 0) return Encoding.Unicode.GetString(buffer, offset, len);
 
         return Encoding.ASCII.GetString(buffer, offset, len);
     }
 
-    protected bool CheckHeader(byte[] message)
+    protected bool CheckHeader ( byte[] message )
     {
         for (var i = 0; i < header.Length; i++)
             if (message[i] != header[i])

@@ -174,7 +174,7 @@ internal sealed class Socks4Handler : SocksHandler
         ArgumentNullException.ThrowIfNull(connect);
 
         if (length < 2)
-            throw new ArgumentOutOfRangeException(nameof(length),"length should be higer then 2");
+            throw new ArgumentOutOfRangeException(nameof(length), "length should be higer then 2");
 
         if (Server.Send(connect, 0, length, SocketFlags.None) < length)
             throw new SocketException(10054);

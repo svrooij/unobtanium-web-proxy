@@ -68,7 +68,7 @@ public partial class ProxyServer : IDisposable
     /// Logger factory to create loggers for various types
     /// </summary>
     internal readonly ILoggerFactory loggerFactory;
-    
+
     private readonly ILogger<ProxyServer> logger;
 
     /// <inheritdoc />
@@ -86,8 +86,8 @@ public partial class ProxyServer : IDisposable
     /// </param>
     /// <param name="activitySource"><see cref="ActivitySource"/> to be used for distributed tracing</param>
     /// <param name="loggerFactory"><see cref="ILoggerFactory"/> to be used for all logging, will use <see cref="NullLoggerFactory"/> is not specified</param>
-    public ProxyServer(bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
-        bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null) : this(null, null, userTrustRootCertificate,
+    public ProxyServer ( bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
+        bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null ) : this(null, null, userTrustRootCertificate,
         machineTrustRootCertificate, trustRootCertificateAsAdmin, activitySource, loggerFactory)
     {
     }
@@ -108,9 +108,9 @@ public partial class ProxyServer : IDisposable
     /// </param>
     /// <param name="activitySource"><see cref="ActivitySource"/> to be used for distributed tracing</param>
     /// <param name="loggerFactory"><see cref="ILoggerFactory"/> to be used for all logging, will use <see cref="NullLoggerFactory"/> is not specified</param>
-    public ProxyServer(string? rootCertificateName, string? rootCertificateIssuerName,
+    public ProxyServer ( string? rootCertificateName, string? rootCertificateIssuerName,
         bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
-        bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null)
+        bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null )
     {
         this.activitySource = activitySource;
         this.loggerFactory = loggerFactory ?? new NullLoggerFactory();
@@ -268,7 +268,7 @@ public partial class ProxyServer : IDisposable
     /// </summary>
 #pragma warning disable 618
     public SslProtocols SupportedSslProtocols { get; set; } =
-        SslProtocols.Ssl3 | SslProtocols.Tls12 | SslProtocols.Tls13 ;
+        SslProtocols.Ssl3 | SslProtocols.Tls12 | SslProtocols.Tls13;
 #pragma warning restore 618
 
     /// <summary>
@@ -390,10 +390,10 @@ public partial class ProxyServer : IDisposable
     public event AsyncEventHandler<SessionEventArgs>? BeforeRequest;
 
 #if DEBUG
-        /// <summary>
-        ///     Intercept request body send event to server. 
-        /// </summary>
-        public event AsyncEventHandler<BeforeBodyWriteEventArgs>? OnRequestBodyWrite;
+    /// <summary>
+    ///     Intercept request body send event to server. 
+    /// </summary>
+    public event AsyncEventHandler<BeforeBodyWriteEventArgs>? OnRequestBodyWrite;
 #endif
     /// <summary>
     ///     Intercept response event from server.
@@ -401,10 +401,10 @@ public partial class ProxyServer : IDisposable
     public event AsyncEventHandler<SessionEventArgs>? BeforeResponse;
 
 #if DEBUG
-        /// <summary>
-        ///     Intercept request body send event to client. 
-        /// </summary>
-        public event AsyncEventHandler<BeforeBodyWriteEventArgs>? OnResponseBodyWrite;
+    /// <summary>
+    ///     Intercept request body send event to client. 
+    /// </summary>
+    public event AsyncEventHandler<BeforeBodyWriteEventArgs>? OnResponseBodyWrite;
 #endif
     /// <summary>
     ///     Intercept after response event from server.
@@ -435,16 +435,16 @@ public partial class ProxyServer : IDisposable
     ///     Add a proxy end point.
     /// </summary>
     /// <param name="endPoint">The proxy endpoint.</param>
-    public void AddEndPoint(ProxyEndPoint endPoint)
+    public void AddEndPoint ( ProxyEndPoint endPoint )
     {
         if (ProxyEndPoints.Any(x =>
                 x.IpAddress.Equals(endPoint.IpAddress) && endPoint.Port != 0 && x.Port == endPoint.Port))
         {
-            var ex =  new Exception("Cannot add another endpoint to same port & ip address");
+            var ex = new Exception("Cannot add another endpoint to same port & ip address");
             logger.LogWarning(ex, "Cannot add another endpoint to same port & ip address");
             throw ex;
         }
-            
+
         logger.LogInformation("Adding endpoint at Ip {IpAddress} and port: {Port}", endPoint.IpAddress, endPoint.Port);
         ProxyEndPoints.Add(endPoint);
 
@@ -456,7 +456,7 @@ public partial class ProxyServer : IDisposable
     ///     Will throw error if the end point doesn't exist.
     /// </summary>
     /// <param name="endPoint">The existing endpoint to remove.</param>
-    public void RemoveEndPoint(ProxyEndPoint endPoint)
+    public void RemoveEndPoint ( ProxyEndPoint endPoint )
     {
         if (ProxyEndPoints.Contains(endPoint) == false)
         {
@@ -465,7 +465,7 @@ public partial class ProxyServer : IDisposable
             logger.LogWarning(ex, "Cannot remove endPoints not added to proxy");
             throw ex;
         }
-            
+
         logger.LogInformation("Removing endpoint at Ip {IpAddress} and port: {Port}", endPoint.IpAddress, endPoint.Port);
         ProxyEndPoints.Remove(endPoint);
 
@@ -476,7 +476,7 @@ public partial class ProxyServer : IDisposable
     ///     Set the given explicit end point as the default proxy server for current machine.
     /// </summary>
     /// <param name="endPoint">The explicit endpoint.</param>
-    public void SetAsSystemHttpProxy(ExplicitProxyEndPoint endPoint)
+    public void SetAsSystemHttpProxy ( ExplicitProxyEndPoint endPoint )
     {
         SetAsSystemProxy(endPoint, ProxyProtocolType.Http);
     }
@@ -485,7 +485,7 @@ public partial class ProxyServer : IDisposable
     ///     Set the given explicit end point as the default proxy server for current machine.
     /// </summary>
     /// <param name="endPoint">The explicit endpoint.</param>
-    public void SetAsSystemHttpsProxy(ExplicitProxyEndPoint endPoint)
+    public void SetAsSystemHttpsProxy ( ExplicitProxyEndPoint endPoint )
     {
         SetAsSystemProxy(endPoint, ProxyProtocolType.Https);
     }
@@ -495,7 +495,7 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     /// <param name="endPoint">The explicit endpoint.</param>
     /// <param name="protocolType">The proxy protocol type.</param>
-    public void SetAsSystemProxy(ExplicitProxyEndPoint endPoint, ProxyProtocolType protocolType)
+    public void SetAsSystemProxy ( ExplicitProxyEndPoint endPoint, ProxyProtocolType protocolType )
     {
         if (SystemProxySettingsManager == null)
         {
@@ -557,13 +557,13 @@ public partial class ProxyServer : IDisposable
             logger.LogInformation("Set endpoint at Ip {ip} and port: {port} as System {proxyType} Proxy", endPoint.IpAddress,
                 endPoint.Port, proxyType);
         }
-            
+
     }
 
     /// <summary>
     ///     Clear HTTP proxy settings of current machine.
     /// </summary>
-    public void DisableSystemHttpProxy()
+    public void DisableSystemHttpProxy ()
     {
         DisableSystemProxy(ProxyProtocolType.Http);
     }
@@ -571,7 +571,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Clear HTTPS proxy settings of current machine.
     /// </summary>
-    public void DisableSystemHttpsProxy()
+    public void DisableSystemHttpsProxy ()
     {
         DisableSystemProxy(ProxyProtocolType.Https);
     }
@@ -579,7 +579,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Restores the original proxy settings.
     /// </summary>
-    public void RestoreOriginalProxySettings()
+    public void RestoreOriginalProxySettings ()
     {
         if (SystemProxySettingsManager == null)
         {
@@ -593,7 +593,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Clear the specified proxy setting for current machine.
     /// </summary>
-    public void DisableSystemProxy(ProxyProtocolType protocolType)
+    public void DisableSystemProxy ( ProxyProtocolType protocolType )
     {
         if (SystemProxySettingsManager == null)
         {
@@ -607,7 +607,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Clear all proxy settings for current machine.
     /// </summary>
-    public void DisableAllSystemProxies()
+    public void DisableAllSystemProxies ()
     {
         if (SystemProxySettingsManager == null)
             throw new NotSupportedException(@"Setting system proxy settings are only supported in Windows.
@@ -623,7 +623,7 @@ public partial class ProxyServer : IDisposable
     ///     Whether or not clear any system proxy settings which is pointing to our own endpoint (causing a cycle).
     ///     E.g due to ungracious proxy shutdown before.
     /// </param>
-    public void Start(bool changeSystemProxySettings = true)
+    public void Start ( bool changeSystemProxySettings = true )
     {
         if (ProxyRunning) throw new Exception("Proxy is already running.");
 
@@ -672,7 +672,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Stop this proxy server instance.
     /// </summary>
-    public void Stop()
+    public void Stop ()
     {
         if (!ProxyRunning) throw new Exception("Proxy is not running.");
 
@@ -698,7 +698,7 @@ public partial class ProxyServer : IDisposable
     ///     Listen on given end point of local machine.
     /// </summary>
     /// <param name="endPoint">The end point to listen.</param>
-    private void Listen(ProxyEndPoint endPoint)
+    private void Listen ( ProxyEndPoint endPoint )
     {
         endPoint.Listener = new TcpListener(endPoint.IpAddress, endPoint.Port);
 
@@ -728,7 +728,7 @@ public partial class ProxyServer : IDisposable
     ///     Verify if its safe to set this end point as system proxy.
     /// </summary>
     /// <param name="endPoint">The end point to validate.</param>
-    private void ValidateEndPointAsSystemProxy(ExplicitProxyEndPoint endPoint)
+    private void ValidateEndPointAsSystemProxy ( ExplicitProxyEndPoint endPoint )
     {
         ArgumentNullException.ThrowIfNull(endPoint);
 
@@ -743,7 +743,7 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     /// <param name="sessionEventArgs">The session.</param>
     /// <returns>The external proxy as task result.</returns>
-    private Task<IExternalProxy?> GetSystemUpStreamProxy(SessionEventArgsBase sessionEventArgs)
+    private Task<IExternalProxy?> GetSystemUpStreamProxy ( SessionEventArgsBase sessionEventArgs )
     {
         var proxy = systemProxyResolver!.GetProxy(sessionEventArgs.HttpClient.Request.RequestUri);
         return Task.FromResult(proxy);
@@ -752,7 +752,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Act when a connection is received from client.
     /// </summary>
-    private void OnAcceptConnection(IAsyncResult asyn)
+    private void OnAcceptConnection ( IAsyncResult asyn )
     {
         var endPoint = asyn.AsyncState as ProxyEndPoint;
 
@@ -798,7 +798,7 @@ public partial class ProxyServer : IDisposable
     ///     Change the ThreadPool.WorkerThread minThread
     /// </summary>
     /// <param name="workerThreads">minimum Threads allocated in the ThreadPool</param>
-    private void SetThreadPoolMinThread(int workerThreads)
+    private void SetThreadPoolMinThread ( int workerThreads )
     {
         ThreadPool.GetMinThreads(out _, out var minCompletionPortThreads);
         ThreadPool.GetMaxThreads(out var maxWorkerThreads, out _);
@@ -814,7 +814,7 @@ public partial class ProxyServer : IDisposable
     /// <param name="tcpClientSocket">The client socket.</param>
     /// <param name="endPoint">The proxy endpoint.</param>
     /// <returns>The task.</returns>
-    private async Task HandleClient(Socket tcpClientSocket, ProxyEndPoint endPoint)
+    private async Task HandleClient ( Socket tcpClientSocket, ProxyEndPoint endPoint )
     {
         tcpClientSocket.ReceiveTimeout = ConnectionTimeOutSeconds * 1000;
         tcpClientSocket.SendTimeout = ConnectionTimeOutSeconds * 1000;
@@ -836,7 +836,7 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     /// <param name="clientStream">The client stream.</param>
     /// <param name="exception">The exception.</param>
-    private void OnException(HttpClientStream? clientStream, Exception exception)
+    private void OnException ( HttpClientStream? clientStream, Exception exception )
     {
         ExceptionFunc?.Invoke(exception);
     }
@@ -844,7 +844,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Quit listening on the given end point.
     /// </summary>
-    private static void QuitListen(ProxyEndPoint endPoint)
+    private static void QuitListen ( ProxyEndPoint endPoint )
     {
         endPoint.Listener!.Stop();
         endPoint.Listener.Server.Dispose();
@@ -854,7 +854,7 @@ public partial class ProxyServer : IDisposable
     ///     Update client connection count.
     /// </summary>
     /// <param name="increment">Should we increment/decrement?</param>
-    internal void UpdateClientConnectionCount(bool increment)
+    internal void UpdateClientConnectionCount ( bool increment )
     {
         if (increment)
             Interlocked.Increment(ref clientConnectionCount);
@@ -875,7 +875,7 @@ public partial class ProxyServer : IDisposable
     ///     Update server connection count.
     /// </summary>
     /// <param name="increment">Should we increment/decrement?</param>
-    internal void UpdateServerConnectionCount(bool increment)
+    internal void UpdateServerConnectionCount ( bool increment )
     {
         if (increment)
             Interlocked.Increment(ref serverConnectionCount);
@@ -897,7 +897,7 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     /// <param name="clientSocket">The TcpClient object.</param>
     /// <returns></returns>
-    internal async Task InvokeClientConnectionCreateEvent(Socket clientSocket)
+    internal async Task InvokeClientConnectionCreateEvent ( Socket clientSocket )
     {
         // client connection created
         if (OnClientConnectionCreate != null)
@@ -909,7 +909,7 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     /// <param name="serverSocket">The Socket object.</param>
     /// <returns></returns>
-    internal async Task InvokeServerConnectionCreateEvent(Socket serverSocket)
+    internal async Task InvokeServerConnectionCreateEvent ( Socket serverSocket )
     {
         // server connection created
         if (OnServerConnectionCreate != null)
@@ -919,7 +919,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Connection retry policy when using connection pool.
     /// </summary>
-    private RetryPolicy<T> RetryPolicy<T>() where T : Exception
+    private RetryPolicy<T> RetryPolicy<T> () where T : Exception
     {
         return new RetryPolicy<T>(NetworkFailureRetryAttempts, TcpConnectionFactory);
     }
@@ -928,7 +928,7 @@ public partial class ProxyServer : IDisposable
     ///    Throw not supported exception, only supported in Windows.
     /// </summary>
     /// <param name="caller">Method name, automatically filled by <see cref="CallerMemberNameAttribute"/></param>
-    private void ThrowNotSupportedException([CallerMemberName]string? caller = null)
+    private void ThrowNotSupportedException ( [CallerMemberName] string? caller = null )
     {
         var ex = new NotSupportedException(@"Setting system proxy settings are only supported in Windows.");
         logger.LogWarning(ex, "Setting system proxy settings are only supported in Windows. {caller}", caller);
@@ -940,7 +940,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     /// Dispose the ProxyServer instance, and stop the proxy server if running.
     /// </summary>
-    protected virtual void Dispose(bool disposing)
+    protected virtual void Dispose ( bool disposing )
     {
         if (disposed) return;
 
@@ -966,14 +966,14 @@ public partial class ProxyServer : IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public void Dispose ()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc/>
-    ~ProxyServer()
+    ~ProxyServer ()
     {
         Dispose(false);
     }

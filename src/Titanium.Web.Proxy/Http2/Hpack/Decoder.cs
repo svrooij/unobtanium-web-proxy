@@ -45,7 +45,7 @@ internal class Decoder
     /// </summary>
     /// <param name="maxHeaderSize">Max header size.</param>
     /// <param name="maxHeaderTableSize">Max header table size.</param>
-    public Decoder(int maxHeaderSize, int maxHeaderTableSize)
+    public Decoder ( int maxHeaderSize, int maxHeaderTableSize )
     {
         dynamicTable = new DynamicTable(maxHeaderTableSize);
         this.maxHeaderSize = maxHeaderSize;
@@ -55,7 +55,7 @@ internal class Decoder
         Reset();
     }
 
-    private void Reset()
+    private void Reset ()
     {
         headerSize = 0;
         state = State.ReadHeaderRepresentation;
@@ -67,7 +67,7 @@ internal class Decoder
     /// </summary>
     /// <param name="input">Input.</param>
     /// <param name="headerListener">Header listener.</param>
-    public void Decode(BinaryReader input, IHeaderListener headerListener)
+    public void Decode ( BinaryReader input, IHeaderListener headerListener )
     {
         while (input.BaseStream.Length - input.BaseStream.Position > 0)
             switch (state)
@@ -388,7 +388,7 @@ internal class Decoder
     ///     This must be called after the header block has been completely decoded.
     /// </summary>
     /// <returns><c>true</c>, if header block was ended, <c>false</c> otherwise.</returns>
-    public bool EndHeaderBlock()
+    public bool EndHeaderBlock ()
     {
         var truncated = headerSize > maxHeaderSize;
         Reset();
@@ -401,7 +401,7 @@ internal class Decoder
     ///     the beginning of the next header block MUST signal this change.
     /// </summary>
     /// <param name="maxHeaderTableSize">Max header table size.</param>
-    public void SetMaxHeaderTableSize(int maxHeaderTableSize)
+    public void SetMaxHeaderTableSize ( int maxHeaderTableSize )
     {
         maxDynamicTableSize = maxHeaderTableSize;
         if (maxDynamicTableSize < encoderMaxDynamicTableSize)
@@ -418,12 +418,12 @@ internal class Decoder
     ///     This is the maximum size allowed by both the encoder and the decoder.
     /// </summary>
     /// <returns>The max header table size.</returns>
-    public int GetMaxHeaderTableSize()
+    public int GetMaxHeaderTableSize ()
     {
         return dynamicTable.Capacity;
     }
 
-    private void SetDynamicTableSize(int dynamicTableSize)
+    private void SetDynamicTableSize ( int dynamicTableSize )
     {
         if (dynamicTableSize > maxDynamicTableSize) throw new IOException("invalid max dynamic table size");
 
@@ -432,7 +432,7 @@ internal class Decoder
         dynamicTable.SetCapacity(dynamicTableSize);
     }
 
-    private HttpHeader GetHeaderField(int index)
+    private HttpHeader GetHeaderField ( int index )
     {
         if (index <= StaticTable.Length)
         {
@@ -449,19 +449,19 @@ internal class Decoder
         throw new IOException("illegal index value (" + index + ")");
     }
 
-    private void ReadName(int index)
+    private void ReadName ( int index )
     {
         name = GetHeaderField(index).NameData;
     }
 
-    private void IndexHeader(int index, IHeaderListener headerListener)
+    private void IndexHeader ( int index, IHeaderListener headerListener )
     {
         var headerField = GetHeaderField(index);
         AddHeader(headerListener, headerField.NameData, headerField.ValueData, false);
     }
 
-    private void InsertHeader(IHeaderListener headerListener, ByteString name, ByteString value,
-        HpackUtil.IndexType indexType)
+    private void InsertHeader ( IHeaderListener headerListener, ByteString name, ByteString value,
+        HpackUtil.IndexType indexType )
     {
         AddHeader(headerListener, name, value, indexType == HpackUtil.IndexType.Never);
 
@@ -480,7 +480,7 @@ internal class Decoder
         }
     }
 
-    private void AddHeader(IHeaderListener headerListener, ByteString name, ByteString value, bool sensitive)
+    private void AddHeader ( IHeaderListener headerListener, ByteString name, ByteString value, bool sensitive )
     {
         if (name.Length == 0) throw new ArgumentException("name is empty");
 
@@ -497,7 +497,7 @@ internal class Decoder
         }
     }
 
-    private bool ExceedsMaxHeaderSize(long size)
+    private bool ExceedsMaxHeaderSize ( long size )
     {
         // Check new header size against max header size
         if (size + headerSize <= maxHeaderSize) return false;
@@ -507,7 +507,7 @@ internal class Decoder
         return true;
     }
 
-    private ByteString ReadStringLiteral(BinaryReader input, int length)
+    private ByteString ReadStringLiteral ( BinaryReader input, int length )
     {
         var buf = new byte[length];
         var lengthToRead = length;
@@ -521,7 +521,7 @@ internal class Decoder
     }
 
     // Unsigned Little Endian Base 128 Variable-Length Integer Encoding
-    private static int DecodeUle128(BinaryReader input)
+    private static int DecodeUle128 ( BinaryReader input )
     {
         var markedPosition = input.BaseStream.Position;
         var result = 0;

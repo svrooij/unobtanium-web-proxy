@@ -7,5 +7,5 @@ namespace Titanium.Web.Proxy.Network.Certificate;
 /// </summary>
 internal interface ICertificateMaker
 {
-    X509Certificate2 MakeCertificate(string sSubjectCn, X509Certificate2? signingCert);
+    X509Certificate2 MakeCertificate ( string sSubjectCn, X509Certificate2? signingCert );
 }

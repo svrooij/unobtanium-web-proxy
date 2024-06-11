@@ -18,7 +18,8 @@ public class ExpectContinueTests
         var server = testSuite.GetServer();
         var continueServer = new HttpContinueServer
         {
-            ExpectationResponse = HttpStatusCode.Continue, ResponseBody = "I am server. I received your greetings."
+            ExpectationResponse = HttpStatusCode.Continue,
+            ResponseBody = "I am server. I received your greetings."
         };
         server.HandleTcpRequest(continueServer.HandleRequest);
 

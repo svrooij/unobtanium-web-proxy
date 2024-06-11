@@ -28,8 +28,8 @@ public class ServerHelloInfo
     /// <param name="sessionId">The session ID.</param>
     /// <param name="cipherSuite">The cipher suite.</param>
     /// <param name="serverHelloLength">The length of the server hello message.</param>
-    public ServerHelloInfo(int handshakeVersion, int majorVersion, int minorVersion, byte[] random,
-        byte[] sessionId, int cipherSuite, int serverHelloLength)
+    public ServerHelloInfo ( int handshakeVersion, int majorVersion, int minorVersion, byte[] random,
+        byte[] sessionId, int cipherSuite, int serverHelloLength )
     {
         HandshakeVersion = handshakeVersion;
         MajorVersion = majorVersion;
@@ -106,7 +106,7 @@ public class ServerHelloInfo
     /// </summary>
     public Dictionary<string, SslExtension>? Extensions { get; set; }
 
-    private static string SslVersionToString(int major, int minor)
+    private static string SslVersionToString ( int major, int minor )
     {
         var str = "Unknown";
         if (major == 3 && minor == 3)
@@ -129,7 +129,7 @@ public class ServerHelloInfo
     /// <returns>
     ///     A <see cref="System.String" /> that represents this instance.
     /// </returns>
-    public override string ToString()
+    public override string ToString ()
     {
         var sb = new StringBuilder();
         sb.AppendLine(

@@ -38,7 +38,7 @@ public class TaskResult ( Task pTask, object state ) : IAsyncResult
     /// <summary>
     /// Blocks the calling thread until the task completes.
     /// </summary>
-    public void GetResult()
+    public void GetResult ()
     {
         pTask.GetAwaiter().GetResult();
     }

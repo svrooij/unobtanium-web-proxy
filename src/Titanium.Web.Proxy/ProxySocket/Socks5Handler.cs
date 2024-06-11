@@ -58,7 +58,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// </summary>
     /// <param name="server">The socket connection with the proxy server.</param>
     /// <exception cref="ArgumentNullException"><c>server</c>  is null.</exception>
-    public Socks5Handler(Socket server) : this(server, "")
+    public Socks5Handler ( Socket server ) : this(server, "")
     {
     }
 
@@ -68,7 +68,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// <param name="server">The socket connection with the proxy server.</param>
     /// <param name="user">The username to use.</param>
     /// <exception cref="ArgumentNullException"><c>server</c> -or- <c>user</c> is null.</exception>
-    public Socks5Handler(Socket server, string user) : this(server, user, "")
+    public Socks5Handler ( Socket server, string user ) : this(server, user, "")
     {
     }
 
@@ -79,7 +79,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// <param name="user">The username to use.</param>
     /// <param name="pass">The password to use.</param>
     /// <exception cref="ArgumentNullException"><c>server</c> -or- <c>user</c> -or- <c>pass</c> is null.</exception>
-    public Socks5Handler(Socket server, string user, string pass) : base(server, user)
+    public Socks5Handler ( Socket server, string user, string pass ) : base(server, user)
     {
         Password = pass;
     }
@@ -101,7 +101,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    private void Authenticate(byte[] buffer)
+    private void Authenticate ( byte[] buffer )
     {
         buffer[0] = 5;
         buffer[1] = 2;
@@ -131,7 +131,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// <returns>An array of bytes that has to be sent when the user wants to connect to a specific host/port combination.</returns>
     /// <exception cref="ArgumentNullException"><c>host</c> is null.</exception>
     /// <exception cref="ArgumentException"><c>port</c> or <c>host</c> is invalid.</exception>
-    private int GetHostPortBytes(string host, int port, Memory<byte> buffer)
+    private int GetHostPortBytes ( string host, int port, Memory<byte> buffer )
     {
         ArgumentNullException.ThrowIfNull(host);
         if (host.Length == 0 || host.Length > 255)
@@ -162,7 +162,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// <param name="buffer">The buffer which contains the result data.</param>
     /// <returns>An array of bytes that has to be sent when the user wants to connect to a specific IPEndPoint.</returns>
     /// <exception cref="ArgumentNullException"><c>remoteEP</c> is null.</exception>
-    private int GetEndPointBytes(IPEndPoint remoteEp, Memory<byte> buffer)
+    private int GetEndPointBytes ( IPEndPoint remoteEp, Memory<byte> buffer )
     {
         ArgumentNullException.ThrowIfNull(remoteEp);
 
@@ -190,7 +190,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
-    public override void Negotiate(string host, int port)
+    public override void Negotiate ( string host, int port )
     {
         var buffer = ArrayPool<byte>.Shared.Rent(Math.Max(258, 10 + host.Length + Username.Length + Password.Length));
         try
@@ -215,7 +215,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
-    public override void Negotiate(IPEndPoint remoteEp)
+    public override void Negotiate ( IPEndPoint remoteEp )
     {
         var buffer = ArrayPool<byte>.Shared.Rent(Math.Max(258, 13 + Username.Length + Password.Length));
         try
@@ -242,7 +242,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
     /// <exception cref="ProtocolViolationException">The proxy server uses an invalid protocol.</exception>
-    private void Negotiate(byte[] buffer, int length)
+    private void Negotiate ( byte[] buffer, int length )
     {
         if (Server.Send(buffer, 0, length, SocketFlags.None) < length)
             throw new SocketException(10054);
@@ -281,8 +281,8 @@ internal sealed class Socks5Handler : SocksHandler
     /// <param name="proxyEndPoint">The IPEndPoint of the SOCKS proxy server.</param>
     /// <param name="state">The state.</param>
     /// <returns>An IAsyncProxyResult that references the asynchronous connection.</returns>
-    public override AsyncProxyResult BeginNegotiate(string host, int port, HandShakeComplete callback,
-        IPEndPoint proxyEndPoint, object state)
+    public override AsyncProxyResult BeginNegotiate ( string host, int port, HandShakeComplete callback,
+        IPEndPoint proxyEndPoint, object state )
     {
         ProtocolComplete = callback;
         Buffer = ArrayPool<byte>.Shared.Rent(Math.Max(258, 10 + host.Length + Username.Length + Password.Length));
@@ -302,8 +302,8 @@ internal sealed class Socks5Handler : SocksHandler
     /// <param name="proxyEndPoint">The IPEndPoint of the SOCKS proxy server.</param>
     /// <param name="state">The state.</param>
     /// <returns>An IAsyncProxyResult that references the asynchronous connection.</returns>
-    public override AsyncProxyResult BeginNegotiate(IPEndPoint remoteEp, HandShakeComplete callback,
-        IPEndPoint proxyEndPoint, object state)
+    public override AsyncProxyResult BeginNegotiate ( IPEndPoint remoteEp, HandShakeComplete callback,
+        IPEndPoint proxyEndPoint, object state )
     {
         ProtocolComplete = callback;
         Buffer = ArrayPool<byte>.Shared.Rent(Math.Max(258, 13 + Username.Length + Password.Length));
@@ -319,7 +319,7 @@ internal sealed class Socks5Handler : SocksHandler
     ///     Called when the socket is connected to the remote server.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnConnect(IAsyncResult ar)
+    private void OnConnect ( IAsyncResult ar )
     {
         try
         {
@@ -350,7 +350,7 @@ internal sealed class Socks5Handler : SocksHandler
     ///     Called when the authentication bytes have been sent.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnAuthSent(IAsyncResult ar)
+    private void OnAuthSent ( IAsyncResult ar )
     {
         try
         {
@@ -379,7 +379,7 @@ internal sealed class Socks5Handler : SocksHandler
     ///     Called when an authentication reply has been received.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnAuthReceive(IAsyncResult ar)
+    private void OnAuthReceive ( IAsyncResult ar )
     {
         try
         {
@@ -427,7 +427,7 @@ internal sealed class Socks5Handler : SocksHandler
     ///     Called when the socket has been successfully authenticated with the server.
     /// </summary>
     /// <param name="e">The exception that has occurred while authenticating, or <em>null</em> if no error occurred.</param>
-    private void OnAuthenticated(Exception? e)
+    private void OnAuthenticated ( Exception? e )
     {
         if (e != null)
         {
@@ -450,7 +450,7 @@ internal sealed class Socks5Handler : SocksHandler
     ///     Called when the connection request has been sent.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnSent(IAsyncResult ar)
+    private void OnSent ( IAsyncResult ar )
     {
         try
         {
@@ -479,7 +479,7 @@ internal sealed class Socks5Handler : SocksHandler
     ///     Called when a connection reply has been received.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnReceive(IAsyncResult ar)
+    private void OnReceive ( IAsyncResult ar )
     {
         try
         {
@@ -510,7 +510,7 @@ internal sealed class Socks5Handler : SocksHandler
     /// </summary>
     /// <param name="buffer">The received reply</param>
     /// <exception cref="ProtocolViolationException">The received reply is invalid.</exception>
-    private void ProcessReply(byte[] buffer)
+    private void ProcessReply ( byte[] buffer )
     {
         var lengthToRead = buffer[3] switch
         {
@@ -528,7 +528,7 @@ internal sealed class Socks5Handler : SocksHandler
     ///     Called when the last bytes are read from the socket.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnReadLast(IAsyncResult ar)
+    private void OnReadLast ( IAsyncResult ar )
     {
         try
         {

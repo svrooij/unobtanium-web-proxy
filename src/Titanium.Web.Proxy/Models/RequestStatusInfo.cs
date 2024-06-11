@@ -11,7 +11,7 @@ internal struct RequestStatusInfo
 
     public Version Version { get; set; }
 
-    public readonly bool IsEmpty()
+    public readonly bool IsEmpty ()
     {
         return Method == null && RequestUri.Length == 0 && Version == null;
     }

@@ -18,8 +18,8 @@ internal static class StreamExtensions
     /// <param name="output"></param>
     /// <param name="onCopy"></param>
     /// <param name="bufferPool"></param>
-    internal static Task CopyToAsync(this Stream input, Stream output, Action<byte[], int, int> onCopy,
-        IBufferPool bufferPool)
+    internal static Task CopyToAsync ( this Stream input, Stream output, Action<byte[], int, int> onCopy,
+        IBufferPool bufferPool )
     {
         return CopyToAsync(input, output, onCopy, bufferPool, CancellationToken.None);
     }
@@ -32,8 +32,8 @@ internal static class StreamExtensions
     /// <param name="onCopy"></param>
     /// <param name="bufferPool"></param>
     /// <param name="cancellationToken"></param>
-    internal static async Task CopyToAsync(this Stream input, Stream output, Action<byte[], int, int>? onCopy,
-        IBufferPool bufferPool, CancellationToken cancellationToken)
+    internal static async Task CopyToAsync ( this Stream input, Stream output, Action<byte[], int, int>? onCopy,
+        IBufferPool bufferPool, CancellationToken cancellationToken )
     {
         var buffer = bufferPool.GetBuffer();
         try
@@ -62,7 +62,7 @@ internal static class StreamExtensions
         }
     }
 
-    internal static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)
+    internal static async Task<T> WithCancellation<T> ( this Task<T> task, CancellationToken cancellationToken )
         where T : struct
     {
         var tcs = new TaskCompletionSource<bool>();

@@ -15,15 +15,15 @@ namespace Titanium.Web.Proxy.Examples.Basic.Helpers
         private const int StdInputHandle = -10;
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr GetStdHandle(int nStdHandle);
+        private static extern IntPtr GetStdHandle ( int nStdHandle );
 
         [DllImport("kernel32.dll")]
-        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+        private static extern bool GetConsoleMode ( IntPtr hConsoleHandle, out uint lpMode );
 
         [DllImport("kernel32.dll")]
-        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+        private static extern bool SetConsoleMode ( IntPtr hConsoleHandle, uint dwMode );
 
-        internal static bool DisableQuickEditMode()
+        internal static bool DisableQuickEditMode ()
         {
             var consoleHandle = GetStdHandle(StdInputHandle);
 

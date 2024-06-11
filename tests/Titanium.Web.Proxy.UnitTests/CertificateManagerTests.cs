@@ -16,7 +16,7 @@ namespace Titanium.Web.Proxy.UnitTests
 
 
         [TestMethod]
-        public async Task Simple_BC_Create_Certificate_Test()
+        public async Task Simple_BC_Create_Certificate_Test ()
         {
             var tasks = new List<Task>();
 
@@ -44,7 +44,7 @@ namespace Titanium.Web.Proxy.UnitTests
 
         // uncomment this to compare WinCert maker performance with BC (BC takes more time for same test above)
         //[TestMethod]
-        public async Task Simple_Create_Win_Certificate_Test()
+        public async Task Simple_Create_Win_Certificate_Test ()
         {
             var tasks = new List<Task>();
 
@@ -53,7 +53,7 @@ namespace Titanium.Web.Proxy.UnitTests
                     Debug.WriteLine(e.ToString());
                     Debug.WriteLine(e.InnerException?.ToString());
                 }).Value)
-                { CertificateEngine = CertificateEngine.DefaultWindows };
+            { CertificateEngine = CertificateEngine.DefaultWindows };
 
             mgr.CreateRootCertificate();
             mgr.TrustRootCertificate(true);
@@ -73,7 +73,7 @@ namespace Titanium.Web.Proxy.UnitTests
         }
 
         [TestMethod]
-        public async Task Create_Server_Certificate_Test()
+        public async Task Create_Server_Certificate_Test ()
         {
             var tasks = new List<Task>();
 
@@ -82,7 +82,7 @@ namespace Titanium.Web.Proxy.UnitTests
                     Debug.WriteLine(e.ToString());
                     Debug.WriteLine(e.InnerException?.ToString());
                 }).Value)
-                { CertificateEngine = CertificateEngine.BouncyCastleFast };
+            { CertificateEngine = CertificateEngine.BouncyCastleFast };
 
             mgr.SaveFakeCertificates = true;
 

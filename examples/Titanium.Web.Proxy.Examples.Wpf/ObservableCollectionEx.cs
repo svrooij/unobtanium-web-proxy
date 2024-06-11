@@ -22,7 +22,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             }
         }
 
-        protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        protected override void OnCollectionChanged ( NotifyCollectionChangedEventArgs e )
         {
             if (SuppressNotification)
             {

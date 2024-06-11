@@ -8,8 +8,8 @@ namespace Titanium.Web.Proxy.Helpers;
 
 internal sealed class HttpServerStream : HttpStream
 {
-    internal HttpServerStream(ProxyServer server, Stream stream, IBufferPool bufferPool,
-        CancellationToken cancellationToken)
+    internal HttpServerStream ( ProxyServer server, Stream stream, IBufferPool bufferPool,
+        CancellationToken cancellationToken )
         : base(server, stream, bufferPool, cancellationToken)
     {
     }
@@ -20,14 +20,14 @@ internal sealed class HttpServerStream : HttpStream
     /// <param name="request">The request object.</param>
     /// <param name="cancellationToken">Optional cancellation token for this async task.</param>
     /// <returns></returns>
-    internal async ValueTask WriteRequestAsync(Request request, CancellationToken cancellationToken = default)
+    internal async ValueTask WriteRequestAsync ( Request request, CancellationToken cancellationToken = default )
     {
         var headerBuilder = new HeaderBuilder();
         headerBuilder.WriteRequestLine(request.Method!, request.RequestUriString, request.HttpVersion);
         await WriteAsync(request, headerBuilder, cancellationToken);
     }
 
-    internal async ValueTask<ResponseStatusInfo> ReadResponseStatus(CancellationToken cancellationToken = default)
+    internal async ValueTask<ResponseStatusInfo> ReadResponseStatus ( CancellationToken cancellationToken = default )
     {
         var httpStatus = await ReadLineAsync(cancellationToken) ??
                          throw new IOException("Invalid http status code.");

@@ -9,8 +9,8 @@ namespace Titanium.Web.Proxy.Helpers;
 
 internal sealed class HttpClientStream : HttpStream
 {
-    internal HttpClientStream(ProxyServer server, TcpClientConnection connection, Stream stream, IBufferPool bufferPool,
-        CancellationToken cancellationToken)
+    internal HttpClientStream ( ProxyServer server, TcpClientConnection connection, Stream stream, IBufferPool bufferPool,
+        CancellationToken cancellationToken )
         : base(server, stream, bufferPool, cancellationToken)
     {
         Connection = connection;
@@ -24,7 +24,7 @@ internal sealed class HttpClientStream : HttpStream
     /// <param name="response">The response object.</param>
     /// <param name="cancellationToken">Optional cancellation token for this async task.</param>
     /// <returns>The Task.</returns>
-    internal async ValueTask WriteResponseAsync(Response response, CancellationToken cancellationToken = default)
+    internal async ValueTask WriteResponseAsync ( Response response, CancellationToken cancellationToken = default )
     {
         var headerBuilder = new HeaderBuilder();
 
@@ -34,7 +34,7 @@ internal sealed class HttpClientStream : HttpStream
         await WriteAsync(response, headerBuilder, cancellationToken);
     }
 
-    internal async ValueTask<RequestStatusInfo> ReadRequestLine(CancellationToken cancellationToken = default)
+    internal async ValueTask<RequestStatusInfo> ReadRequestLine ( CancellationToken cancellationToken = default )
     {
         // read the first line HTTP command
         var httpCmd = await ReadLineAsync(cancellationToken);

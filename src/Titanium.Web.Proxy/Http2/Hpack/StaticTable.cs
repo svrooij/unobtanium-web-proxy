@@ -40,7 +40,7 @@ internal static class StaticTable
 
     public static ByteString KnownHeaderStatus = (ByteString)":status";
 
-    static StaticTable()
+    static StaticTable ()
     {
         const int entryCount = 61;
         staticTable = new List<HttpHeader>(entryCount);
@@ -119,7 +119,7 @@ internal static class StaticTable
     /// </summary>
     /// <returns>The header field.</returns>
     /// <param name="index">Index.</param>
-    public static HttpHeader Get(int index)
+    public static HttpHeader Get ( int index )
     {
         return staticTable[index - 1];
     }
@@ -130,7 +130,7 @@ internal static class StaticTable
     /// </summary>
     /// <returns>The index.</returns>
     /// <param name="name">Name.</param>
-    public static int GetIndex(ByteString name)
+    public static int GetIndex ( ByteString name )
     {
         if (!staticIndexByName.TryGetValue(name, out var index)) return -1;
 
@@ -144,7 +144,7 @@ internal static class StaticTable
     /// <returns>The index.</returns>
     /// <param name="name">Name.</param>
     /// <param name="value">Value.</param>
-    public static int GetIndex(ByteString name, ByteString value)
+    public static int GetIndex ( ByteString name, ByteString value )
     {
         var index = GetIndex(name);
         if (index == -1) return -1;
@@ -163,12 +163,12 @@ internal static class StaticTable
         return -1;
     }
 
-    private static void Create(string name, string value)
+    private static void Create ( string name, string value )
     {
         Create((ByteString)name.ToLower(), value);
     }
 
-    private static void Create(ByteString name, string value)
+    private static void Create ( ByteString name, string value )
     {
         staticTable.Add(new HttpHeader(name, (ByteString)value));
         staticIndexByName[name] = staticTable.Count;

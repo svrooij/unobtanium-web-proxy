@@ -17,18 +17,18 @@ public interface IBufferPool : IDisposable
     /// Retrieves a buffer from the pool.
     /// </summary>
     /// <returns>A byte array representing the buffer.</returns>
-    byte[] GetBuffer();
+    byte[] GetBuffer ();
 
     /// <summary>
     /// Retrieves a buffer of a specific size from the pool.
     /// </summary>
     /// <param name="bufferSize">The size of the buffer to retrieve.</param>
     /// <returns>A byte array representing the buffer.</returns>
-    byte[] GetBuffer(int bufferSize);
+    byte[] GetBuffer ( int bufferSize );
 
     /// <summary>
     /// Returns a buffer to the pool.
     /// </summary>
     /// <param name="buffer">The buffer to return to the pool.</param>
-    void ReturnBuffer(byte[] buffer);
+    void ReturnBuffer ( byte[] buffer );
 }

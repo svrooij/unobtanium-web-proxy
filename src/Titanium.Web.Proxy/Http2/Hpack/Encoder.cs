@@ -42,7 +42,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// Initializes a new instance of the <see cref="Encoder"/> class.
         /// </summary>
         /// <param name="maxHeaderTableSize">Max header table size.</param>
-        public Encoder(int maxHeaderTableSize)
+        public Encoder ( int maxHeaderTableSize )
         {
             if (maxHeaderTableSize < 0)
             {
@@ -62,8 +62,8 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// <param name="sensitive">If set to <c>true</c> sensitive.</param>
         /// <param name="indexType">Index type.</param>
         /// <param name="useStaticName">Use static name.</param>
-        public void EncodeHeader(BinaryWriter output, ByteString name, ByteString value, bool sensitive =
- false, HpackUtil.IndexType indexType = HpackUtil.IndexType.Incremental, bool useStaticName = true)
+        public void EncodeHeader ( BinaryWriter output, ByteString name, ByteString value, bool sensitive =
+ false, HpackUtil.IndexType indexType = HpackUtil.IndexType.Incremental, bool useStaticName = true )
         {
             // If the header value is sensitive then it must never be indexed
             if (sensitive)
@@ -132,7 +132,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// </summary>
         /// <param name="output">Output.</param>
         /// <param name="maxHeaderTableSize">Max header table size.</param>
-        public void SetMaxHeaderTableSize(BinaryWriter output, int maxHeaderTableSize)
+        public void SetMaxHeaderTableSize ( BinaryWriter output, int maxHeaderTableSize )
         {
             if (maxHeaderTableSize < 0)
             {
@@ -156,7 +156,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// <param name="mask">Mask.</param>
         /// <param name="n">N.</param>
         /// <param name="i">The index.</param>
-        private static void EncodeInteger(BinaryWriter output, int mask, int n, int i)
+        private static void EncodeInteger ( BinaryWriter output, int mask, int n, int i )
         {
             if (n < 0 || n > 8)
             {
@@ -191,7 +191,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// </summary>
         /// <param name="output">Output.</param>
         /// <param name="stringData">String data.</param>
-        private static void EncodeStringLiteral(BinaryWriter output, ByteString stringData)
+        private static void EncodeStringLiteral ( BinaryWriter output, ByteString stringData )
         {
             int huffmanLength = HuffmanEncoder.Instance.GetEncodedLength(stringData);
             if (huffmanLength < stringData.Length)
@@ -214,8 +214,8 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// <param name="value">Value.</param>
         /// <param name="indexType">Index type.</param>
         /// <param name="nameIndex">Name index.</param>
-        private static void EncodeLiteral(BinaryWriter output, ByteString name, ByteString value, HpackUtil.IndexType indexType,
-            int nameIndex)
+        private static void EncodeLiteral ( BinaryWriter output, ByteString name, ByteString value, HpackUtil.IndexType indexType,
+            int nameIndex )
         {
             int mask;
             int prefixBits;
@@ -249,7 +249,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
             EncodeStringLiteral(output, value);
         }
 
-        private int GetNameIndex(ByteString name)
+        private int GetNameIndex ( ByteString name )
         {
             int index = StaticTable.GetIndex(name);
             if (index == -1)
@@ -269,7 +269,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// Removes the oldest entry from the dynamic table until sufficient space is available.
         /// </summary>
         /// <param name="headerSize">Header size.</param>
-        private void EnsureCapacity(int headerSize)
+        private void EnsureCapacity ( int headerSize )
         {
             while (size + headerSize > MaxHeaderTableSize)
             {
@@ -286,7 +286,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// <summary>
         /// Return the number of header fields in the dynamic table.
         /// </summary>
-        private int Length()
+        private int Length ()
         {
             return size == 0 ? 0 : head.After.Index - head.Before.Index + 1;
         }
@@ -298,7 +298,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// <returns>The entry.</returns>
         /// <param name="name">Name.</param>
         /// <param name="value">Value.</param>
-        private HeaderEntry? GetEntry(ByteString name, ByteString value)
+        private HeaderEntry? GetEntry ( ByteString name, ByteString value )
         {
             if (Length() == 0 || name.Length == 0 || value.Length == 0)
             {
@@ -324,7 +324,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// </summary>
         /// <returns>The index.</returns>
         /// <param name="name">Name.</param>
-        private int GetIndex(ByteString name)
+        private int GetIndex ( ByteString name )
         {
             if (Length() == 0 || name.Length == 0)
             {
@@ -351,7 +351,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// </summary>
         /// <returns>The index.</returns>
         /// <param name="index">Index.</param>
-        private int GetIndex(int index)
+        private int GetIndex ( int index )
         {
             if (index == -1)
             {
@@ -370,7 +370,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// </summary>
         /// <param name="name">Name.</param>
         /// <param name="value">Value.</param>
-        private void Add(ByteString name, ByteString value)
+        private void Add ( ByteString name, ByteString value )
         {
             int headerSize = HttpHeader.SizeOf(name, value);
 
@@ -399,7 +399,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// <summary>
         /// Remove and return the oldest header field from the dynamic table.
         /// </summary>
-        private HttpHeader? Remove()
+        private HttpHeader? Remove ()
         {
             if (size == 0)
             {
@@ -441,10 +441,10 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// <summary>
         /// Remove all entries from the dynamic table.
         /// </summary>
-        private void Clear()
+        private void Clear ()
         {
             // TODO validate change
-            while(headerFields.Length > 0)
+            while (headerFields.Length > 0)
             {
                 headerFields[0].Remove();
             }
@@ -463,7 +463,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// </summary>
         /// <returns><c>true</c> if hash name; otherwise, <c>false</c>.</returns>
         /// <param name="name">Name.</param>
-        private static int Hash(ByteString name)
+        private static int Hash ( ByteString name )
         {
             int h = 0;
             for (int i = 0; i < name.Length; i++)
@@ -488,7 +488,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
         /// Returns the index into the hash table for the hash code h.
         /// </summary>
         /// <param name="h">The height.</param>
-        private static int Index(int h)
+        private static int Index ( int h )
         {
             return h % BucketSize;
         }
@@ -520,7 +520,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
             /// <param name="value">Value.</param>
             /// <param name="index">Index.</param>
             /// <param name="next">Next.</param>
-            public HeaderEntry(int hash, ByteString name, ByteString value, int index, HeaderEntry? next) : base(name, value, true)
+            public HeaderEntry ( int hash, ByteString name, ByteString value, int index, HeaderEntry? next ) : base(name, value, true)
             {
                 Index = index;
                 Hash = hash;
@@ -532,7 +532,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
             /// <summary>
             /// Removes this entry from the linked list.
             /// </summary>
-            public void Remove()
+            public void Remove ()
             {
                 Before.After = After;
                 After.Before = Before;
@@ -542,7 +542,7 @@ namespace Titanium.Web.Proxy.Http2.Hpack
             /// Inserts this entry before the specified existing entry in the list.
             /// </summary>
             /// <param name="existingEntry">Existing entry.</param>
-            public void AddBefore(HeaderEntry existingEntry)
+            public void AddBefore ( HeaderEntry existingEntry )
             {
                 After = existingEntry;
                 Before = existingEntry.Before;

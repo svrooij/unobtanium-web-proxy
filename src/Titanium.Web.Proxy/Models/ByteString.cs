@@ -14,57 +14,57 @@ internal struct ByteString : IEquatable<ByteString>
 
     public int Length => Data.Length;
 
-    public ByteString(ReadOnlyMemory<byte> data)
+    public ByteString ( ReadOnlyMemory<byte> data )
     {
         Data = data;
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals ( object? obj )
     {
         return obj is ByteString other && Equals(other);
     }
 
-    public bool Equals(ByteString other)
+    public bool Equals ( ByteString other )
     {
         return Data.Span.SequenceEqual(other.Data.Span);
     }
 
-    public int IndexOf(byte value)
+    public int IndexOf ( byte value )
     {
         return Span.IndexOf(value);
     }
 
-    public ByteString Slice(int start)
+    public ByteString Slice ( int start )
     {
         return Data[start..];
     }
 
-    public ByteString Slice(int start, int length)
+    public ByteString Slice ( int start, int length )
     {
         return Data.Slice(start, length);
     }
 
-    public override int GetHashCode()
+    public override int GetHashCode ()
     {
         return Data.GetHashCode();
     }
 
-    public override string ToString()
+    public override string ToString ()
     {
         return this.GetString();
     }
 
-    public static explicit operator ByteString(string str)
+    public static explicit operator ByteString ( string str )
     {
         return new(Encoding.ASCII.GetBytes(str));
     }
 
-    public static implicit operator ByteString(byte[] data)
+    public static implicit operator ByteString ( byte[] data )
     {
         return new(data);
     }
 
-    public static implicit operator ByteString(ReadOnlyMemory<byte> data)
+    public static implicit operator ByteString ( ReadOnlyMemory<byte> data )
     {
         return new(data);
     }

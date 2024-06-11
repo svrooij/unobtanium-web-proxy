@@ -24,7 +24,7 @@ public class SslExtension
     /// <param name="value">The value.</param>
     /// <param name="data">The data.</param>
     /// <param name="position">The position.</param>
-    public SslExtension(int value, ReadOnlyMemory<byte> data, int position)
+    public SslExtension ( int value, ReadOnlyMemory<byte> data, int position )
     {
         Value = value;
         this.data = data;
@@ -59,7 +59,7 @@ public class SslExtension
     public string Data => GetExtensionData(Value, data.Span);
 
     internal List<SslApplicationProtocol> Alpns => GetApplicationLayerProtocolNegotiation(data.Span);
-    
+
     internal List<string> Protocols => GetSupportedVersions(data.Span);
 
     /// <summary>
@@ -70,7 +70,7 @@ public class SslExtension
     /// </value>
     public int Position { get; }
 
-    private static unsafe string GetExtensionData(int value, ReadOnlySpan<byte> data)
+    private static unsafe string GetExtensionData ( int value, ReadOnlySpan<byte> data )
     {
         // https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml
         switch (value)
@@ -147,7 +147,7 @@ public class SslExtension
         }
     }
 
-    private static string GetSupportedGroup(ReadOnlySpan<byte> data)
+    private static string GetSupportedGroup ( ReadOnlySpan<byte> data )
     {
         // https://datatracker.ietf.org/doc/draft-ietf-tls-rfc4492bis/?include_text=1
         var list = new List<string>();
@@ -281,7 +281,7 @@ public class SslExtension
         return string.Join(", ", [.. list]);
     }
 
-    private static string GetEcPointFormats(ReadOnlySpan<byte> data)
+    private static string GetEcPointFormats ( ReadOnlySpan<byte> data )
     {
         var list = new List<string>();
         if (data.Length < 1) return string.Empty;
@@ -311,7 +311,7 @@ public class SslExtension
         return string.Join(", ", [.. list]);
     }
 
-    private static List<string> GetSupportedVersions(ReadOnlySpan<byte> data)
+    private static List<string> GetSupportedVersions ( ReadOnlySpan<byte> data )
     {
         var list = new List<string>();
         if (data.Length < 2)
@@ -365,7 +365,7 @@ public class SslExtension
         return list;
     }
 
-    private static string GetSignatureAlgorithms(ReadOnlySpan<byte> data)
+    private static string GetSignatureAlgorithms ( ReadOnlySpan<byte> data )
     {
         // https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml
         var num = (data[0] << 8) + data[1];
@@ -518,7 +518,7 @@ public class SslExtension
         return sb.ToString();
     }
 
-    private static List<SslApplicationProtocol> GetApplicationLayerProtocolNegotiation(ReadOnlySpan<byte> data)
+    private static List<SslApplicationProtocol> GetApplicationLayerProtocolNegotiation ( ReadOnlySpan<byte> data )
     {
         var list = new List<SslApplicationProtocol>();
         var index = 2;
@@ -549,7 +549,7 @@ public class SslExtension
         return list;
     }
 
-    private static string GetExtensionName(int value)
+    private static string GetExtensionName ( int value )
     {
         // https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml
         return value switch

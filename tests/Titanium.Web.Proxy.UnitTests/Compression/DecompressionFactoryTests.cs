@@ -12,7 +12,7 @@ namespace Titanium.Web.Proxy.UnitTests
         [DataRow(HttpCompression.Gzip, typeof(GZipStream))]
         [DataRow(HttpCompression.Deflate, typeof(DeflateStream))]
         [DataRow(HttpCompression.Brotli, typeof(BrotliSharpLib.BrotliStream))]
-        public void Create_ShouldReturnCorrectStream(HttpCompression type, System.Type expectedType)
+        public void Create_ShouldReturnCorrectStream ( HttpCompression type, System.Type expectedType )
         {
             using var memoryStream = new MemoryStream();
             var result = DecompressionFactory.Create(type, memoryStream);
@@ -22,7 +22,7 @@ namespace Titanium.Web.Proxy.UnitTests
 
         [TestMethod]
         [ExpectedException(typeof(System.InvalidOperationException))]
-        public void Create_ShouldThrowExceptionForUnsupportedCompression()
+        public void Create_ShouldThrowExceptionForUnsupportedCompression ()
         {
             using var memoryStream = new MemoryStream();
             DecompressionFactory.Create((HttpCompression)999, memoryStream);

@@ -8,7 +8,7 @@ namespace Titanium.Web.Proxy.EventArguments;
 /// </summary>
 public class BeforeBodyWriteEventArgs : ProxyEventArgsBase
 {
-    internal BeforeBodyWriteEventArgs(SessionEventArgs session, byte[] bodyBytes, bool isChunked, bool isLastChunk) : base(session.Server, session.ClientConnection)
+    internal BeforeBodyWriteEventArgs ( SessionEventArgs session, byte[] bodyBytes, bool isChunked, bool isLastChunk ) : base(session.Server, session.ClientConnection)
     {
         Session = session;
         BodyBytes = bodyBytes;
