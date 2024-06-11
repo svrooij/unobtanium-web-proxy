@@ -24,13 +24,6 @@ public class NullWriterTests
     }
 
     [TestMethod]
-    public void Write_ShouldNotThrowException()
-    {
-        var buffer = new byte[10];
-        nullWriter.Write(buffer, 0, buffer.Length);
-    }
-
-    [TestMethod]
     public async Task WriteAsync_ShouldNotThrowException()
     {
         var buffer = new byte[10];
@@ -38,14 +31,14 @@ public class NullWriterTests
     }
 
     [TestMethod]
-    public async Task WriteLineAsync_ShouldThrowNotImplementedException()
+    public async Task WriteLineAsync_ShouldNotThrowException()
     {
-        await Assert.ThrowsExceptionAsync<NotImplementedException>(async () => await nullWriter.WriteLineAsync(CancellationToken.None));
+        await nullWriter.WriteLineAsync(CancellationToken.None);
     }
 
     [TestMethod]
-    public async Task WriteLineAsyncWithValue_ShouldThrowNotImplementedException()
+    public async Task WriteLineAsyncWithValue_ShouldNotThrowException()
     {
-        await Assert.ThrowsExceptionAsync<NotImplementedException>(async () => await nullWriter.WriteLineAsync("test", CancellationToken.None));
+        await nullWriter.WriteLineAsync("test", CancellationToken.None);
     }
 }

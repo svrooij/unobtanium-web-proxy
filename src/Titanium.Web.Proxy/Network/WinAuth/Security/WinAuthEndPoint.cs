@@ -205,8 +205,8 @@ internal partial class WinAuthEndPoint
 
     #region Native calls to secur32.dll
 
-    [LibraryImport("secur32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
-    private static partial int InitializeSecurityContext ( ref SecurityHandle phCredential, // PCredHandle
+    [DllImport("secur32.dll", SetLastError = true)]
+    private static extern int InitializeSecurityContext ( ref SecurityHandle phCredential, // PCredHandle
         IntPtr phContext, // PCtxtHandle
         string pszTargetName,
         int fContextReq,
@@ -219,8 +219,8 @@ internal partial class WinAuthEndPoint
         out uint pfContextAttr, // managed ulong == 64 bits!!!
         out SecurityInteger ptsExpiry ); // PTimeStamp
 
-    [LibraryImport("secur32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
-    private static partial int InitializeSecurityContext ( ref SecurityHandle phCredential, // PCredHandle
+    [DllImport("secur32", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern int InitializeSecurityContext ( ref SecurityHandle phCredential, // PCredHandle
         ref SecurityHandle phContext, // PCtxtHandle
         string pszTargetName,
         int fContextReq,
@@ -233,8 +233,8 @@ internal partial class WinAuthEndPoint
         out uint pfContextAttr, // managed ulong == 64 bits!!!
         out SecurityInteger ptsExpiry ); // PTimeStamp
 
-    [LibraryImport("secur32.dll", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
-    private static partial int AcquireCredentialsHandle (
+    [DllImport("secur32.dll", CharSet = CharSet.Auto, SetLastError = false)]
+    private static extern int AcquireCredentialsHandle (
         string pszPrincipal, // SEC_CHAR*
         string pszPackage, // SEC_CHAR* // "Kerberos","NTLM","Negotiative"
         int fCredentialUse,
