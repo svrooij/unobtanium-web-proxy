@@ -53,13 +53,6 @@ internal static class StringExtensions
             buf2 = buf2[3..];
         }
 
-#if NET6_0_OR_GREATER
         return Encoding.UTF8.GetString(buf[..(length - 1)]);
-#else
-        fixed (byte* bp = buf)
-        {
-            return Encoding.UTF8.GetString(bp, length -1);
-        }
-#endif
     }
 }

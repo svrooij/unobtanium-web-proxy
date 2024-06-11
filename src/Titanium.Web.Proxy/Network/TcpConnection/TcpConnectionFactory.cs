@@ -540,9 +540,7 @@ retry:
                     CertificateRevocationCheckMode = proxyServer.CheckCertificateRevocation
                 };
                 await sslStream.AuthenticateAsClientAsync(options, cancellationToken);
-#if NET6_0_OR_GREATER
                 negotiatedApplicationProtocol = sslStream.NegotiatedApplicationProtocol;
-#endif
 
                 if (sessionArgs != null) sessionArgs.TimeLine["HTTPS Established"] = DateTime.UtcNow;
             }

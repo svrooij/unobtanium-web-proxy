@@ -1,5 +1,4 @@
-﻿#if NET6_0_OR_GREATER
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
@@ -672,4 +671,3 @@ namespace Titanium.Web.Proxy.Http2
         }
     }
 }
-#endif

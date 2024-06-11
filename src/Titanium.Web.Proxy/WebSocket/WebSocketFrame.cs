@@ -41,10 +41,6 @@ public class WebSocketFrame
     /// <returns>The data as a text string.</returns>
     public string GetText ( Encoding encoding )
     {
-#if NET6_0_OR_GREATER
         return encoding.GetString(Data.Span);
-#else
-        return encoding.GetString(Data.ToArray());
-#endif
     }
 }

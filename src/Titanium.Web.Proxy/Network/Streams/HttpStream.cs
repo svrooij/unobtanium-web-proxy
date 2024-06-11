@@ -310,12 +310,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     less than the requested number, or it can be 0 (zero)
     ///     if the end of the stream has been reached.
     /// </returns>
-#if NET6_0_OR_GREATER
     public override async ValueTask<int> ReadAsync ( Memory<byte> buffer, CancellationToken cancellationToken =
  default )
-#else
-    public async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
-#endif
     {
         if (Available == 0) await FillBufferAsync(cancellationToken);
 
@@ -406,7 +402,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <exception cref="Exception">Index is out of buffer size</exception>
     public byte PeekByteFromBuffer ( int index )
     {
-        if (Available <= index) throw new Exception("Index is out of buffer size");
+        if (Available <= index) throw new ArgumentOutOfRangeException(nameof(index), "Index is out of buffer size");
 
         return streamBuffer[bufferPos + index];
     }
@@ -418,7 +414,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <exception cref="Exception">Buffer is empty</exception>
     public byte ReadByteFromBuffer ()
     {
-        if (Available == 0) throw new Exception("Buffer is empty");
+        if (Available == 0) throw new EndOfStreamException("Buffer is empty");
 
         Available--;
         return streamBuffer[bufferPos++];
@@ -583,7 +579,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// </summary>
     public bool FillBuffer ()
     {
-        if (IsClosed) throw new Exception("Stream is already closed");
+        if (IsClosed) throw new InvalidOperationException("Stream is already closed");
 
         if (Available > 0)
             // normally we fill the buffer only when it is empty, but sometimes we need more data
@@ -627,7 +623,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <returns></returns>
     public async ValueTask<bool> FillBufferAsync ( CancellationToken cancellationToken = default )
     {
-        if (IsClosed) throw new Exception("Stream is already closed");
+        if (IsClosed) throw new InvalidOperationException("Stream is already closed");
 
         var bytesToRead = streamBuffer.Length - Available;
         if (bytesToRead == 0) return false;
@@ -1159,7 +1155,6 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         }
     }
 
-#if NET6_0_OR_GREATER
     /// <summary>
     ///     Asynchronously writes a sequence of bytes to the current stream, advances the current position within this stream by the number of bytes written, and monitors cancellation requests.
     /// </summary>
@@ -1185,30 +1180,4 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
                 throw;
         }
     }
-#else
-    /// <summary>
-    ///     Asynchronously writes a sequence of bytes to the current stream, advances the current position within this stream
-    ///     by the number of bytes written, and monitors cancellation requests.
-    /// </summary>
-    /// <param name="buffer">The buffer to write data from.</param>
-    /// <param name="cancellationToken">
-    ///     The token to monitor for cancellation requests. The default value is
-    ///     <see cref="P:System.Threading.CancellationToken.None" />.
-    /// </param>
-    /// <returns>A task that represents the asynchronous write operation.</returns>
-    public async Task WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken)
-    {
-        var buf = ArrayPool<byte>.Shared.Rent(buffer.Length);
-        buffer.CopyTo(buf);
-        try
-        {
-            await BaseStream.WriteAsync(buf, 0, buf.Length, cancellationToken);
-        }
-        catch
-        {
-            if (!IsNetworkStream)
-                throw;
-        }
-    }
-#endif
 }
