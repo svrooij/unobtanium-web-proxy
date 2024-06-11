@@ -47,7 +47,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
 
     public bool IsClosed { get; private set; }
 
-    static HttpStream()
+    static HttpStream ()
     {
         // TODO: remove this hack when removing .NET 4.x support
         try
@@ -76,8 +76,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     <see langword="true" /> to leave the stream open after disposing the
     ///     <see cref="T:CustomBufferedStream" /> object; otherwise, <see langword="false" />.
     /// </param>
-    internal HttpStream(ProxyServer server, Stream baseStream, IBufferPool bufferPool,
-        CancellationToken cancellationToken, bool leaveOpen = false)
+    internal HttpStream ( ProxyServer server, Stream baseStream, IBufferPool bufferPool,
+        CancellationToken cancellationToken, bool leaveOpen = false )
     {
         this.server = server;
 
@@ -94,7 +94,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     When overridden in a derived class, clears all buffers for this stream and causes any buffered data to be written
     ///     to the underlying device.
     /// </summary>
-    public override void Flush()
+    public override void Flush ()
     {
         if (closedWrite) return;
 
@@ -121,7 +121,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <returns>
     ///     The new position within the current stream.
     /// </returns>
-    public override long Seek(long offset, SeekOrigin origin)
+    public override long Seek ( long offset, SeekOrigin origin )
     {
         Available = 0;
         bufferPos = 0;
@@ -132,7 +132,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     When overridden in a derived class, sets the length of the current stream.
     /// </summary>
     /// <param name="value">The desired length of the current stream in bytes.</param>
-    public override void SetLength(long value)
+    public override void SetLength ( long value )
     {
         BaseStream.SetLength(value);
     }
@@ -155,7 +155,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     The total number of bytes read into the buffer. This can be less than the number of bytes requested if that many
     ///     bytes are not currently available, or zero (0) if the end of the stream has been reached.
     /// </returns>
-    public override int Read(byte[] buffer, int offset, int count)
+    /// <remarks>Please use the <see cref="ReadAsync(byte[], int, int, CancellationToken)"/> method!</remarks>
+    public override int Read ( byte[] buffer, int offset, int count )
     {
         if (Available == 0) FillBuffer();
 
@@ -178,7 +179,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="offset">The zero-based byte offset in buffer at which to begin copying bytes to the current stream.</param>
     /// <param name="count">The number of bytes to be written to the current stream.</param>
     [DebuggerStepThrough]
-    public override void Write(byte[] buffer, int offset, int count)
+    public override void Write ( byte[] buffer, int offset, int count )
     {
         OnDataWrite(buffer, offset, count);
 
@@ -212,7 +213,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <returns>
     ///     A task that represents the asynchronous copy operation.
     /// </returns>
-    public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+    public override async Task CopyToAsync ( Stream destination, int bufferSize, CancellationToken cancellationToken )
     {
         if (Available > 0)
         {
@@ -235,7 +236,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <returns>
     ///     A task that represents the asynchronous flush operation.
     /// </returns>
-    public override async Task FlushAsync(CancellationToken cancellationToken)
+    public override async Task FlushAsync ( CancellationToken cancellationToken )
     {
         if (closedWrite) return;
 
@@ -275,7 +276,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     less than the requested number, or it can be 0 (zero)
     ///     if the end of the stream has been reached.
     /// </returns>
-    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    public override async Task<int> ReadAsync ( byte[] buffer, int offset, int count, CancellationToken cancellationToken )
     {
         if (Available == 0) await FillBufferAsync(cancellationToken);
 
@@ -310,8 +311,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     if the end of the stream has been reached.
     /// </returns>
 #if NET6_0_OR_GREATER
-    public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken =
- default)
+    public override async ValueTask<int> ReadAsync ( Memory<byte> buffer, CancellationToken cancellationToken =
+ default )
 #else
     public async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
 #endif
@@ -336,7 +337,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <returns>
     ///     The unsigned byte cast to an Int32, or -1 if at the end of the stream.
     /// </returns>
-    public override int ReadByte()
+    public override int ReadByte ()
     {
         if (Available == 0) FillBuffer();
 
@@ -352,7 +353,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="index">The index.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async ValueTask<int> PeekByteAsync(int index, CancellationToken cancellationToken = default)
+    public async ValueTask<int> PeekByteAsync ( int index, CancellationToken cancellationToken = default )
     {
         // When index is greater than the buffer size
         if (streamBuffer.Length <= index)
@@ -377,8 +378,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="count">The count.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async ValueTask<int> PeekBytesAsync(byte[] buffer, int offset, int index, int count,
-        CancellationToken cancellationToken = default)
+    public async ValueTask<int> PeekBytesAsync ( byte[] buffer, int offset, int index, int count,
+        CancellationToken cancellationToken = default )
     {
         // When index is greater than the buffer size
         if (streamBuffer.Length <= index + count)
@@ -403,7 +404,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="index">The index.</param>
     /// <returns></returns>
     /// <exception cref="Exception">Index is out of buffer size</exception>
-    public byte PeekByteFromBuffer(int index)
+    public byte PeekByteFromBuffer ( int index )
     {
         if (Available <= index) throw new Exception("Index is out of buffer size");
 
@@ -415,7 +416,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// </summary>
     /// <returns></returns>
     /// <exception cref="Exception">Buffer is empty</exception>
-    public byte ReadByteFromBuffer()
+    public byte ReadByteFromBuffer ()
     {
         if (Available == 0) throw new Exception("Buffer is empty");
 
@@ -435,7 +436,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     <see cref="P:System.Threading.CancellationToken.None"></see>.
     /// </param>
     [DebuggerStepThrough]
-    public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    public override async Task WriteAsync ( byte[] buffer, int offset, int count, CancellationToken cancellationToken )
     {
         OnDataWrite(buffer, offset, count);
 
@@ -457,7 +458,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     Writes a byte to the current position in the stream and advances the position within the stream by one byte.
     /// </summary>
     /// <param name="value">The byte to write to the stream.</param>
-    public override void WriteByte(byte value)
+    public override void WriteByte ( byte value )
     {
         if (closedWrite) return;
 
@@ -480,12 +481,12 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         }
     }
 
-    protected virtual void OnDataWrite(byte[] buffer, int offset, int count)
+    protected virtual void OnDataWrite ( byte[] buffer, int offset, int count )
     {
         DataWrite?.Invoke(this, new DataEventArgs(buffer, offset, count));
     }
 
-    protected virtual void OnDataRead(byte[] buffer, int offset, int count)
+    protected virtual void OnDataRead ( byte[] buffer, int offset, int count )
     {
         DataRead?.Invoke(this, new DataEventArgs(buffer, offset, count));
     }
@@ -498,7 +499,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     true to release both managed and unmanaged resources; false to release only unmanaged
     ///     resources.
     /// </param>
-    protected override void Dispose(bool disposing)
+    protected override void Dispose ( bool disposing )
     {
         if (!disposed)
         {
@@ -580,7 +581,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <summary>
     ///     Fills the buffer.
     /// </summary>
-    public bool FillBuffer()
+    public bool FillBuffer ()
     {
         if (IsClosed) throw new Exception("Stream is already closed");
 
@@ -624,7 +625,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async ValueTask<bool> FillBufferAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<bool> FillBufferAsync ( CancellationToken cancellationToken = default )
     {
         if (IsClosed) throw new Exception("Stream is already closed");
 
@@ -673,7 +674,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     Read a line from the byte stream
     /// </summary>
     /// <returns></returns>
-    public ValueTask<string?> ReadLineAsync(CancellationToken cancellationToken = default)
+    public ValueTask<string?> ReadLineAsync ( CancellationToken cancellationToken = default )
     {
         return ReadLineInternalAsync(this, bufferPool, cancellationToken);
     }
@@ -682,8 +683,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     Read a line from the byte stream
     /// </summary>
     /// <returns></returns>
-    internal static async ValueTask<string?> ReadLineInternalAsync(ILineStream reader, IBufferPool bufferPool,
-        CancellationToken cancellationToken = default)
+    internal static async ValueTask<string?> ReadLineInternalAsync ( ILineStream reader, IBufferPool bufferPool,
+        CancellationToken cancellationToken = default )
     {
         byte lastChar = default;
 
@@ -734,7 +735,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     https://github.com/justcoding121/Titanium-Web-Proxy/issues/575
     /// </summary>
     /// <returns></returns>
-    public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
+    public override IAsyncResult BeginRead ( byte[] buffer, int offset, int count, AsyncCallback? callback, object? state )
     {
         if (!networkStreamHack) return base.BeginRead(buffer, offset, count, callback, state);
 
@@ -755,7 +756,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     override EndRead to handle async Reading (see BeginRead comment)
     /// </summary>
     /// <returns></returns>
-    public override int EndRead(IAsyncResult asyncResult)
+    public override int EndRead ( IAsyncResult asyncResult )
     {
         if (!networkStreamHack) return base.EndRead(asyncResult);
 
@@ -769,7 +770,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     ///     That's why we need to call NetworkStream.BeginWrite only (while read is waiting SemaphoreSlim)
     /// </summary>
     /// <returns></returns>
-    public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
+    public override IAsyncResult BeginWrite ( byte[] buffer, int offset, int count, AsyncCallback? callback, object? state )
     {
         if (!networkStreamHack) return base.BeginWrite(buffer, offset, count, callback, state);
 
@@ -781,7 +782,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         return vAsyncResult;
     }
 
-    public override void EndWrite(IAsyncResult asyncResult)
+    public override void EndWrite ( IAsyncResult asyncResult )
     {
         if (!networkStreamHack)
         {
@@ -797,12 +798,12 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// </summary>
     /// <param name="cancellationToken">Optional cancellation token for this async task.</param>
     /// <returns></returns>
-    public ValueTask WriteLineAsync(CancellationToken cancellationToken = default)
+    public ValueTask WriteLineAsync ( CancellationToken cancellationToken = default )
     {
         return WriteAsync(newLine, cancellationToken: cancellationToken);
     }
 
-    private async ValueTask WriteAsyncInternal(string value, bool addNewLine, CancellationToken cancellationToken)
+    private async ValueTask WriteAsyncInternal ( string value, bool addNewLine, CancellationToken cancellationToken )
     {
         if (closedWrite) return;
 
@@ -856,7 +857,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         }
     }
 
-    public ValueTask WriteLineAsync(string value, CancellationToken cancellationToken = default)
+    public ValueTask WriteLineAsync ( string value, CancellationToken cancellationToken = default )
     {
         return WriteAsyncInternal(value, true, cancellationToken);
     }
@@ -867,7 +868,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="headerBuilder"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    internal async Task WriteHeadersAsync(HeaderBuilder headerBuilder, CancellationToken cancellationToken = default)
+    internal async Task WriteHeadersAsync ( HeaderBuilder headerBuilder, CancellationToken cancellationToken = default )
     {
         var buffer = headerBuilder.GetBuffer();
 
@@ -892,7 +893,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="data">The data.</param>
     /// <param name="flush">Should we flush after write?</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    internal async ValueTask WriteAsync(byte[] data, bool flush = false, CancellationToken cancellationToken = default)
+    internal async ValueTask WriteAsync ( byte[] data, bool flush = false, CancellationToken cancellationToken = default )
     {
         if (closedWrite) return;
 
@@ -909,8 +910,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         }
     }
 
-    internal async Task WriteAsync(byte[] data, int offset, int count, bool flush,
-        CancellationToken cancellationToken = default)
+    internal async Task WriteAsync ( byte[] data, int offset, int count, bool flush,
+        CancellationToken cancellationToken = default )
     {
         if (closedWrite) return;
 
@@ -934,16 +935,16 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="isChunked"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    internal ValueTask WriteBodyAsync(byte[] data, bool isChunked, CancellationToken cancellationToken)
+    internal ValueTask WriteBodyAsync ( byte[] data, bool isChunked, CancellationToken cancellationToken )
     {
         if (isChunked) return WriteBodyChunkedAsync(data, cancellationToken);
 
         return WriteAsync(data, cancellationToken: cancellationToken);
     }
 
-    public async Task CopyBodyAsync(RequestResponseBase requestResponse, bool useOriginalHeaderValues,
+    public async Task CopyBodyAsync ( RequestResponseBase requestResponse, bool useOriginalHeaderValues,
         IHttpStreamWriter writer, TransformationMode transformation, bool isRequest, SessionEventArgs args,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken )
     {
         var isChunked = useOriginalHeaderValues ? requestResponse.OriginalIsChunked : requestResponse.IsChunked;
         var contentLength = useOriginalHeaderValues
@@ -994,19 +995,19 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="args"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task CopyBodyAsync(IHttpStreamWriter writer, bool isChunked, long contentLength,
+    public Task CopyBodyAsync ( IHttpStreamWriter writer, bool isChunked, long contentLength,
         bool isRequest,
-        SessionEventArgs args, CancellationToken cancellationToken)
+        SessionEventArgs args, CancellationToken cancellationToken )
     {
 #if DEBUG
-            var isResponse = !isRequest;
+        var isResponse = !isRequest;
 
-            if (IsNetworkStream && writer.IsNetworkStream &&
-                (isRequest && args.HttpClient.Request.OriginalHasBody && !args.HttpClient.Request.IsBodyRead && server.ShouldCallBeforeRequestBodyWrite()) ||
-                (isResponse && args.HttpClient.Response.OriginalHasBody && !args.HttpClient.Response.IsBodyRead && server.ShouldCallBeforeResponseBodyWrite()))
-            {
-                return HandleBodyWrite(writer, isChunked, contentLength, isRequest, args, cancellationToken);
-            }
+        if (IsNetworkStream && writer.IsNetworkStream &&
+            (isRequest && args.HttpClient.Request.OriginalHasBody && !args.HttpClient.Request.IsBodyRead && server.ShouldCallBeforeRequestBodyWrite()) ||
+            (isResponse && args.HttpClient.Response.OriginalHasBody && !args.HttpClient.Response.IsBodyRead && server.ShouldCallBeforeResponseBodyWrite()))
+        {
+            return HandleBodyWrite(writer, isChunked, contentLength, isRequest, args, cancellationToken);
+        }
 #endif
         // For chunked request we need to read data as they arrive, until we reach a chunk end symbol
         if (isChunked) return CopyBodyChunkedAsync(writer, isRequest, args, cancellationToken);
@@ -1018,8 +1019,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         return CopyBytesToStream(writer, contentLength, isRequest, args, cancellationToken);
     }
 
-    private Task HandleBodyWrite(IHttpStreamWriter writer, bool isChunked, long contentLength,
-        bool isRequest, SessionEventArgs args, CancellationToken cancellationToken)
+    private Task HandleBodyWrite ( IHttpStreamWriter writer, bool isChunked, long contentLength,
+        bool isRequest, SessionEventArgs args, CancellationToken cancellationToken )
     {
         var originalContentLength = isRequest
             ? args.HttpClient.Request.OriginalContentLength
@@ -1047,7 +1048,7 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="data"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private async ValueTask WriteBodyChunkedAsync(byte[] data, CancellationToken cancellationToken)
+    private async ValueTask WriteBodyChunkedAsync ( byte[] data, CancellationToken cancellationToken )
     {
         var chunkHead = Encoding.ASCII.GetBytes(data.Length.ToString("x2"));
 
@@ -1068,8 +1069,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="args"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private async Task CopyBodyChunkedAsync(IHttpStreamWriter writer, bool isRequest, SessionEventArgs args,
-        CancellationToken cancellationToken)
+    private async Task CopyBodyChunkedAsync ( IHttpStreamWriter writer, bool isRequest, SessionEventArgs args,
+        CancellationToken cancellationToken )
     {
         while (true)
         {
@@ -1104,8 +1105,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="args"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private async Task CopyBytesToStream(IHttpStreamWriter writer, long count, bool isRequest, SessionEventArgs args,
-        CancellationToken cancellationToken)
+    private async Task CopyBytesToStream ( IHttpStreamWriter writer, long count, bool isRequest, SessionEventArgs args,
+        CancellationToken cancellationToken )
     {
         var buffer = bufferPool.GetBuffer();
 
@@ -1144,8 +1145,8 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="headerBuilder"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected async ValueTask WriteAsync(RequestResponseBase requestResponse, HeaderBuilder headerBuilder,
-        CancellationToken cancellationToken = default)
+    protected async ValueTask WriteAsync ( RequestResponseBase requestResponse, HeaderBuilder headerBuilder,
+        CancellationToken cancellationToken = default )
     {
         var body = requestResponse.CompressBodyAndUpdateContentLength();
         headerBuilder.WriteHeaders(requestResponse.Headers);
@@ -1165,25 +1166,25 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
     /// <param name="buffer">The buffer to write data from.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="P:System.Threading.CancellationToken.None" />.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
-    public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken =
- default)
+    public override async ValueTask WriteAsync ( ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken =
+ default )
+    {
+        if (closedWrite)
         {
-            if (closedWrite)
-            {
-                return;
-            }
-
-            try
-            {
-                await BaseStream.WriteAsync(buffer, cancellationToken);
-            }
-            catch
-            {
-                closedWrite = true;
-                if (!IsNetworkStream)
-                    throw;
-            }
+            return;
         }
+
+        try
+        {
+            await BaseStream.WriteAsync(buffer, cancellationToken);
+        }
+        catch
+        {
+            closedWrite = true;
+            if (!IsNetworkStream)
+                throw;
+        }
+    }
 #else
     /// <summary>
     ///     Asynchronously writes a sequence of bytes to the current stream, advances the current position within this stream

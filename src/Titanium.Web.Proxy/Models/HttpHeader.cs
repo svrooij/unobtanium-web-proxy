@@ -18,21 +18,11 @@ public class HttpHeader
     /// </summary>
     public const int HttpHeaderOverhead = 32;
 
-#if NET6_0_OR_GREATER
     internal static Version VersionUnknown => HttpVersion.Unknown;
-#else
-    internal static Version VersionUnknown { get; } = new(0, 0);
-#endif
-
     internal static Version Version10 => HttpVersion.Version10;
 
     internal static Version Version11 => HttpVersion.Version11;
-
-#if NET6_0_OR_GREATER
     internal static Version Version20 => HttpVersion.Version20;
-#else
-    internal static Version Version20 { get; } = new(2, 0);
-#endif
 
     internal static readonly Encoding DefaultEncoding = Encoding.GetEncoding("ISO-8859-1");
 
@@ -52,7 +42,7 @@ public class HttpHeader
     /// </summary>
     /// <param name="name">Header name.</param>
     /// <param name="value">Header value.</param>
-    public HttpHeader(string name, string value)
+    public HttpHeader ( string name, string value )
     {
         if (string.IsNullOrEmpty(name)) throw new Exception("Name cannot be null or empty");
 
@@ -63,7 +53,7 @@ public class HttpHeader
         ValueData = valueString.GetByteString();
     }
 
-    internal HttpHeader(KnownHeader name, string value)
+    internal HttpHeader ( KnownHeader name, string value )
     {
         nameString = name.String;
         NameData = name.String8;
@@ -72,7 +62,7 @@ public class HttpHeader
         ValueData = valueString.GetByteString();
     }
 
-    internal HttpHeader(KnownHeader name, KnownHeader value)
+    internal HttpHeader ( KnownHeader name, KnownHeader value )
     {
         nameString = name.String;
         NameData = name.String8;
@@ -81,15 +71,15 @@ public class HttpHeader
         ValueData = value.String8;
     }
 
-    internal HttpHeader(ByteString name, ByteString value)
+    internal HttpHeader ( ByteString name, ByteString value )
     {
-        if (name.Length == 0) throw new Exception("Name cannot be empty");
+        if (name.Length == 0) throw new ArgumentException("Name cannot be empty");
 
         NameData = name;
         ValueData = value;
     }
 
-    private protected HttpHeader(ByteString name, ByteString value, bool headerEntry)
+    private protected HttpHeader ( ByteString name, ByteString value, bool _ )
     {
         // special header entry created in inherited class with empty name
         NameData = name;
@@ -115,18 +105,18 @@ public class HttpHeader
     /// </summary>
     public int Size => Name.Length + Value.Length + HttpHeaderOverhead;
 
-    internal static int SizeOf(ByteString name, ByteString value)
+    internal static int SizeOf ( ByteString name, ByteString value )
     {
         return name.Length + value.Length + HttpHeaderOverhead;
     }
 
-    internal void SetValue(string value)
+    internal void SetValue ( string value )
     {
         valueString = value;
         ValueData = value.GetByteString();
     }
 
-    internal void SetValue(KnownHeader value)
+    internal void SetValue ( KnownHeader value )
     {
         valueString = value.String;
         ValueData = value.String8;
@@ -136,12 +126,12 @@ public class HttpHeader
     ///     Returns header as a valid header string.
     /// </summary>
     /// <returns></returns>
-    public override string ToString()
+    public override string ToString ()
     {
         return $"{Name}: {Value}";
     }
 
-    internal static HttpHeader GetProxyAuthorizationHeader(string? userName, string? password)
+    internal static HttpHeader GetProxyAuthorizationHeader ( string? userName, string? password )
     {
         var result = new HttpHeader(KnownHeaders.ProxyAuthorization,
             "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes($"{userName}:{password}")));

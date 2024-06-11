@@ -45,7 +45,7 @@ public partial class ProxyServer
     ///     User to server to authenticate requests.
     ///     To disable this set ProxyServer.EnableWinAuth to false.
     /// </summary>
-    private async Task Handle401UnAuthorized(SessionEventArgs args)
+    private static async Task Handle401UnAuthorized ( SessionEventArgs args )
     {
         string? headerName = null;
         HttpHeader? authHeader = null;
@@ -118,7 +118,7 @@ public partial class ProxyServer
                     authHeader.Value.StartsWith(x, StringComparison.OrdinalIgnoreCase) &&
                     authHeader.Value.Length > x.Length + 1);
 
-                var serverToken = authHeader.Value.Substring(scheme.Length + 1);
+                var serverToken = authHeader.Value[(scheme.Length + 1)..];
                 var clientToken = WinAuthHandler.GetFinalAuthToken(request.Host!, serverToken, args.HttpClient.Data);
 
                 var auth = string.Concat(scheme, clientToken);
@@ -146,7 +146,7 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="args"></param>
     /// <returns></returns>
-    private async Task RewriteUnauthorizedResponse(SessionEventArgs args)
+    private static async Task RewriteUnauthorizedResponse ( SessionEventArgs args )
     {
         var response = args.HttpClient.Response;
 

@@ -13,7 +13,7 @@ public class MultipartRequestPartSentEventArgs : ProxyEventArgsBase
     /// <param name="session">The session event arguments.</param>
     /// <param name="boundary">The multipart boundary.</param>
     /// <param name="headers">The multipart headers.</param>
-    internal MultipartRequestPartSentEventArgs(SessionEventArgs session, string boundary, HeaderCollection headers) :
+    internal MultipartRequestPartSentEventArgs ( SessionEventArgs session, string boundary, HeaderCollection headers ) :
         base(session.Server, session.ClientConnection)
     {
         Session = session;

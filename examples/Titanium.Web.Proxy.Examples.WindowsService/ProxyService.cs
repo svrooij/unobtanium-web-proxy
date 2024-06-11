@@ -13,13 +13,13 @@ namespace WindowsServiceExample
     {
         private static ProxyServer _proxyServerInstance;
 
-        public ProxyService()
+        public ProxyService ()
         {
             InitializeComponent();
             AppDomain.CurrentDomain.UnhandledException += UnhandledDomainException;
         }
 
-        protected override void OnStart(string[] args)
+        protected override void OnStart ( string[] args )
         {
             // we do all this in here so we can reload settings with a simple restart
 
@@ -76,7 +76,7 @@ namespace WindowsServiceExample
                 EventLogEntryType.Information);
         }
 
-        protected override void OnStop()
+        protected override void OnStop ()
         {
             _proxyServerInstance.Stop();
 
@@ -84,7 +84,7 @@ namespace WindowsServiceExample
             _proxyServerInstance.Dispose();
         }
 
-        private void ProxyException(Exception exception)
+        private void ProxyException ( Exception exception )
         {
             string message;
             if (exception is ProxyHttpException pEx)
@@ -96,7 +96,7 @@ namespace WindowsServiceExample
             ProxyServiceEventLog.WriteEntry(message, EventLogEntryType.Error);
         }
 
-        private void UnhandledDomainException(object sender, UnhandledExceptionEventArgs e)
+        private void UnhandledDomainException ( object sender, UnhandledExceptionEventArgs e )
         {
             ProxyServiceEventLog.WriteEntry($"Unhandled Exception in AppDomain, Exception = {e}",
                 EventLogEntryType.Error);

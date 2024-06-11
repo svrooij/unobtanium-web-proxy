@@ -16,8 +16,8 @@ public class CertificateValidationEventArgs : ProxyEventArgsBase
     /// <param name="certificate">The certificate.</param>
     /// <param name="chain">The chain.</param>
     /// <param name="sslPolicyErrors">The SSL policy errors.</param>
-    public CertificateValidationEventArgs(SessionEventArgsBase session, X509Certificate certificate, X509Chain chain,
-        SslPolicyErrors sslPolicyErrors) : base(session.Server, session.ClientConnection)
+    public CertificateValidationEventArgs ( SessionEventArgsBase session, X509Certificate certificate, X509Chain chain,
+        SslPolicyErrors sslPolicyErrors ) : base(session.Server, session.ClientConnection)
     {
         Session = session;
         Certificate = certificate;

@@ -19,18 +19,18 @@ public interface ILineStream
     /// </summary>
     /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
     /// <returns>A ValueTask that completes when the buffer has been filled, yielding a boolean indicating whether any data was read.</returns>
-    ValueTask<bool> FillBufferAsync(CancellationToken cancellationToken = default);
+    ValueTask<bool> FillBufferAsync ( CancellationToken cancellationToken = default );
 
     /// <summary>
     /// Reads a single byte from the internal buffer.
     /// </summary>
     /// <returns>The byte read from the buffer.</returns>
-    byte ReadByteFromBuffer();
+    byte ReadByteFromBuffer ();
 
     /// <summary>
     /// Asynchronously reads a line of data from the stream.
     /// </summary>
     /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
     /// <returns>A ValueTask that completes when the line has been read, yielding the line as a string, or null if the end of the stream has been reached.</returns>
-    ValueTask<string?> ReadLineAsync(CancellationToken cancellationToken = default);
+    ValueTask<string?> ReadLineAsync ( CancellationToken cancellationToken = default );
 }

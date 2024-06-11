@@ -34,7 +34,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <summary>
     /// Constructor to initialize the proxy
     /// </summary>
-    internal SessionEventArgs(ProxyServer server, ProxyEndPoint endPoint, HttpClientStream clientStream, ConnectRequest? connectRequest, CancellationTokenSource cancellationTokenSource)
+    internal SessionEventArgs ( ProxyServer server, ProxyEndPoint endPoint, HttpClientStream clientStream, ConnectRequest? connectRequest, CancellationTokenSource cancellationTokenSource )
         : base(server, endPoint, clientStream, connectRequest, new Request(), cancellationTokenSource)
     {
     }
@@ -78,7 +78,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <summary>
     /// Read request body content as bytes[] for current session
     /// </summary>
-    private async Task ReadRequestBodyAsync(CancellationToken cancellationToken)
+    private async Task ReadRequestBodyAsync ( CancellationToken cancellationToken )
     {
         HttpClient.Request.EnsureBodyAvailable(false);
 
@@ -125,14 +125,14 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <summary>
     /// reinit response object
     /// </summary>
-    internal async Task ClearResponse(CancellationToken cancellationToken)
+    internal async Task ClearResponse ( CancellationToken cancellationToken )
     {
         // syphon out the response body from server
         await SyphonOutBodyAsync(false, cancellationToken);
         HttpClient.Response = new Response();
     }
 
-    internal void OnMultipartRequestPartSent(ReadOnlySpan<char> boundary, HeaderCollection headers)
+    internal void OnMultipartRequestPartSent ( ReadOnlySpan<char> boundary, HeaderCollection headers )
     {
         try
         {
@@ -147,7 +147,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <summary>
     /// Read response body as byte[] for current response
     /// </summary>
-    private async Task ReadResponseBodyAsync(CancellationToken cancellationToken)
+    private async Task ReadResponseBodyAsync ( CancellationToken cancellationToken )
     {
         if (!HttpClient.Request.Locked) throw new Exception("You cannot read the response body before request is made to server.");
 
@@ -192,7 +192,7 @@ public class SessionEventArgs : SessionEventArgsBase
         }
     }
 
-    private async Task<byte[]> ReadBodyAsync(bool isRequest, CancellationToken cancellationToken)
+    private async Task<byte[]> ReadBodyAsync ( bool isRequest, CancellationToken cancellationToken )
     {
         using var bodyStream = new MemoryStream();
         using var writer = new HttpStream(Server, bodyStream, BufferPool, cancellationToken);
@@ -212,7 +212,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <param name="isRequest"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    internal async Task SyphonOutBodyAsync(bool isRequest, CancellationToken cancellationToken)
+    internal async Task SyphonOutBodyAsync ( bool isRequest, CancellationToken cancellationToken )
     {
         var requestResponse = isRequest ? (RequestResponseBase)HttpClient.Request : HttpClient.Response;
         if (requestResponse.IsBodyReceived || !requestResponse.OriginalHasBody) return;
@@ -227,7 +227,7 @@ public class SessionEventArgs : SessionEventArgsBase
     ///  This is called when the request is PUT/POST/PATCH to read the body
     /// </summary>
     /// <returns></returns>
-    internal async Task CopyRequestBodyAsync(IHttpStreamWriter writer, TransformationMode transformation, CancellationToken cancellationToken)
+    internal async Task CopyRequestBodyAsync ( IHttpStreamWriter writer, TransformationMode transformation, CancellationToken cancellationToken )
     {
         var request = HttpClient.Request;
         var reader = ClientStream;
@@ -239,23 +239,21 @@ public class SessionEventArgs : SessionEventArgsBase
         {
             var boundary = HttpHelper.GetBoundaryFromContentType(request.ContentType);
 
-            using (var copyStream = new CopyStream(reader, writer, BufferPool))
+            using var copyStream = new CopyStream(reader, writer, BufferPool);
+            while (contentLength > copyStream.ReadBytes)
             {
-                while (contentLength > copyStream.ReadBytes)
+                var read = await ReadUntilBoundaryAsync(copyStream, contentLength, boundary, cancellationToken);
+                if (read == 0) break;
+
+                if (contentLength > copyStream.ReadBytes)
                 {
-                    var read = await ReadUntilBoundaryAsync(copyStream, contentLength, boundary, cancellationToken);
-                    if (read == 0) break;
-
-                    if (contentLength > copyStream.ReadBytes)
-                    {
-                        var headers = new HeaderCollection();
-                        await HeaderParser.ReadHeaders(copyStream, headers, cancellationToken);
-                        OnMultipartRequestPartSent(boundary.Span, headers);
-                    }
+                    var headers = new HeaderCollection();
+                    await HeaderParser.ReadHeaders(copyStream, headers, cancellationToken);
+                    OnMultipartRequestPartSent(boundary.Span, headers);
                 }
-
-                await copyStream.FlushAsync(cancellationToken);
             }
+
+            await copyStream.FlushAsync(cancellationToken);
         }
         else
         {
@@ -265,7 +263,7 @@ public class SessionEventArgs : SessionEventArgsBase
         request.IsBodyReceived = true;
     }
 
-    private async Task CopyResponseBodyAsync(IHttpStreamWriter writer, TransformationMode transformation, CancellationToken cancellationToken)
+    private async Task CopyResponseBodyAsync ( IHttpStreamWriter writer, TransformationMode transformation, CancellationToken cancellationToken )
     {
         var response = HttpClient.Response;
         await HttpClient.Connection.Stream.CopyBodyAsync(response, false, writer, transformation, false, this, cancellationToken);
@@ -276,7 +274,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// Read a line from the byte stream
     /// </summary>
     /// <returns></returns>
-    private async Task<long> ReadUntilBoundaryAsync(ILineStream reader, long totalBytesToRead, ReadOnlyMemory<char> boundary, CancellationToken cancellationToken)
+    private async Task<long> ReadUntilBoundaryAsync ( CopyStream reader, long totalBytesToRead, ReadOnlyMemory<char> boundary, CancellationToken cancellationToken )
     {
         var bufferDataLength = 0;
 
@@ -334,7 +332,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// </summary>
     /// <param name="cancellationToken">Optional cancellation token for this async task.</param>
     /// <returns>The body as bytes.</returns>
-    public async Task<byte[]> GetRequestBody(CancellationToken cancellationToken = default)
+    public async Task<byte[]> GetRequestBody ( CancellationToken cancellationToken = default )
     {
         if (!HttpClient.Request.IsBodyRead) await ReadRequestBodyAsync(cancellationToken);
 
@@ -346,7 +344,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// </summary>
     /// <param name="cancellationToken">Optional cancellation token for this async task.</param>
     /// <returns>The body as string.</returns>
-    public async Task<string> GetRequestBodyAsString(CancellationToken cancellationToken = default)
+    public async Task<string> GetRequestBodyAsString ( CancellationToken cancellationToken = default )
     {
         if (!HttpClient.Request.IsBodyRead) await ReadRequestBodyAsync(cancellationToken);
 
@@ -357,7 +355,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// Sets the request body.
     /// </summary>
     /// <param name="body">The request body bytes.</param>
-    public void SetRequestBody(byte[] body)
+    public void SetRequestBody ( byte[] body )
     {
         var request = HttpClient.Request;
         if (request.Locked) throw new Exception("You cannot call this function after request is made to server.");
@@ -369,20 +367,19 @@ public class SessionEventArgs : SessionEventArgsBase
     /// Sets the body with the specified string.
     /// </summary>
     /// <param name="body">The request body string to set.</param>
-    public void SetRequestBodyString(string body)
+    public void SetRequestBodyString ( string body )
     {
         if (HttpClient.Request.Locked) throw new Exception("You cannot call this function after request is made to server.");
 
         SetRequestBody(HttpClient.Request.Encoding.GetBytes(body));
     }
 
-
     /// <summary>
     /// Gets the response body as bytes.
     /// </summary>
     /// <param name="cancellationToken">Optional cancellation token for this async task.</param>
     /// <returns>The resulting bytes.</returns>
-    public async Task<byte[]> GetResponseBody(CancellationToken cancellationToken = default)
+    public async Task<byte[]> GetResponseBody ( CancellationToken cancellationToken = default )
     {
         if (!HttpClient.Response.IsBodyRead) await ReadResponseBodyAsync(cancellationToken);
 
@@ -394,7 +391,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// </summary>
     /// <param name="cancellationToken">Optional cancellation token for this async task.</param>
     /// <returns>The string body.</returns>
-    public async Task<string> GetResponseBodyAsString(CancellationToken cancellationToken = default)
+    public async Task<string> GetResponseBodyAsString ( CancellationToken cancellationToken = default )
     {
         if (!HttpClient.Response.IsBodyRead) await ReadResponseBodyAsync(cancellationToken);
 
@@ -405,7 +402,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// Set the response body bytes.
     /// </summary>
     /// <param name="body">The body bytes to set.</param>
-    public void SetResponseBody(byte[] body)
+    public void SetResponseBody ( byte[] body )
     {
         if (!HttpClient.Request.Locked) throw new Exception("You cannot call this function before request is made to server.");
 
@@ -417,7 +414,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// Replace the response body with the specified string.
     /// </summary>
     /// <param name="body">The body string to set.</param>
-    public void SetResponseBodyString(string body)
+    public void SetResponseBodyString ( string body )
     {
         if (!HttpClient.Request.Locked) throw new Exception("You cannot call this function before request is made to server.");
 
@@ -428,26 +425,26 @@ public class SessionEventArgs : SessionEventArgsBase
 
     /// <summary>
     /// Before request is made to server respond with the specified HTML string to client
-    /// and ignore the request. 
+    /// and ignore the request.
     /// </summary>
     /// <param name="html">HTML content to sent.</param>
     /// <param name="headers">HTTP response headers.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void Ok(string html, IDictionary<string, HttpHeader>? headers,
-        bool closeServerConnection = false)
+    public void Ok ( string html, IDictionary<string, HttpHeader>? headers,
+        bool closeServerConnection = false )
     {
         Ok(html, headers?.Values, closeServerConnection);
     }
 
     /// <summary>
     /// Before request is made to server respond with the specified HTML string to client
-    /// and ignore the request. 
+    /// and ignore the request.
     /// </summary>
     /// <param name="html">HTML content to sent.</param>
     /// <param name="headers">HTTP response headers.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void Ok(string html, IEnumerable<HttpHeader>? headers = null,
-        bool closeServerConnection = false)
+    public void Ok ( string html, IEnumerable<HttpHeader>? headers = null,
+        bool closeServerConnection = false )
     {
         var response = new OkResponse();
         if (headers != null) response.Headers.AddHeaders(headers);
@@ -460,26 +457,26 @@ public class SessionEventArgs : SessionEventArgsBase
 
     /// <summary>
     /// Before request is made to server respond with the specified byte[] to client
-    /// and ignore the request. 
+    /// and ignore the request.
     /// </summary>
     /// <param name="result">The html content bytes.</param>
     /// <param name="headers">The HTTP headers.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void Ok(byte[] result, IDictionary<string, HttpHeader>? headers,
-        bool closeServerConnection = false)
+    public void Ok ( byte[] result, IDictionary<string, HttpHeader>? headers,
+        bool closeServerConnection = false )
     {
         Ok(result, headers?.Values, closeServerConnection);
     }
 
     /// <summary>
     /// Before request is made to server respond with the specified byte[] to client
-    /// and ignore the request. 
+    /// and ignore the request.
     /// </summary>
     /// <param name="result">The html content bytes.</param>
     /// <param name="headers">The HTTP headers.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void Ok(byte[] result, IEnumerable<HttpHeader>? headers = null,
-        bool closeServerConnection = false)
+    public void Ok ( byte[] result, IEnumerable<HttpHeader>? headers = null,
+        bool closeServerConnection = false )
     {
         var response = new OkResponse();
         response.Headers.AddHeaders(headers);
@@ -498,8 +495,8 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <param name="status">The HTTP status code.</param>
     /// <param name="headers">The HTTP headers.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void GenericResponse(string html, HttpStatusCode status,
-        IDictionary<string, HttpHeader>? headers, bool closeServerConnection = false)
+    public void GenericResponse ( string html, HttpStatusCode status,
+        IDictionary<string, HttpHeader>? headers, bool closeServerConnection = false )
     {
         GenericResponse(html, status, headers?.Values, closeServerConnection);
     }
@@ -513,11 +510,13 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <param name="status">The HTTP status code.</param>
     /// <param name="headers">The HTTP headers.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void GenericResponse(string html, HttpStatusCode status,
-        IEnumerable<HttpHeader>? headers = null, bool closeServerConnection = false)
+    public void GenericResponse ( string html, HttpStatusCode status,
+        IEnumerable<HttpHeader>? headers = null, bool closeServerConnection = false )
     {
-        var response = new GenericResponse(status);
-        response.HttpVersion = HttpClient.Request.HttpVersion;
+        var response = new GenericResponse(status)
+        {
+            HttpVersion = HttpClient.Request.HttpVersion
+        };
         response.Headers.AddHeaders(headers);
         response.Body = response.Encoding.GetBytes(html ?? string.Empty);
 
@@ -532,8 +531,8 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <param name="status">The HTTP status code.</param>
     /// <param name="headers">The HTTP headers.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void GenericResponse(byte[] result, HttpStatusCode status,
-        IDictionary<string, HttpHeader> headers, bool closeServerConnection = false)
+    public void GenericResponse ( byte[] result, HttpStatusCode status,
+        IDictionary<string, HttpHeader> headers, bool closeServerConnection = false )
     {
         GenericResponse(result, status, headers?.Values, closeServerConnection);
     }
@@ -546,11 +545,13 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <param name="status">The HTTP status code.</param>
     /// <param name="headers">The HTTP headers.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void GenericResponse(byte[] result, HttpStatusCode status,
-        IEnumerable<HttpHeader>? headers, bool closeServerConnection = false)
+    public void GenericResponse ( byte[] result, HttpStatusCode status,
+        IEnumerable<HttpHeader>? headers, bool closeServerConnection = false )
     {
-        var response = new GenericResponse(status);
-        response.HttpVersion = HttpClient.Request.HttpVersion;
+        var response = new GenericResponse(status)
+        {
+            HttpVersion = HttpClient.Request.HttpVersion
+        };
         response.Headers.AddHeaders(headers);
         response.Body = result;
 
@@ -562,12 +563,14 @@ public class SessionEventArgs : SessionEventArgsBase
     /// </summary>
     /// <param name="url">The URL to redirect.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void Redirect(string url, bool closeServerConnection = false)
+    public void Redirect ( string url, bool closeServerConnection = false )
     {
-        var response = new RedirectResponse();
-        response.HttpVersion = HttpClient.Request.HttpVersion;
+        var response = new RedirectResponse
+        {
+            HttpVersion = HttpClient.Request.HttpVersion
+        };
         response.Headers.AddHeader(KnownHeaders.Location, url);
-        response.Body = Array.Empty<byte>();
+        response.Body = [];
 
         Respond(response, closeServerConnection);
     }
@@ -577,7 +580,7 @@ public class SessionEventArgs : SessionEventArgsBase
     /// </summary>
     /// <param name="response">The response object.</param>
     /// <param name="closeServerConnection">Close the server connection used by request if any?</param>
-    public void Respond(Response response, bool closeServerConnection = false)
+    public void Respond ( Response response, bool closeServerConnection = false )
     {
         // request already send/ready to be sent.
         if (HttpClient.Request.Locked)
@@ -587,13 +590,13 @@ public class SessionEventArgs : SessionEventArgsBase
 
             // cleanup original response.
             if (closeServerConnection)
-            // no need to cleanup original connection.
-            // it will be closed any way.
+                // no need to cleanup original connection.
+                // it will be closed any way.
                 TerminateServerConnection();
 
             response.SetOriginalHeaders(HttpClient.Response);
 
-            // response already received from server but not yet ready to sent to client.         
+            // response already received from server but not yet ready to sent to client.
             HttpClient.Response = response;
             HttpClient.Response.Locked = true;
         }
@@ -612,13 +615,13 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <summary>
     ///     Terminate the connection to server at the end of this HTTP request/response session.
     /// </summary>
-    public void TerminateServerConnection()
+    public void TerminateServerConnection ()
     {
         HttpClient.CloseServerConnection = true;
     }
 
     /// <inheritdoc/>
-    protected override void Dispose(bool disposing)
+    protected override void Dispose ( bool disposing )
     {
         if (disposed) return;
 
@@ -629,11 +632,11 @@ public class SessionEventArgs : SessionEventArgsBase
     }
 
     /// <inheritdoc/>
-    ~SessionEventArgs()
+    ~SessionEventArgs ()
     {
 #if DEBUG
-            // Finalizer should not be called
-            System.Diagnostics.Debugger.Break();
+        // Finalizer should not be called
+        System.Diagnostics.Debugger.Break();
 #endif
 
         Dispose(false);

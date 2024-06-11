@@ -17,7 +17,7 @@ public abstract class TransparentBaseProxyEndPoint : ProxyEndPoint
     /// <param name="ipAddress">The IP address of the endpoint.</param>
     /// <param name="port">The port of the endpoint.</param>
     /// <param name="decryptSsl">A boolean value that indicates whether SSL decryption is enabled for this endpoint.</param>
-    protected TransparentBaseProxyEndPoint(IPAddress ipAddress, int port, bool decryptSsl) : base(ipAddress, port,
+    protected TransparentBaseProxyEndPoint ( IPAddress ipAddress, int port, bool decryptSsl ) : base(ipAddress, port,
         decryptSsl)
     {
     }
@@ -29,6 +29,6 @@ public abstract class TransparentBaseProxyEndPoint : ProxyEndPoint
     /// </summary>
     public abstract string GenericCertificateName { get; set; }
 
-    internal abstract Task InvokeBeforeSslAuthenticate(ProxyServer proxyServer,
-        BeforeSslAuthenticateEventArgs connectArgs, ExceptionHandler? exceptionFunc);
+    internal abstract Task InvokeBeforeSslAuthenticate ( ProxyServer proxyServer,
+        BeforeSslAuthenticateEventArgs connectArgs, ExceptionHandler? exceptionFunc );
 }

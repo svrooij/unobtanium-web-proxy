@@ -17,7 +17,7 @@ public partial class ProxyServer
     /// <param name="endPoint">The transparent endpoint.</param>
     /// <param name="clientConnection">The client connection.</param>
     /// <returns></returns>
-    private async Task HandleClient(SocksProxyEndPoint endPoint, TcpClientConnection clientConnection)
+    private async Task HandleClient ( SocksProxyEndPoint endPoint, TcpClientConnection clientConnection )
     {
         var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
@@ -111,8 +111,8 @@ public partial class ProxyServer
                         portIdx = buffer[4] + 5;
 
 #if DEBUG
-                            var hostname = new ByteString(buffer.AsMemory(5, buffer[4]));
-                            string hostnameStr = hostname.GetString();
+                        var hostname = new ByteString(buffer.AsMemory(5, buffer[4]));
+                        string hostnameStr = hostname.GetString();
 #endif
                         break;
                     case 4:

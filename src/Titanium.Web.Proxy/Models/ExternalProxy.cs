@@ -18,7 +18,7 @@ public class ExternalProxy : IExternalProxy
     /// <summary>
     ///     Initializes a new instance of the <see cref="ExternalProxy" /> class.
     /// </summary>
-    public ExternalProxy()
+    public ExternalProxy ()
     {
     }
 
@@ -27,7 +27,7 @@ public class ExternalProxy : IExternalProxy
     /// </summary>
     /// <param name="hostName">Name of the host.</param>
     /// <param name="port">The port.</param>
-    public ExternalProxy(string hostName, int port)
+    public ExternalProxy ( string hostName, int port )
     {
         HostName = hostName;
         Port = port;
@@ -40,7 +40,7 @@ public class ExternalProxy : IExternalProxy
     /// <param name="port">The port.</param>
     /// <param name="userName">Name of the user.</param>
     /// <param name="password">The password.</param>
-    public ExternalProxy(string hostName, int port, string userName, string password)
+    public ExternalProxy ( string hostName, int port, string userName, string password )
     {
         HostName = hostName;
         Port = port;
@@ -110,7 +110,7 @@ public class ExternalProxy : IExternalProxy
     ///     returns data in Hostname:port format.
     /// </summary>
     /// <returns></returns>
-    public override string ToString()
+    public override string ToString ()
     {
         return $"{HostName}:{Port}";
     }

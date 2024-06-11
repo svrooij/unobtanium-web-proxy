@@ -29,7 +29,7 @@ public partial class ProxyServer
     /// <param name="endPoint">The explicit endpoint.</param>
     /// <param name="clientConnection">The client connection.</param>
     /// <returns>The task.</returns>
-    private async Task HandleClient(ExplicitProxyEndPoint endPoint, TcpClientConnection clientConnection)
+    private async Task HandleClient ( ExplicitProxyEndPoint endPoint, TcpClientConnection clientConnection )
     {
         var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
@@ -64,8 +64,8 @@ public partial class ProxyServer
 
                 connectArgs = new TunnelConnectSessionEventArgs(this, endPoint, connectRequest, clientStream,
                     cancellationTokenSource);
-                clientStream.DataRead += (o, args) => connectArgs.OnDataSent(args.Buffer, args.Offset, args.Count);
-                clientStream.DataWrite += (o, args) => connectArgs.OnDataReceived(args.Buffer, args.Offset, args.Count);
+                clientStream.DataRead += ( o, args ) => connectArgs.OnDataSent(args.Buffer, args.Offset, args.Count);
+                clientStream.DataWrite += ( o, args ) => connectArgs.OnDataReceived(args.Buffer, args.Offset, args.Count);
 
                 await endPoint.InvokeBeforeTunnelConnectRequest(this, connectArgs, ExceptionFunc);
 
@@ -168,8 +168,8 @@ public partial class ProxyServer
                             CancellationToken.None);
 
                     var connectHostname = requestLine.RequestUri.GetString();
-                    var idx = connectHostname.IndexOf(":");
-                    if (idx >= 0) connectHostname = connectHostname.Substring(0, idx);
+                    var idx = connectHostname.IndexOf(':');
+                    if (idx >= 0) connectHostname = connectHostname[..idx];
 
                     X509Certificate2? certificate = null;
                     SslStream? sslStream = null;
@@ -198,8 +198,8 @@ public partial class ProxyServer
                         await sslStream.AuthenticateAsServerAsync(options, cancellationToken);
 
 #if NET6_0_OR_GREATER
-                            clientStream.Connection.NegotiatedApplicationProtocol =
- sslStream.NegotiatedApplicationProtocol;
+                        clientStream.Connection.NegotiatedApplicationProtocol =
+sslStream.NegotiatedApplicationProtocol;
 #endif
 
                         // HTTPS server created - we can now decrypt the client's traffic
@@ -207,9 +207,9 @@ public partial class ProxyServer
                             cancellationToken);
                         sslStream = null; // clientStream was created, no need to keep SSL stream reference
 
-                        clientStream.DataRead += (o, args) =>
+                        clientStream.DataRead += ( o, args ) =>
                             connectArgs.OnDecryptedDataSent(args.Buffer, args.Offset, args.Count);
-                        clientStream.DataWrite += (o, args) =>
+                        clientStream.DataWrite += ( o, args ) =>
                             connectArgs.OnDecryptedDataReceived(args.Buffer, args.Offset, args.Count);
                     }
                     catch (Exception e)
@@ -322,16 +322,16 @@ public partial class ProxyServer
                     try
                     {
 #if NET6_0_OR_GREATER
-                            var connectionPreface = new ReadOnlyMemory<byte>(Http2Helper.ConnectionPreface);
-                            await connection.Stream.WriteAsync(connectionPreface, cancellationToken);
-                            await Http2Helper.SendHttp2(clientStream, connection.Stream,
-                                () => new SessionEventArgs(this, endPoint, clientStream, connectArgs?.HttpClient.ConnectRequest, cancellationTokenSource)
-                                {
-                                    UserData = connectArgs?.UserData
-                                },
-                                async args => { await OnBeforeRequest(args); },
-                                async args => { await OnBeforeResponse(args); },
-                                connectArgs.CancellationTokenSource, clientStream.Connection.Id, ExceptionFunc);
+                        var connectionPreface = new ReadOnlyMemory<byte>(Http2Helper.ConnectionPreface);
+                        await connection.Stream.WriteAsync(connectionPreface, cancellationToken);
+                        await Http2Helper.SendHttp2(clientStream, connection.Stream,
+                            () => new SessionEventArgs(this, endPoint, clientStream, connectArgs?.HttpClient.ConnectRequest, cancellationTokenSource)
+                            {
+                                UserData = connectArgs?.UserData
+                            },
+                            async args => { await OnBeforeRequest(args); },
+                            async args => { await OnBeforeResponse(args); },
+                            connectArgs.CancellationTokenSource, clientStream.Connection.Id, ExceptionFunc);
 #endif
                     }
                     finally

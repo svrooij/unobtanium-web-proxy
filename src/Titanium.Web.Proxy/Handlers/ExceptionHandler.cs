@@ -6,4 +6,4 @@ namespace Titanium.Web.Proxy;
 ///     A delegate to catch exceptions occuring in proxy.
 /// </summary>
 /// <param name="exception">The exception occurred in proxy.</param>
-public delegate void ExceptionHandler(Exception exception);
+public delegate void ExceptionHandler ( Exception exception );

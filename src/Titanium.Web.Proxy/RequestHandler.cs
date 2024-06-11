@@ -33,9 +33,9 @@ public partial class ProxyServer
     /// <param name="connectArgs">The Connect request if this is a HTTPS request from explicit endpoint.</param>
     /// <param name="prefetchConnectionTask">Prefetched server connection for current client using Connect/SNI headers.</param>
     /// <param name="isHttps">Is HTTPS</param>
-    private async Task HandleHttpSessionRequest(ProxyEndPoint endPoint, HttpClientStream clientStream,
+    private async Task HandleHttpSessionRequest ( ProxyEndPoint endPoint, HttpClientStream clientStream,
         CancellationTokenSource cancellationTokenSource, TunnelConnectSessionEventArgs? connectArgs = null,
-        Task<TcpServerConnection?>? prefetchConnectionTask = null, bool isHttps = false)
+        Task<TcpServerConnection?>? prefetchConnectionTask = null, bool isHttps = false )
     {
         var connectRequest = connectArgs?.HttpClient.ConnectRequest;
 
@@ -213,7 +213,7 @@ public partial class ProxyServer
                             connection = null;
                         }
                     }
-                    catch (Exception e) when (!(e is ProxyHttpException))
+                    catch (Exception e) when (e is not ProxyHttpException)
                     {
                         throw new ProxyHttpException("Error occured whilst handling session request", e, args);
                     }
@@ -239,9 +239,9 @@ public partial class ProxyServer
         }
     }
 
-    private async Task<RetryResult> HandleHttpSessionRequest(SessionEventArgs args,
+    private async Task<RetryResult> HandleHttpSessionRequest ( SessionEventArgs args,
         TcpServerConnection? serverConnection, SslApplicationProtocol sslApplicationProtocol,
-        CancellationToken cancellationToken, CancellationTokenSource cancellationTokenSource)
+        CancellationToken cancellationToken, CancellationTokenSource cancellationTokenSource )
     {
         args.HttpClient.Request.Locked = true;
 
@@ -290,7 +290,7 @@ public partial class ProxyServer
         }, generator, serverConnection);
     }
 
-    private async Task HandleHttpSessionRequest(SessionEventArgs args)
+    private async Task HandleHttpSessionRequest ( SessionEventArgs args )
     {
         var cancellationToken = args.CancellationTokenSource.Token;
         var request = args.HttpClient.Request;
@@ -334,7 +334,7 @@ public partial class ProxyServer
     /// <summary>
     ///     Prepare the request headers so that we can avoid encodings not parseable by this proxy
     /// </summary>
-    private void PrepareRequestHeaders(HeaderCollection requestHeaders)
+    private void PrepareRequestHeaders ( HeaderCollection requestHeaders )
     {
         var acceptEncoding = requestHeaders.GetHeaderValueOrNull(KnownHeaders.AcceptEncoding);
 
@@ -362,7 +362,7 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="args">The session event arguments.</param>
     /// <returns></returns>
-    private async Task OnBeforeRequest(SessionEventArgs args)
+    private async Task OnBeforeRequest ( SessionEventArgs args )
     {
         args.TimeLine["Request Received"] = DateTime.UtcNow;
 
@@ -374,29 +374,29 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="request">The COONECT request.</param>
     /// <returns></returns>
-    internal async Task OnBeforeUpStreamConnectRequest(ConnectRequest request)
+    internal async Task OnBeforeUpStreamConnectRequest ( ConnectRequest request )
     {
         if (BeforeUpStreamConnectRequest != null)
             await BeforeUpStreamConnectRequest.InvokeAsync(this, request, ExceptionFunc);
     }
 
 #if DEBUG
-        internal bool ShouldCallBeforeRequestBodyWrite()
+    internal bool ShouldCallBeforeRequestBodyWrite ()
+    {
+        if (OnRequestBodyWrite != null)
         {
-            if (OnRequestBodyWrite != null)
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
-        internal async Task OnBeforeRequestBodyWrite(BeforeBodyWriteEventArgs args)
+        return false;
+    }
+
+    internal async Task OnBeforeRequestBodyWrite ( BeforeBodyWriteEventArgs args )
+    {
+        if (OnRequestBodyWrite != null)
         {
-            if (OnRequestBodyWrite != null)
-            {
-                await OnRequestBodyWrite.InvokeAsync(this, args, ExceptionFunc);
-            }
+            await OnRequestBodyWrite.InvokeAsync(this, args, ExceptionFunc);
         }
+    }
 #endif
 }

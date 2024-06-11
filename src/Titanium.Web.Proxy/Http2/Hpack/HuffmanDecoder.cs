@@ -39,7 +39,7 @@ public class HuffmanDecoder
     /// <summary>
     ///     Creates a new Huffman decoder with the specified Huffman coding.
     /// </summary>
-    private HuffmanDecoder()
+    private HuffmanDecoder ()
     {
         // the Huffman codes indexed by symbol
         var codes = HpackUtil.HuffmanCodes;
@@ -61,7 +61,7 @@ public class HuffmanDecoder
     ///     throws IOException if an I/O error occurs. In particular, an <code>IOException</code> may
     ///     be thrown if the output stream has been closed.
     /// </exception>
-    public ReadOnlyMemory<byte> Decode(byte[] buf)
+    public ReadOnlyMemory<byte> Decode ( byte[] buf )
     {
         var resultBuf = new byte[buf.Length * 2];
         var resultSize = 0;
@@ -113,7 +113,7 @@ public class HuffmanDecoder
         return resultBuf.AsMemory(0, resultSize);
     }
 
-    private static Node BuildTree(int[] codes, byte[] lengths)
+    private static Node BuildTree ( int[] codes, byte[] lengths )
     {
         var root = new Node();
         for (var i = 0; i < codes.Length; i++) Insert(root, i, codes[i], lengths[i]);
@@ -121,7 +121,7 @@ public class HuffmanDecoder
         return root;
     }
 
-    private static void Insert(Node root, int symbol, int code, byte length)
+    private static void Insert ( Node root, int symbol, int code, byte length )
     {
         // traverse tree using the most significant bytes of code
         var current = root;
@@ -148,7 +148,7 @@ public class HuffmanDecoder
         /// <summary>
         ///     Initializes a new instance of the <see cref="HuffmanDecoder" /> class.
         /// </summary>
-        public Node()
+        public Node ()
         {
             Symbol = 0;
             Bits = 8;
@@ -160,7 +160,7 @@ public class HuffmanDecoder
         /// </summary>
         /// <param name="symbol">the symbol the node represents</param>
         /// <param name="bits">the number of bits matched by this node</param>
-        public Node(int symbol, int bits)
+        public Node ( int symbol, int bits )
         {
             //assert(bits > 0 && bits <= 8);
             Symbol = symbol;

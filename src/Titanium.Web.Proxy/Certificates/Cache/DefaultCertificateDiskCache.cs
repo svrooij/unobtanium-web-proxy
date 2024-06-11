@@ -23,7 +23,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <param name="password">The password for the root certificate.</param>
     /// <param name="storageFlags">The storage flags for the root certificate.</param>
     /// <returns>The loaded root certificate, or null if not found.</returns>
-    public X509Certificate2? LoadRootCertificate(string pathOrName, string password, X509KeyStorageFlags storageFlags)
+    public X509Certificate2? LoadRootCertificate ( string pathOrName, string password, X509KeyStorageFlags storageFlags )
     {
         var path = GetRootCertificatePath(pathOrName);
         return LoadCertificate(path, password, storageFlags);
@@ -35,7 +35,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <param name="pathOrName">The path or name where the root certificate will be saved.</param>
     /// <param name="password">The password for the root certificate.</param>
     /// <param name="certificate">The root certificate to save.</param>
-    public void SaveRootCertificate(string pathOrName, string password, X509Certificate2 certificate)
+    public void SaveRootCertificate ( string pathOrName, string password, X509Certificate2 certificate )
     {
         var path = GetRootCertificatePath(pathOrName);
         var exported = certificate.Export(X509ContentType.Pkcs12, password);
@@ -48,7 +48,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <param name="subjectName">The subject name of the certificate to load.</param>
     /// <param name="storageFlags">The storage flags for the certificate.</param>
     /// <returns>The loaded certificate, or null if not found.</returns>
-    public X509Certificate2? LoadCertificate(string subjectName, X509KeyStorageFlags storageFlags)
+    public X509Certificate2? LoadCertificate ( string subjectName, X509KeyStorageFlags storageFlags )
     {
         var filePath = Path.Combine(GetCertificatePath(false), subjectName + DefaultCertificateFileExtension);
         return LoadCertificate(filePath, string.Empty, storageFlags);
@@ -59,7 +59,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// </summary>
     /// <param name="subjectName">The subject name of the certificate to save.</param>
     /// <param name="certificate">The certificate to save.</param>
-    public void SaveCertificate(string subjectName, X509Certificate2 certificate)
+    public void SaveCertificate ( string subjectName, X509Certificate2 certificate )
     {
         var filePath = Path.Combine(GetCertificatePath(true), subjectName + DefaultCertificateFileExtension);
         var exported = certificate.Export(X509ContentType.Pkcs12);
@@ -69,7 +69,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <summary>
     /// Clears all certificates from the cache.
     /// </summary>
-    public void Clear()
+    public void Clear ()
     {
         try
         {
@@ -82,7 +82,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
         }
     }
 
-    private X509Certificate2? LoadCertificate(string path, string password, X509KeyStorageFlags storageFlags)
+    private static X509Certificate2? LoadCertificate ( string path, string password, X509KeyStorageFlags storageFlags )
     {
         byte[] exported;
 
@@ -101,7 +101,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
         return new X509Certificate2(exported, password, storageFlags);
     }
 
-    private string GetRootCertificatePath(string pathOrName)
+    private string GetRootCertificatePath ( string pathOrName )
     {
         if (Path.IsPathRooted(pathOrName)) return pathOrName;
 
@@ -109,7 +109,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
             string.IsNullOrEmpty(pathOrName) ? DefaultRootCertificateFileName : pathOrName);
     }
 
-    private string GetCertificatePath(bool create)
+    private string GetCertificatePath ( bool create )
     {
         var path = GetRootCertificateDirectory();
 
@@ -119,7 +119,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
         return certPath;
     }
 
-    private string GetRootCertificateDirectory()
+    private string GetRootCertificateDirectory ()
     {
         if (rootCertificatePath == null)
         {

@@ -23,7 +23,7 @@ internal class CopyStream : ILineStream, IDisposable
 
     private bool disposed;
 
-    public CopyStream(IHttpStreamReader reader, IHttpStreamWriter writer, IBufferPool bufferPool)
+    public CopyStream ( IHttpStreamReader reader, IHttpStreamWriter writer, IBufferPool bufferPool )
     {
         this.reader = reader;
         this.writer = writer;
@@ -33,7 +33,7 @@ internal class CopyStream : ILineStream, IDisposable
 
     public long ReadBytes { get; private set; }
 
-    public void Dispose()
+    public void Dispose ()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
@@ -41,13 +41,13 @@ internal class CopyStream : ILineStream, IDisposable
 
     public bool DataAvailable => reader.DataAvailable;
 
-    public async ValueTask<bool> FillBufferAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<bool> FillBufferAsync ( CancellationToken cancellationToken = default )
     {
         await FlushAsync(cancellationToken);
         return await reader.FillBufferAsync(cancellationToken);
     }
 
-    public byte ReadByteFromBuffer()
+    public byte ReadByteFromBuffer ()
     {
         var b = reader.ReadByteFromBuffer();
         buffer[bufferLength++] = b;
@@ -55,12 +55,12 @@ internal class CopyStream : ILineStream, IDisposable
         return b;
     }
 
-    public ValueTask<string?> ReadLineAsync(CancellationToken cancellationToken = default)
+    public ValueTask<string?> ReadLineAsync ( CancellationToken cancellationToken = default )
     {
         return HttpStream.ReadLineInternalAsync(this, bufferPool, cancellationToken);
     }
 
-    public async Task FlushAsync(CancellationToken cancellationToken = default)
+    public async Task FlushAsync ( CancellationToken cancellationToken = default )
     {
         // send out the current data from from the buffer
         if (bufferLength > 0)
@@ -70,7 +70,7 @@ internal class CopyStream : ILineStream, IDisposable
         }
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected virtual void Dispose ( bool disposing )
     {
         if (disposed) return;
 
@@ -79,11 +79,11 @@ internal class CopyStream : ILineStream, IDisposable
         disposed = true;
     }
 
-    ~CopyStream()
+    ~CopyStream ()
     {
 #if DEBUG
-            // Finalizer should not be called
-            System.Diagnostics.Debugger.Break();
+        // Finalizer should not be called
+        System.Diagnostics.Debugger.Break();
 #endif
 
         Dispose(false);

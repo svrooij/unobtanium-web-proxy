@@ -28,5 +28,5 @@ internal interface IHeaderListener
     /// <param name="name">Name.</param>
     /// <param name="value">Value.</param>
     /// <param name="sensitive">If set to <c>true</c> sensitive.</param>
-    void AddHeader(ByteString name, ByteString value, bool sensitive);
+    void AddHeader ( ByteString name, ByteString value, bool sensitive );
 }

@@ -41,7 +41,7 @@ public class ProxyAuthenticationContext
     /// Creates a new ProxyAuthenticationContext instance representing a failed authentication attempt.
     /// </summary>
     /// <returns>A new ProxyAuthenticationContext instance with Result set to Failure and Continuation set to null.</returns>
-    public static ProxyAuthenticationContext Failed()
+    public static ProxyAuthenticationContext Failed ()
     {
         return new ProxyAuthenticationContext
         {
@@ -54,7 +54,7 @@ public class ProxyAuthenticationContext
     /// Creates a new ProxyAuthenticationContext instance representing a successful authentication attempt.
     /// </summary>
     /// <returns>A new ProxyAuthenticationContext instance with Result set to Success and Continuation set to null.</returns>
-    public static ProxyAuthenticationContext Succeeded()
+    public static ProxyAuthenticationContext Succeeded ()
     {
         return new ProxyAuthenticationContext
         {

@@ -48,7 +48,7 @@ internal sealed class Socks4Handler : SocksHandler
     /// <param name="server">The socket connection with the proxy server.</param>
     /// <param name="user">The username to use when authenticating with the server.</param>
     /// <exception cref="ArgumentNullException"><c>server</c> -or- <c>user</c> is null.</exception>
-    public Socks4Handler(Socket server, string user) : base(server, user)
+    public Socks4Handler ( Socket server, string user ) : base(server, user)
     {
     }
 
@@ -65,13 +65,12 @@ internal sealed class Socks4Handler : SocksHandler
     /// </remarks>
     /// <exception cref="ArgumentNullException"><c>host</c> is null.</exception>
     /// <exception cref="ArgumentException"><c>port</c> is invalid.</exception>
-    private int GetHostPortBytes(string host, int port, Memory<byte> buffer)
+    private int GetHostPortBytes ( string host, int port, Memory<byte> buffer )
     {
-        if (host == null)
-            throw new ArgumentNullException(nameof(host));
+        ArgumentNullException.ThrowIfNull(host);
 
         if (port <= 0 || port > 65535)
-            throw new ArgumentException(nameof(port));
+            throw new ArgumentException("Port must be between 0 and 65535", nameof(port));
 
         var length = 10 + Username.Length + host.Length;
         Debug.Assert(buffer.Length >= length);
@@ -79,13 +78,13 @@ internal sealed class Socks4Handler : SocksHandler
         var connect = buffer.Span;
         connect[0] = 4;
         connect[1] = 1;
-        PortToBytes(port, connect.Slice(2));
+        PortToBytes(port, connect[2..]);
         connect[4] = connect[5] = connect[6] = 0;
         connect[7] = 1;
         var userNameArray = Encoding.ASCII.GetBytes(Username);
-        userNameArray.CopyTo(connect.Slice(8));
+        userNameArray.CopyTo(connect[8..]);
         connect[8 + Username.Length] = 0;
-        Encoding.ASCII.GetBytes(host).CopyTo(connect.Slice(9 + Username.Length));
+        Encoding.ASCII.GetBytes(host).CopyTo(connect[(9 + Username.Length)..]);
         connect[length - 1] = 0;
         return length;
     }
@@ -97,10 +96,9 @@ internal sealed class Socks4Handler : SocksHandler
     /// <param name="buffer">The buffer which contains the result data.</param>
     /// <returns>An array of bytes that has to be sent when the user wants to connect to a specific IPEndPoint.</returns>
     /// <exception cref="ArgumentNullException"><c>remoteEP</c> is null.</exception>
-    private int GetEndPointBytes(IPEndPoint remoteEp, Memory<byte> buffer)
+    private int GetEndPointBytes ( IPEndPoint remoteEp, Memory<byte> buffer )
     {
-        if (remoteEp == null)
-            throw new ArgumentNullException(nameof(remoteEp));
+        ArgumentNullException.ThrowIfNull(remoteEp);
 
         var length = 9 + Username.Length;
         Debug.Assert(buffer.Length >= length);
@@ -108,9 +106,9 @@ internal sealed class Socks4Handler : SocksHandler
         var connect = buffer.Span;
         connect[0] = 4;
         connect[1] = 1;
-        PortToBytes(remoteEp.Port, connect.Slice(2));
-        remoteEp.Address.GetAddressBytes().CopyTo(connect.Slice(4));
-        Encoding.ASCII.GetBytes(Username).CopyTo(connect.Slice(8));
+        PortToBytes(remoteEp.Port, connect[2..]);
+        remoteEp.Address.GetAddressBytes().CopyTo(connect[4..]);
+        Encoding.ASCII.GetBytes(Username).CopyTo(connect[8..]);
         connect[length - 1] = 0;
         return length;
     }
@@ -125,7 +123,7 @@ internal sealed class Socks4Handler : SocksHandler
     /// <exception cref="ProxyException">The proxy rejected the request.</exception>
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    public override void Negotiate(string host, int port)
+    public override void Negotiate ( string host, int port )
     {
         var buffer = ArrayPool<byte>.Shared.Rent(10 + Username.Length + host.Length);
         try
@@ -147,7 +145,7 @@ internal sealed class Socks4Handler : SocksHandler
     /// <exception cref="ProxyException">The proxy rejected the request.</exception>
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    public override void Negotiate(IPEndPoint remoteEp)
+    public override void Negotiate ( IPEndPoint remoteEp )
     {
         var buffer = ArrayPool<byte>.Shared.Rent(9 + Username.Length);
         try
@@ -171,13 +169,12 @@ internal sealed class Socks4Handler : SocksHandler
     /// <exception cref="ProxyException">The proxy rejected the request.</exception>
     /// <exception cref="SocketException">An operating system error occurs while accessing the Socket.</exception>
     /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-    private void Negotiate(byte[] connect, int length)
+    private void Negotiate ( byte[] connect, int length )
     {
-        if (connect == null)
-            throw new ArgumentNullException(nameof(connect));
+        ArgumentNullException.ThrowIfNull(connect);
 
         if (length < 2)
-            throw new ArgumentException(nameof(length));
+            throw new ArgumentOutOfRangeException(nameof(length), "length should be higer then 2");
 
         if (Server.Send(connect, 0, length, SocketFlags.None) < length)
             throw new SocketException(10054);
@@ -199,8 +196,8 @@ internal sealed class Socks4Handler : SocksHandler
     /// <param name="proxyEndPoint">The IPEndPoint of the SOCKS proxy server.</param>
     /// <param name="state">The state.</param>
     /// <returns>An IAsyncProxyResult that references the asynchronous connection.</returns>
-    public override AsyncProxyResult BeginNegotiate(string host, int port, HandShakeComplete callback,
-        IPEndPoint proxyEndPoint, object state)
+    public override AsyncProxyResult BeginNegotiate ( string host, int port, HandShakeComplete callback,
+        IPEndPoint proxyEndPoint, object state )
     {
         ProtocolComplete = callback;
         Buffer = ArrayPool<byte>.Shared.Rent(10 + Username.Length + host.Length);
@@ -218,8 +215,8 @@ internal sealed class Socks4Handler : SocksHandler
     /// <param name="proxyEndPoint">The IPEndPoint of the SOCKS proxy server.</param>
     /// <param name="state">The state.</param>
     /// <returns>An IAsyncProxyResult that references the asynchronous connection.</returns>
-    public override AsyncProxyResult BeginNegotiate(IPEndPoint remoteEp, HandShakeComplete callback,
-        IPEndPoint proxyEndPoint, object state)
+    public override AsyncProxyResult BeginNegotiate ( IPEndPoint remoteEp, HandShakeComplete callback,
+        IPEndPoint proxyEndPoint, object state )
     {
         ProtocolComplete = callback;
         Buffer = ArrayPool<byte>.Shared.Rent(9 + Username.Length);
@@ -233,7 +230,7 @@ internal sealed class Socks4Handler : SocksHandler
     ///     Called when the Socket is connected to the remote proxy server.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnConnect(IAsyncResult ar)
+    private void OnConnect ( IAsyncResult ar )
     {
         try
         {
@@ -259,7 +256,7 @@ internal sealed class Socks4Handler : SocksHandler
     ///     Called when the Socket has sent the handshake data.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnSent(IAsyncResult ar)
+    private void OnSent ( IAsyncResult ar )
     {
         try
         {
@@ -287,7 +284,7 @@ internal sealed class Socks4Handler : SocksHandler
     ///     Called when the Socket has received a reply from the remote proxy server.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnReceive(IAsyncResult ar)
+    private void OnReceive ( IAsyncResult ar )
     {
         try
         {

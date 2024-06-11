@@ -15,7 +15,7 @@ public class Response : RequestResponseBase
     /// <summary>
     ///     Constructor.
     /// </summary>
-    public Response()
+    public Response ()
     {
     }
 
@@ -23,7 +23,7 @@ public class Response : RequestResponseBase
     ///     Constructor.
     /// </summary>
     /// <param name="body">The response body as a byte array.</param>
-    public Response(byte[] body)
+    public Response ( byte[] body )
     {
         Body = body;
     }
@@ -106,16 +106,14 @@ public class Response : RequestResponseBase
     ///     Ensures the response body is available.
     /// </summary>
     /// <param name="throwWhenNotReadYet">If true, throws an exception if the body is not read yet.</param>
-    internal override void EnsureBodyAvailable(bool throwWhenNotReadYet = true)
+    internal override void EnsureBodyAvailable ( bool throwWhenNotReadYet = true )
     {
         if (BodyInternal != null) return;
 
-        if (!HasBody) throw new BodyNotFoundException("Response don't have a body.");
+        if (!HasBody) throw new BodyNotFoundException("Response has no body.");
 
         if (!IsBodyRead && throwWhenNotReadYet)
-            throw new Exception("Response body is not read yet. " +
-                                "Use SessionEventArgs.GetResponseBody() or SessionEventArgs.GetResponseBodyAsString() " +
-                                "method to read the response body.");
+            throw new BodyNotLoadedException();
     }
 
     /// <summary>
@@ -125,8 +123,8 @@ public class Response : RequestResponseBase
     /// <param name="version">The HTTP version.</param>
     /// <param name="statusCode">The status code.</param>
     /// <param name="statusDescription">The status description.</param>
-    internal static void ParseResponseLine(string httpStatus, out Version version, out int statusCode,
-        out string statusDescription)
+    internal static void ParseResponseLine ( string httpStatus, out Version version, out int statusCode,
+        out string statusDescription )
     {
         var firstSpace = httpStatus.IndexOf(' ');
         if (firstSpace == -1) throw new Exception("Invalid HTTP status line: " + httpStatus);

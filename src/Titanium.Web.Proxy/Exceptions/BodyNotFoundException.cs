@@ -1,7 +1,9 @@
 ﻿namespace Titanium.Web.Proxy.Exceptions;
 
 /// <summary>
-///     An exception thrown when body is unexpectedly empty.
+/// Body not found exception, is thrown in case the body is not found
+/// or it's not a POST/PUT/PATCH request
+/// or the content-length is zero.
 /// </summary>
 public class BodyNotFoundException : ProxyException
 {
@@ -9,7 +11,7 @@ public class BodyNotFoundException : ProxyException
     ///     Constructor.
     /// </summary>
     /// <param name="message"></param>
-    internal BodyNotFoundException(string message) : base(message)
+    internal BodyNotFoundException ( string message = "Request does not have a body" ) : base(message)
     {
     }
 }

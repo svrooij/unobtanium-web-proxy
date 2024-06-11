@@ -25,10 +25,10 @@ namespace Titanium.Web.Proxy.Network.Tcp;
 internal class TcpConnectionFactory : IDisposable
 {
     // Tcp server connection pool cache
-    private readonly ConcurrentDictionary<string, ConcurrentQueue<TcpServerConnection>> cache = new();
+    private readonly ConcurrentDictionary<string, ConcurrentQueue<TcpServerConnection>> cache = [];
 
     // Tcp connections waiting to be disposed by cleanup task
-    private readonly ConcurrentBag<TcpServerConnection> disposalBag = new();
+    private readonly ConcurrentBag<TcpServerConnection> disposalBag = [];
 
     // cache object race operations lock
     private readonly SemaphoreSlim @lock = new(1);
@@ -37,7 +37,7 @@ internal class TcpConnectionFactory : IDisposable
 
     private volatile bool runCleanUpTask = true;
 
-    internal TcpConnectionFactory(ProxyServer server)
+    internal TcpConnectionFactory ( ProxyServer server )
     {
         Server = server;
         Task.Run(async () => await ClearOutdatedConnections());
@@ -45,15 +45,15 @@ internal class TcpConnectionFactory : IDisposable
 
     internal ProxyServer Server { get; }
 
-    public void Dispose()
+    public void Dispose ()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    internal string GetConnectionCacheKey(string remoteHostName, int remotePort,
+    internal static string GetConnectionCacheKey ( string remoteHostName, int remotePort,
         bool isHttps, List<SslApplicationProtocol>? applicationProtocols,
-        IPEndPoint? upStreamEndPoint, IExternalProxy? externalProxy)
+        IPEndPoint? upStreamEndPoint, IExternalProxy? externalProxy )
     {
         // http version is ignored since its an application level decision b/w HTTP 1.0/1.1
         // also when doing connect request MS Edge browser sends http 1.0 but uses 1.1 after server sends 1.1 its response.
@@ -61,9 +61,9 @@ internal class TcpConnectionFactory : IDisposable
         // http version 2 is separated using applicationProtocols below.
         var cacheKeyBuilder = new StringBuilder();
         cacheKeyBuilder.Append(remoteHostName);
-        cacheKeyBuilder.Append("-");
+        cacheKeyBuilder.Append('-');
         cacheKeyBuilder.Append(remotePort);
-        cacheKeyBuilder.Append("-");
+        cacheKeyBuilder.Append('-');
 
         // when creating Tcp client isConnect won't matter
         cacheKeyBuilder.Append(isHttps);
@@ -71,32 +71,32 @@ internal class TcpConnectionFactory : IDisposable
         if (applicationProtocols != null)
             foreach (var protocol in applicationProtocols.OrderBy(x => x))
             {
-                cacheKeyBuilder.Append("-");
+                cacheKeyBuilder.Append('-');
                 cacheKeyBuilder.Append(protocol);
             }
 
         if (upStreamEndPoint != null)
         {
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(upStreamEndPoint.Address);
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(upStreamEndPoint.Port);
         }
 
         if (externalProxy != null)
         {
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(externalProxy.HostName);
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(externalProxy.Port);
-            cacheKeyBuilder.Append("-");
+            cacheKeyBuilder.Append('-');
             cacheKeyBuilder.Append(externalProxy.ProxyType);
 
             if (externalProxy.UseDefaultCredentials)
             {
-                cacheKeyBuilder.Append("-");
+                cacheKeyBuilder.Append('-');
                 cacheKeyBuilder.Append(externalProxy.UserName);
-                cacheKeyBuilder.Append("-");
+                cacheKeyBuilder.Append('-');
                 cacheKeyBuilder.Append(externalProxy.Password);
             }
         }
@@ -111,12 +111,12 @@ internal class TcpConnectionFactory : IDisposable
     /// <param name="session">The session event arguments.</param>
     /// <param name="applicationProtocol">The application protocol.</param>
     /// <returns></returns>
-    internal async Task<string> GetConnectionCacheKey(ProxyServer server, SessionEventArgsBase session,
-        SslApplicationProtocol applicationProtocol)
+    internal static async Task<string> GetConnectionCacheKey ( ProxyServer server, SessionEventArgsBase session,
+        SslApplicationProtocol applicationProtocol )
     {
         List<SslApplicationProtocol>? applicationProtocols = null;
         if (applicationProtocol != default)
-            applicationProtocols = new List<SslApplicationProtocol> { applicationProtocol };
+            applicationProtocols = [applicationProtocol];
 
         var customUpStreamProxy = session.CustomUpStreamProxy;
 
@@ -144,13 +144,13 @@ internal class TcpConnectionFactory : IDisposable
     /// <param name="noCache">if set to <c>true</c> [no cache].</param>
     /// <param name="cancellationToken">The cancellation token for this async task.</param>
     /// <returns></returns>
-    internal Task<TcpServerConnection> GetServerConnection(ProxyServer proxyServer, SessionEventArgsBase session,
+    internal Task<TcpServerConnection> GetServerConnection ( ProxyServer proxyServer, SessionEventArgsBase session,
         bool isConnect,
-        SslApplicationProtocol applicationProtocol, bool noCache, CancellationToken cancellationToken)
+        SslApplicationProtocol applicationProtocol, bool noCache, CancellationToken cancellationToken )
     {
         List<SslApplicationProtocol>? applicationProtocols = null;
         if (applicationProtocol != default)
-            applicationProtocols = new List<SslApplicationProtocol> { applicationProtocol };
+            applicationProtocols = [applicationProtocol];
 
         return GetServerConnection(proxyServer, session, isConnect, applicationProtocols, noCache, false,
             cancellationToken)!;
@@ -167,10 +167,10 @@ internal class TcpConnectionFactory : IDisposable
     /// <param name="prefetch">if set to <c>true</c> [prefetch].</param>
     /// <param name="cancellationToken">The cancellation token for this async task.</param>
     /// <returns></returns>
-    internal async Task<TcpServerConnection?> GetServerConnection(ProxyServer proxyServer, SessionEventArgsBase session,
+    internal async Task<TcpServerConnection?> GetServerConnection ( ProxyServer proxyServer, SessionEventArgsBase session,
         bool isConnect,
         List<SslApplicationProtocol>? applicationProtocols, bool noCache, bool prefetch,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken )
     {
         var customUpStreamProxy = session.CustomUpStreamProxy;
 
@@ -194,8 +194,8 @@ internal class TcpConnectionFactory : IDisposable
             }
             else
             {
-                host = authority.Slice(0, idx).GetString();
-                port = int.Parse(authority.Slice(idx + 1).GetString());
+                host = authority[..idx].GetString();
+                port = int.Parse(authority[(idx + 1)..].GetString());
             }
         }
         else
@@ -230,11 +230,11 @@ internal class TcpConnectionFactory : IDisposable
     /// <param name="prefetch">if set to <c>true</c> [prefetch].</param>
     /// <param name="cancellationToken">The cancellation token for this async task.</param>
     /// <returns></returns>
-    internal async Task<TcpServerConnection?> GetServerConnection(ProxyServer proxyServer, string remoteHostName,
+    internal async Task<TcpServerConnection?> GetServerConnection ( ProxyServer proxyServer, string remoteHostName,
         int remotePort,
         Version httpVersion, bool isHttps, List<SslApplicationProtocol>? applicationProtocols, bool isConnect,
         SessionEventArgsBase sessionArgs, IPEndPoint? upStreamEndPoint, IExternalProxy? externalProxy,
-        bool noCache, bool prefetch, CancellationToken cancellationToken)
+        bool noCache, bool prefetch, CancellationToken cancellationToken )
     {
         var sslProtocol = sessionArgs.ClientConnection.SslProtocol;
         var cacheKey = GetConnectionCacheKey(remoteHostName, remotePort,
@@ -246,7 +246,7 @@ internal class TcpConnectionFactory : IDisposable
                 {
                     // +3 seconds for potential delay after getting connection
                     var cutOff = DateTime.UtcNow.AddSeconds(-proxyServer.ConnectionTimeOutSeconds + 3);
-                    while (existingConnections.Count > 0)
+                    while (!existingConnections.IsEmpty)
                         if (existingConnections.TryDequeue(out var recentConnection))
                         {
                             if (recentConnection.LastAccess > cutOff
@@ -282,12 +282,12 @@ internal class TcpConnectionFactory : IDisposable
     /// <param name="prefetch">if set to <c>true</c> [prefetch].</param>
     /// <param name="cancellationToken">The cancellation token for this async task.</param>
     /// <returns></returns>
-    private async Task<TcpServerConnection?> CreateServerConnection(string remoteHostName, int remotePort,
+    private async Task<TcpServerConnection?> CreateServerConnection ( string remoteHostName, int remotePort,
         Version httpVersion, bool isHttps, SslProtocols sslProtocol, List<SslApplicationProtocol>? applicationProtocols,
         bool isConnect,
         ProxyServer proxyServer, SessionEventArgsBase sessionArgs, IPEndPoint? upStreamEndPoint,
         IExternalProxy? externalProxy, string cacheKey,
-        bool prefetch, CancellationToken cancellationToken)
+        bool prefetch, CancellationToken cancellationToken )
     {
         // deny connection to proxy end points to avoid infinite connection loop.
         if (Server.ProxyEndPoints.Any(x => x.Port == remotePort)
@@ -328,7 +328,7 @@ internal class TcpConnectionFactory : IDisposable
         var retry = true;
         var enabledSslProtocols = sslProtocol;
 
-        retry:
+retry:
         try
         {
             var socks = externalProxy != null && externalProxy.ProxyType != ExternalProxyType.Http;
@@ -341,7 +341,7 @@ internal class TcpConnectionFactory : IDisposable
                 port = externalProxy.Port;
             }
 
-            var ipAddresses = await Dns.GetHostAddressesAsync(hostname);
+            var ipAddresses = await Dns.GetHostAddressesAsync(hostname, cancellationToken);
             if (ipAddresses == null || ipAddresses.Length == 0)
             {
                 if (prefetch) return null;
@@ -351,7 +351,7 @@ internal class TcpConnectionFactory : IDisposable
 
             if (sessionArgs != null) sessionArgs.TimeLine["Dns Resolved"] = DateTime.UtcNow;
 
-            Array.Sort(ipAddresses, (x, y) => x.AddressFamily.CompareTo(y.AddressFamily));
+            Array.Sort(ipAddresses, ( x, y ) => x.AddressFamily.CompareTo(y.AddressFamily));
 
             Exception? lastException = null;
             for (var i = 0; i < ipAddresses.Length; i++)
@@ -363,12 +363,13 @@ internal class TcpConnectionFactory : IDisposable
                     if (socks)
                     {
                         var proxySocket =
-                            new ProxySocket.ProxySocket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
-                        proxySocket.ProxyType = externalProxy!.ProxyType == ExternalProxyType.Socks4
-                            ? ProxyTypes.Socks4
-                            : ProxyTypes.Socks5;
-
-                        proxySocket.ProxyEndPoint = new IPEndPoint(ipAddress, port);
+                            new ProxySocket.ProxySocket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
+                            {
+                                ProxyType = externalProxy!.ProxyType == ExternalProxyType.Socks4
+                                    ? ProxyTypes.Socks4
+                                    : ProxyTypes.Socks5,
+                                ProxyEndPoint = new IPEndPoint(ipAddress, port)
+                            };
                         if (!string.IsNullOrEmpty(externalProxy.UserName) && externalProxy.Password != null)
                         {
                             proxySocket.ProxyUser = externalProxy.UserName;
@@ -405,7 +406,7 @@ internal class TcpConnectionFactory : IDisposable
                         else
                         {
                             // todo: resolve only once when the SOCKS proxy has multiple addresses (and the first address fails)
-                            var remoteIpAddresses = await Dns.GetHostAddressesAsync(remoteHostName);
+                            var remoteIpAddresses = await Dns.GetHostAddressesAsync(remoteHostName, cancellationToken);
                             if (remoteIpAddresses == null || remoteIpAddresses.Length == 0)
                                 throw new Exception($"Could not resolve the SOCKS remote hostname {remoteHostName}");
 
@@ -522,10 +523,10 @@ internal class TcpConnectionFactory : IDisposable
             if (isHttps)
             {
                 var sslStream = new SslStream(stream, false,
-                    (sender, certificate, chain, sslPolicyErrors) =>
+                    ( sender, certificate, chain, sslPolicyErrors ) =>
                         proxyServer.ValidateServerCertificate(sender, sessionArgs, certificate!, chain!,
                             sslPolicyErrors),
-                    (sender, targetHost, localCertificates, remoteCertificate, acceptableIssuers) =>
+                    ( sender, targetHost, localCertificates, remoteCertificate, acceptableIssuers ) =>
                         proxyServer.SelectClientCertificate(sender, sessionArgs, targetHost, localCertificates,
                             remoteCertificate, acceptableIssuers)!);
                 stream = new HttpServerStream(proxyServer, sslStream, proxyServer.BufferPool, cancellationToken);
@@ -593,7 +594,7 @@ internal class TcpConnectionFactory : IDisposable
     /// </summary>
     /// <param name="connection">The Tcp server connection to return.</param>
     /// <param name="close">Should we just close the connection instead of reusing?</param>
-    internal async Task Release(TcpServerConnection? connection, bool close = false)
+    internal async Task Release ( TcpServerConnection? connection, bool close = false )
     {
         if (connection == null) return;
 
@@ -626,7 +627,7 @@ internal class TcpConnectionFactory : IDisposable
                 }
 
                 if (cache.TryAdd(connection.CacheKey,
-                        new ConcurrentQueue<TcpServerConnection>(new[] { connection })))
+                        new ConcurrentQueue<TcpServerConnection>([connection])))
                     break;
             }
         }
@@ -636,7 +637,7 @@ internal class TcpConnectionFactory : IDisposable
         }
     }
 
-    internal async Task Release(Task<TcpServerConnection?>? connectionCreateTask, bool closeServerConnection)
+    internal async Task Release ( Task<TcpServerConnection?>? connectionCreateTask, bool closeServerConnection )
     {
         if (connectionCreateTask == null) return;
 
@@ -655,7 +656,7 @@ internal class TcpConnectionFactory : IDisposable
         }
     }
 
-    private async Task ClearOutdatedConnections()
+    private async Task ClearOutdatedConnections ()
     {
         while (runCleanUpTask)
             try
@@ -665,7 +666,7 @@ internal class TcpConnectionFactory : IDisposable
                 {
                     var queue = item.Value;
 
-                    while (queue.Count > 0)
+                    while (!queue.IsEmpty)
                         if (queue.TryDequeue(out var connection))
                         {
                             if (!Server.EnableConnectionPool || connection.LastAccess < cutOff)
@@ -685,7 +686,7 @@ internal class TcpConnectionFactory : IDisposable
                     await @lock.WaitAsync();
 
                     // clear empty queues
-                    var emptyKeys = cache.ToArray().Where(x => x.Value.Count == 0).Select(x => x.Key);
+                    var emptyKeys = cache.ToArray().Where(x => x.Value.IsEmpty).Select(x => x.Key);
                     foreach (var key in emptyKeys) cache.TryRemove(key, out _);
                 }
                 finally
@@ -708,7 +709,7 @@ internal class TcpConnectionFactory : IDisposable
             }
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected virtual void Dispose ( bool disposing )
     {
         if (disposed) return;
 
@@ -740,25 +741,25 @@ internal class TcpConnectionFactory : IDisposable
         disposed = true;
     }
 
-    ~TcpConnectionFactory()
+    ~TcpConnectionFactory ()
     {
         Dispose(false);
     }
 
     private static class SocketConnectionTaskFactory
     {
-        private static IAsyncResult BeginConnect(IPAddress address, int port, AsyncCallback? requestCallback,
-            object? state)
+        private static IAsyncResult BeginConnect ( IPAddress address, int port, AsyncCallback? requestCallback,
+            object? state )
         {
             return (state as Socket)!.BeginConnect(address, port, requestCallback, state);
         }
 
-        private static void EndConnect(IAsyncResult asyncResult)
+        private static void EndConnect ( IAsyncResult asyncResult )
         {
             (asyncResult.AsyncState as Socket)!.EndConnect(asyncResult);
         }
 
-        public static Task CreateTask(Socket socket, IPAddress ipAddress, int port)
+        public static Task CreateTask ( Socket socket, IPAddress ipAddress, int port )
         {
             return Task.Factory.FromAsync(BeginConnect, EndConnect, ipAddress, port, socket);
         }
@@ -766,28 +767,28 @@ internal class TcpConnectionFactory : IDisposable
 
     private static class ProxySocketConnectionTaskFactory
     {
-        private static IAsyncResult? BeginConnect(IPAddress address, int port, AsyncCallback requestCallback,
-            object? state)
+        private static IAsyncResult? BeginConnect ( IPAddress address, int port, AsyncCallback requestCallback,
+            object? state )
         {
             return (state as ProxySocket.ProxySocket)!.BeginConnect(address, port, requestCallback, state);
         }
 
-        private static IAsyncResult? BeginConnect(string hostName, int port, AsyncCallback requestCallback, object? state)
+        private static IAsyncResult? BeginConnect ( string hostName, int port, AsyncCallback requestCallback, object? state )
         {
             return (state as ProxySocket.ProxySocket)!.BeginConnect(hostName, port, requestCallback, state);
         }
 
-        private static void EndConnect(IAsyncResult asyncResult)
+        private static void EndConnect ( IAsyncResult asyncResult )
         {
             (asyncResult.AsyncState as ProxySocket.ProxySocket)!.EndConnect(asyncResult);
         }
 
-        public static Task CreateTask(ProxySocket.ProxySocket socket, IPAddress ipAddress, int port)
+        public static Task CreateTask ( ProxySocket.ProxySocket socket, IPAddress ipAddress, int port )
         {
             return Task.Factory.FromAsync(BeginConnect!, EndConnect, ipAddress, port, socket);
         }
 
-        public static Task CreateTask(ProxySocket.ProxySocket socket, string hostName, int port)
+        public static Task CreateTask ( ProxySocket.ProxySocket socket, string hostName, int port )
         {
             return Task.Factory.FromAsync(BeginConnect!, EndConnect, hostName, port, socket);
         }

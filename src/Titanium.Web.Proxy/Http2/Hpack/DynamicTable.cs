@@ -52,7 +52,7 @@ public class DynamicTable
     ///     Creates a new dynamic table with the specified initial capacity.
     /// </summary>
     /// <param name="initialCapacity">Initial capacity.</param>
-    public DynamicTable(int initialCapacity)
+    public DynamicTable ( int initialCapacity )
     {
         SetCapacity(initialCapacity);
     }
@@ -60,7 +60,7 @@ public class DynamicTable
     /// <summary>
     ///     Return the number of header fields in the dynamic table.
     /// </summary>
-    public int Length()
+    public int Length ()
     {
         int length;
         if (head < tail)
@@ -78,7 +78,7 @@ public class DynamicTable
     /// </summary>
     /// <returns>The entry.</returns>
     /// <param name="index">Index.</param>
-    public HttpHeader GetEntry(int index)
+    public HttpHeader GetEntry ( int index )
     {
         if (index <= 0 || index > Length()) throw new IndexOutOfRangeException();
 
@@ -96,7 +96,7 @@ public class DynamicTable
     ///     the dynamic table will be cleared.
     /// </summary>
     /// <param name="header">Header.</param>
-    public void Add(HttpHeader header)
+    public void Add ( HttpHeader header )
     {
         var headerSize = header.Size;
         if (headerSize > Capacity)
@@ -115,7 +115,7 @@ public class DynamicTable
     /// <summary>
     ///     Remove and return the oldest header field from the dynamic table.
     /// </summary>
-    public HttpHeader? Remove()
+    public HttpHeader? Remove ()
     {
         var removed = headerFields[tail];
         if (removed == null) return null;
@@ -130,7 +130,7 @@ public class DynamicTable
     /// <summary>
     ///     Remove all entries from the dynamic table.
     /// </summary>
-    public void Clear()
+    public void Clear ()
     {
         while (tail != head)
         {
@@ -149,7 +149,7 @@ public class DynamicTable
     ///     is less than or equal to the maximum size.
     /// </summary>
     /// <param name="capacity">Capacity.</param>
-    public void SetCapacity(int capacity)
+    public void SetCapacity ( int capacity )
     {
         if (capacity < 0) throw new ArgumentException("Illegal Capacity: " + capacity);
 

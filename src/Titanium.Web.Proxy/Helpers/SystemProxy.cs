@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.Win32;
 using Titanium.Web.Proxy.Models;
 
 // Helper classes for setting system proxy settings
@@ -9,7 +9,7 @@ namespace Titanium.Web.Proxy.Helpers;
 
 internal class HttpSystemProxyValue
 {
-    public HttpSystemProxyValue(string hostName, int port, ProxyProtocolType protocolType)
+    public HttpSystemProxyValue ( string hostName, int port, ProxyProtocolType protocolType )
     {
         HostName = hostName;
         Port = port;
@@ -22,20 +22,14 @@ internal class HttpSystemProxyValue
 
     internal ProxyProtocolType ProtocolType { get; }
 
-    public override string ToString()
+    public override string ToString ()
     {
-        string protocol;
-        switch (ProtocolType)
+        string protocol = ProtocolType switch
         {
-            case ProxyProtocolType.Http:
-                protocol = ProxyServer.UriSchemeHttp;
-                break;
-            case ProxyProtocolType.Https:
-                protocol = ProxyServer.UriSchemeHttps;
-                break;
-            default:
-                throw new Exception("Unsupported protocol type");
-        }
+            ProxyProtocolType.Http => ProxyServer.UriSchemeHttp,
+            ProxyProtocolType.Https => ProxyServer.UriSchemeHttps,
+            _ => throw new Exception("Unsupported protocol type")
+        };
 
         return $"{protocol}={HostName}:{Port}";
     }
@@ -59,9 +53,9 @@ internal class SystemProxyManager
 
     private ProxyInfo? originalValues;
 
-    public SystemProxyManager()
+    public SystemProxyManager ()
     {
-        AppDomain.CurrentDomain.ProcessExit += (o, args) => RestoreOriginalSettings();
+        AppDomain.CurrentDomain.ProcessExit += ( o, args ) => RestoreOriginalSettings();
         if (Environment.UserInteractive && NativeMethods.GetConsoleWindow() != IntPtr.Zero)
         {
             var handler = new NativeMethods.ConsoleEventDelegate(eventType =>
@@ -84,167 +78,153 @@ internal class SystemProxyManager
     /// <param name="hostname"></param>
     /// <param name="port"></param>
     /// <param name="protocolType"></param>
-    internal void SetProxy(string hostname, int port, ProxyProtocolType protocolType)
+    internal void SetProxy ( string hostname, int port, ProxyProtocolType protocolType )
     {
-        using (var reg = OpenInternetSettingsKey())
-        {
-            if (reg == null) return;
+        using var reg = OpenInternetSettingsKey();
+        if (reg == null) return;
 
-            SaveOriginalProxyConfiguration(reg);
-            PrepareRegistry(reg);
+        SaveOriginalProxyConfiguration(reg);
+        PrepareRegistry(reg);
 
-            var existingContent = reg.GetValue(RegProxyServer) as string;
-            var existingSystemProxyValues = ProxyInfo.GetSystemProxyValues(existingContent);
-            existingSystemProxyValues.RemoveAll(x => (protocolType & x.ProtocolType) != 0);
-            if ((protocolType & ProxyProtocolType.Http) != 0)
-                existingSystemProxyValues.Add(new HttpSystemProxyValue(hostname, port, ProxyProtocolType.Http));
+        var existingContent = reg.GetValue(RegProxyServer) as string;
+        var existingSystemProxyValues = ProxyInfo.GetSystemProxyValues(existingContent);
+        existingSystemProxyValues.RemoveAll(x => (protocolType & x.ProtocolType) != 0);
+        if ((protocolType & ProxyProtocolType.Http) != 0)
+            existingSystemProxyValues.Add(new HttpSystemProxyValue(hostname, port, ProxyProtocolType.Http));
 
-            if ((protocolType & ProxyProtocolType.Https) != 0)
-                existingSystemProxyValues.Add(new HttpSystemProxyValue(hostname, port, ProxyProtocolType.Https));
+        if ((protocolType & ProxyProtocolType.Https) != 0)
+            existingSystemProxyValues.Add(new HttpSystemProxyValue(hostname, port, ProxyProtocolType.Https));
 
-            reg.DeleteValue(RegAutoConfigUrl, false);
-            reg.SetValue(RegProxyEnable, 1);
-            reg.SetValue(RegProxyServer,
-                string.Join(";", existingSystemProxyValues.Select(x => x.ToString()).ToArray()));
+        reg.DeleteValue(RegAutoConfigUrl, false);
+        reg.SetValue(RegProxyEnable, 1);
+        reg.SetValue(RegProxyServer,
+            string.Join(";", existingSystemProxyValues.Select(x => x.ToString()).ToArray()));
 
-            Refresh();
-        }
+        Refresh();
     }
 
     /// <summary>
     ///     Remove the HTTP and/or HTTPS proxy setting from current machine
     /// </summary>
-    internal void RemoveProxy(ProxyProtocolType protocolType, bool saveOriginalConfig = true)
+    internal void RemoveProxy ( ProxyProtocolType protocolType, bool saveOriginalConfig = true )
     {
-        using (var reg = OpenInternetSettingsKey())
+        using var reg = OpenInternetSettingsKey();
+        if (reg == null) return;
+
+        if (saveOriginalConfig) SaveOriginalProxyConfiguration(reg);
+
+        if (reg.GetValue(RegProxyServer) != null)
         {
-            if (reg == null) return;
+            var existingContent = reg.GetValue(RegProxyServer) as string;
 
-            if (saveOriginalConfig) SaveOriginalProxyConfiguration(reg);
+            var existingSystemProxyValues = ProxyInfo.GetSystemProxyValues(existingContent);
+            existingSystemProxyValues.RemoveAll(x => (protocolType & x.ProtocolType) != 0);
 
-            if (reg.GetValue(RegProxyServer) != null)
+            if (existingSystemProxyValues.Count != 0)
             {
-                var existingContent = reg.GetValue(RegProxyServer) as string;
-
-                var existingSystemProxyValues = ProxyInfo.GetSystemProxyValues(existingContent);
-                existingSystemProxyValues.RemoveAll(x => (protocolType & x.ProtocolType) != 0);
-
-                if (existingSystemProxyValues.Count != 0)
-                {
-                    reg.SetValue(RegProxyEnable, 1);
-                    reg.SetValue(RegProxyServer,
-                        string.Join(";", existingSystemProxyValues.Select(x => x.ToString()).ToArray()));
-                }
-                else
-                {
-                    reg.SetValue(RegProxyEnable, 0);
-                    reg.SetValue(RegProxyServer, string.Empty);
-                }
+                reg.SetValue(RegProxyEnable, 1);
+                reg.SetValue(RegProxyServer,
+                    string.Join(";", existingSystemProxyValues.Select(x => x.ToString()).ToArray()));
             }
-
-            Refresh();
+            else
+            {
+                reg.SetValue(RegProxyEnable, 0);
+                reg.SetValue(RegProxyServer, string.Empty);
+            }
         }
+
+        Refresh();
     }
 
     /// <summary>
     ///     Removes all types of proxy settings (both http and https)
     /// </summary>
-    internal void DisableAllProxy()
+    internal void DisableAllProxy ()
     {
-        using (var reg = OpenInternetSettingsKey())
-        {
-            if (reg == null) return;
+        using var reg = OpenInternetSettingsKey();
+        if (reg == null) return;
 
-            SaveOriginalProxyConfiguration(reg);
+        SaveOriginalProxyConfiguration(reg);
 
-            reg.SetValue(RegProxyEnable, 0);
-            reg.SetValue(RegProxyServer, string.Empty);
+        reg.SetValue(RegProxyEnable, 0);
+        reg.SetValue(RegProxyServer, string.Empty);
 
-            Refresh();
-        }
+        Refresh();
     }
 
-    internal void SetAutoProxyUrl(string url)
+    internal void SetAutoProxyUrl ( string url )
     {
-        using (var reg = OpenInternetSettingsKey())
-        {
-            if (reg == null) return;
+        using var reg = OpenInternetSettingsKey();
+        if (reg == null) return;
 
-            SaveOriginalProxyConfiguration(reg);
-            reg.SetValue(RegAutoConfigUrl, url);
-            Refresh();
-        }
+        SaveOriginalProxyConfiguration(reg);
+        reg.SetValue(RegAutoConfigUrl, url);
+        Refresh();
     }
 
-    internal void SetProxyOverride(string proxyOverride)
+    internal void SetProxyOverride ( string proxyOverride )
     {
-        using (var reg = OpenInternetSettingsKey())
-        {
-            if (reg == null) return;
+        using var reg = OpenInternetSettingsKey();
+        if (reg == null) return;
 
-            SaveOriginalProxyConfiguration(reg);
-            reg.SetValue(RegProxyOverride, proxyOverride);
-            Refresh();
-        }
+        SaveOriginalProxyConfiguration(reg);
+        reg.SetValue(RegProxyOverride, proxyOverride);
+        Refresh();
     }
 
-    internal void RestoreOriginalSettings()
+    internal void RestoreOriginalSettings ()
     {
         if (originalValues == null) return;
 
-        using (var reg = Registry.CurrentUser.OpenSubKey(RegKeyInternetSettings, true))
-        {
-            if (reg == null) return;
+        using var reg = Registry.CurrentUser.OpenSubKey(RegKeyInternetSettings, true);
+        if (reg == null) return;
 
-            var ov = originalValues;
-            if (ov.AutoConfigUrl != null)
-                reg.SetValue(RegAutoConfigUrl, ov.AutoConfigUrl);
-            else
-                reg.DeleteValue(RegAutoConfigUrl, false);
+        var ov = originalValues;
+        if (ov.AutoConfigUrl != null)
+            reg.SetValue(RegAutoConfigUrl, ov.AutoConfigUrl);
+        else
+            reg.DeleteValue(RegAutoConfigUrl, false);
 
-            if (ov.ProxyEnable.HasValue)
-                reg.SetValue(RegProxyEnable, ov.ProxyEnable.Value);
-            else
-                reg.DeleteValue(RegProxyEnable, false);
+        if (ov.ProxyEnable.HasValue)
+            reg.SetValue(RegProxyEnable, ov.ProxyEnable.Value);
+        else
+            reg.DeleteValue(RegProxyEnable, false);
 
-            if (ov.ProxyServer != null)
-                reg.SetValue(RegProxyServer, ov.ProxyServer);
-            else
-                reg.DeleteValue(RegProxyServer, false);
+        if (ov.ProxyServer != null)
+            reg.SetValue(RegProxyServer, ov.ProxyServer);
+        else
+            reg.DeleteValue(RegProxyServer, false);
 
-            if (ov.ProxyOverride != null)
-                reg.SetValue(RegProxyOverride, ov.ProxyOverride);
-            else
-                reg.DeleteValue(RegProxyOverride, false);
+        if (ov.ProxyOverride != null)
+            reg.SetValue(RegProxyOverride, ov.ProxyOverride);
+        else
+            reg.DeleteValue(RegProxyOverride, false);
 
-            // This should not be needed, but sometimes the values are not stored into the registry
-            // at system shutdown without flushing.
-            reg.Flush();
+        // This should not be needed, but sometimes the values are not stored into the registry
+        // at system shutdown without flushing.
+        reg.Flush();
 
-            originalValues = null;
+        originalValues = null;
 
-            const int smShuttingdown = 0x2000;
-            var windows7Version = new Version(6, 1);
-            if (Environment.OSVersion.Version > windows7Version ||
-                NativeMethods.GetSystemMetrics(smShuttingdown) == 0)
-                // Do not call refresh() in Windows 7 or earlier at system shutdown.
-                // SetInternetOption in the refresh method re-enables ProxyEnable registry value
-                // in Windows 7 or earlier at system shutdown.
-                Refresh();
-        }
+        const int smShuttingdown = 0x2000;
+        var windows7Version = new Version(6, 1);
+        if (Environment.OSVersion.Version > windows7Version ||
+            NativeMethods.GetSystemMetrics(smShuttingdown) == 0)
+            // Do not call refresh() in Windows 7 or earlier at system shutdown.
+            // SetInternetOption in the refresh method re-enables ProxyEnable registry value
+            // in Windows 7 or earlier at system shutdown.
+            Refresh();
     }
 
-    internal ProxyInfo? GetProxyInfoFromRegistry()
+    internal ProxyInfo? GetProxyInfoFromRegistry ()
     {
-        using (var reg = OpenInternetSettingsKey())
-        {
-            if (reg == null) return null;
+        using var reg = OpenInternetSettingsKey();
+        if (reg == null) return null;
 
-            return GetProxyInfoFromRegistry(reg);
-        }
+        return GetProxyInfoFromRegistry(reg);
     }
 
-    private ProxyInfo GetProxyInfoFromRegistry(RegistryKey reg)
+    private static ProxyInfo GetProxyInfoFromRegistry ( RegistryKey reg )
     {
         var pi = new ProxyInfo(null,
             reg.GetValue(RegAutoConfigUrl) as string,
@@ -255,7 +235,7 @@ internal class SystemProxyManager
         return pi;
     }
 
-    private void SaveOriginalProxyConfiguration(RegistryKey reg)
+    private void SaveOriginalProxyConfiguration ( RegistryKey reg )
     {
         if (originalValues != null) return;
 
@@ -266,7 +246,7 @@ internal class SystemProxyManager
     ///     Prepares the proxy server registry (create empty values if they don't exist)
     /// </summary>
     /// <param name="reg"></param>
-    private static void PrepareRegistry(RegistryKey reg)
+    private static void PrepareRegistry ( RegistryKey reg )
     {
         if (reg.GetValue(RegProxyEnable) == null) reg.SetValue(RegProxyEnable, 0);
 
@@ -277,7 +257,7 @@ internal class SystemProxyManager
     /// <summary>
     ///     Refresh the settings so that the system know about a change in proxy setting
     /// </summary>
-    private static void Refresh()
+    private static void Refresh ()
     {
         NativeMethods.InternetSetOption(IntPtr.Zero, InternetOptionSettingsChanged, IntPtr.Zero, 0);
         NativeMethods.InternetSetOption(IntPtr.Zero, InternetOptionRefresh, IntPtr.Zero, 0);
@@ -286,7 +266,7 @@ internal class SystemProxyManager
     /// <summary>
     ///     Opens the registry key with the internet settings
     /// </summary>
-    private static RegistryKey? OpenInternetSettingsKey()
+    private static RegistryKey? OpenInternetSettingsKey ()
     {
         return Registry.CurrentUser?.OpenSubKey(RegKeyInternetSettings, true);
     }

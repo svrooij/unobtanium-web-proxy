@@ -40,15 +40,15 @@ namespace Titanium.Web.Proxy.Network.WinAuth.Security;
 
 internal class Message
 {
-    private static readonly byte[] header = { 0x4e, 0x54, 0x4c, 0x4d, 0x53, 0x53, 0x50, 0x00 };
+    private static readonly byte[] header = [0x4e, 0x54, 0x4c, 0x4d, 0x53, 0x53, 0x50, 0x00];
 
     private readonly int type;
 
-    internal Message(byte[] message)
+    internal Message ( byte[] message )
     {
         type = 3;
 
-        if (message == null) throw new ArgumentNullException(nameof(message));
+        ArgumentNullException.ThrowIfNull(message);
 
         if (message.Length < 12)
         {
@@ -96,14 +96,14 @@ internal class Message
 
     internal Common.NtlmFlags Flags { get; set; }
 
-    private string DecodeString(byte[] buffer, int offset, int len)
+    private string DecodeString ( byte[] buffer, int offset, int len )
     {
         if ((Flags & Common.NtlmFlags.NegotiateUnicode) != 0) return Encoding.Unicode.GetString(buffer, offset, len);
 
         return Encoding.ASCII.GetString(buffer, offset, len);
     }
 
-    protected bool CheckHeader(byte[] message)
+    protected bool CheckHeader ( byte[] message )
     {
         for (var i = 0; i < header.Length; i++)
             if (message[i] != header[i])

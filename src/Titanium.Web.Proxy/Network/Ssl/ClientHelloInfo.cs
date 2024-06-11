@@ -30,8 +30,8 @@ public class ClientHelloInfo
     /// <param name="sessionId">The session ID.</param>
     /// <param name="ciphers">The ciphers.</param>
     /// <param name="clientHelloLength">The length of the client hello message.</param>
-    internal ClientHelloInfo(int handshakeVersion, int majorVersion, int minorVersion, byte[] random, byte[] sessionId,
-        int[] ciphers, int clientHelloLength)
+    internal ClientHelloInfo ( int handshakeVersion, int majorVersion, int minorVersion, byte[] random, byte[] sessionId,
+        int[] ciphers, int clientHelloLength )
     {
         HandshakeVersion = handshakeVersion;
         MajorVersion = majorVersion;
@@ -133,26 +133,26 @@ public class ClientHelloInfo
 
                 return SslProtocols.Tls12;
             }
-//#pragma warning disable 618
-//            if (major == 3 && minor == 2)
-//                return SslProtocols.Tls11;
+            //#pragma warning disable 618
+            //            if (major == 3 && minor == 2)
+            //                return SslProtocols.Tls11;
 
-//            if (major == 3 && minor == 1)
-//                return SslProtocols.Tls;
+            //            if (major == 3 && minor == 1)
+            //                return SslProtocols.Tls;
 
 
-//            if (major == 3 && minor == 0)
-//                return SslProtocols.Ssl3;
+            //            if (major == 3 && minor == 0)
+            //                return SslProtocols.Ssl3;
 
-//            if (major == 2 && minor == 0)
-//                return SslProtocols.Ssl2;
-//#pragma warning restore 618
+            //            if (major == 2 && minor == 0)
+            //                return SslProtocols.Ssl2;
+            //#pragma warning restore 618
 
             return SslProtocols.None;
         }
     }
 
-    private static string SslVersionToString(int major, int minor)
+    private static string SslVersionToString ( int major, int minor )
     {
         var str = "Unknown";
         if (major == 3 && minor == 3)
@@ -175,7 +175,7 @@ public class ClientHelloInfo
     /// <returns>
     ///     A <see cref="System.String" /> that represents this instance.
     /// </returns>
-    public override string ToString()
+    public override string ToString ()
     {
         var sb = new StringBuilder();
         sb.AppendLine(

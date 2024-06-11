@@ -8,7 +8,7 @@ namespace Titanium.Web.Proxy.Exceptions;
 /// </summary>
 public class RetryableServerConnectionException : ProxyException
 {
-    internal RetryableServerConnectionException(string message) : base(message)
+    internal RetryableServerConnectionException ( string message ) : base(message)
     {
     }
 
@@ -17,7 +17,7 @@ public class RetryableServerConnectionException : ProxyException
     /// </summary>
     /// <param name="message"></param>
     /// <param name="e"></param>
-    internal RetryableServerConnectionException(string message, Exception e) : base(message, e)
+    internal RetryableServerConnectionException ( string message, Exception e ) : base(message, e)
     {
     }
 }

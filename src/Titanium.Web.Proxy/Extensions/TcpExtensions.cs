@@ -13,7 +13,7 @@ internal static class TcpExtensions
     /// </summary>
     /// <param name="socket"></param>
     /// <returns></returns>
-    internal static bool IsGoodConnection(this Socket socket)
+    internal static bool IsGoodConnection ( this Socket socket )
     {
         if (!socket.Connected) return false;
 

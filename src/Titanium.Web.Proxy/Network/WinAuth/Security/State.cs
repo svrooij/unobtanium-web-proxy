@@ -38,7 +38,7 @@ internal class State
     /// </summary>
     internal DateTime LastSeen;
 
-    internal State()
+    internal State ()
     {
         Credentials = new Common.SecurityHandle(0);
         Context = new Common.SecurityHandle(0);
@@ -47,14 +47,14 @@ internal class State
         AuthState = WinAuthState.Unauthorized;
     }
 
-    internal void ResetHandles()
+    internal void ResetHandles ()
     {
         Credentials.Reset();
         Context.Reset();
         AuthState = WinAuthState.Unauthorized;
     }
 
-    internal void UpdatePresence()
+    internal void UpdatePresence ()
     {
         LastSeen = DateTime.UtcNow;
     }

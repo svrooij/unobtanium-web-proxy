@@ -9,7 +9,7 @@ internal class Http2FrameHeader
 
     public Http2FrameType Type;
 
-    public void CopyToBuffer(byte[] buf)
+    public void CopyToBuffer ( byte[] buf )
     {
         var length = Length;
         buf[0] = (byte)((length >> 16) & 0xff);

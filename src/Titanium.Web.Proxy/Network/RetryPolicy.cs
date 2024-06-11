@@ -11,7 +11,7 @@ internal class RetryPolicy<T> where T : Exception
 
     private TcpServerConnection? currentConnection;
 
-    internal RetryPolicy(int retries, TcpConnectionFactory tcpConnectionFactory)
+    internal RetryPolicy ( int retries, TcpConnectionFactory tcpConnectionFactory )
     {
         this.retries = retries;
         this.tcpConnectionFactory = tcpConnectionFactory;
@@ -24,8 +24,8 @@ internal class RetryPolicy<T> where T : Exception
     /// <param name="generator">The Tcp connection generator to be invoked to get new connection for retry.</param>
     /// <param name="initialConnection">Initial Tcp connection to use.</param>
     /// <returns>Returns the latest connection used and the latest exception if any.</returns>
-    internal async Task<RetryResult> ExecuteAsync(Func<TcpServerConnection, Task<bool>> action,
-        Func<Task<TcpServerConnection>> generator, TcpServerConnection? initialConnection)
+    internal async Task<RetryResult> ExecuteAsync ( Func<TcpServerConnection, Task<bool>> action,
+        Func<Task<TcpServerConnection>> generator, TcpServerConnection? initialConnection )
     {
         currentConnection = initialConnection;
         var @continue = true;
@@ -49,7 +49,7 @@ internal class RetryPolicy<T> where T : Exception
 
             attempts--;
 
-            if (attempts < 0 || exception == null || !(exception is T)) break;
+            if (attempts < 0 || exception == null || exception is not T) break;
 
             exception = null;
 
@@ -64,7 +64,7 @@ internal class RetryPolicy<T> where T : Exception
 
 internal class RetryResult
 {
-    internal RetryResult(TcpServerConnection? lastConnection, Exception? exception, bool @continue)
+    internal RetryResult ( TcpServerConnection? lastConnection, Exception? exception, bool @continue )
     {
         LatestConnection = lastConnection;
         Exception = exception;

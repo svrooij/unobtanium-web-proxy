@@ -16,7 +16,7 @@ internal class NetworkHelper
     /// </summary>
     /// <param name="address"></param>
     /// <returns></returns>
-    internal static bool IsLocalIpAddress(IPAddress address)
+    internal static bool IsLocalIpAddress ( IPAddress address )
     {
         if (IPAddress.IsLoopback(address)) return true;
 
@@ -24,7 +24,7 @@ internal class NetworkHelper
         return localhostEntry.AddressList.Contains(address);
     }
 
-    internal static bool IsLocalIpAddress(string hostName, bool proxyDnsRequests = false)
+    internal static bool IsLocalIpAddress ( string hostName, bool proxyDnsRequests = false )
     {
         if (IPAddress.TryParse(hostName, out var ipAddress)
             && IsLocalIpAddress(ipAddress))

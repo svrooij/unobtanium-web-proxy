@@ -119,7 +119,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        protected bool SetField<T> ( ref T field, T value, [CallerMemberName] string propertyName = null )
         {
             if (!Equals(field, value))
             {
@@ -132,12 +132,12 @@ namespace Titanium.Web.Proxy.Examples.Wpf
         }
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected virtual void OnPropertyChanged ( [CallerMemberName] string propertyName = null )
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public void Update(SessionEventArgsBase args)
+        public void Update ( SessionEventArgsBase args )
         {
             var request = HttpClient.Request;
             var response = HttpClient.Response;

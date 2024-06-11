@@ -119,7 +119,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
         /// <param name="formatParameterName">
         ///     Specifies which parameter of an annotated method should be treated as format-string
         /// </param>
-        public StringFormatMethodAttribute([NotNull] string formatParameterName)
+        public StringFormatMethodAttribute ( [NotNull] string formatParameterName )
         {
             FormatParameterName = formatParameterName;
         }
@@ -136,7 +136,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
         AllowMultiple = true)]
     public sealed class ValueProviderAttribute : Attribute
     {
-        public ValueProviderAttribute([NotNull] string name)
+        public ValueProviderAttribute ( [NotNull] string name )
         {
             Name = name;
         }
@@ -222,11 +222,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class NotifyPropertyChangedInvocatorAttribute : Attribute
     {
-        public NotifyPropertyChangedInvocatorAttribute()
+        public NotifyPropertyChangedInvocatorAttribute ()
         {
         }
 
-        public NotifyPropertyChangedInvocatorAttribute([NotNull] string parameterName)
+        public NotifyPropertyChangedInvocatorAttribute ( [NotNull] string parameterName )
         {
             ParameterName = parameterName;
         }
@@ -293,12 +293,12 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public sealed class ContractAnnotationAttribute : Attribute
     {
-        public ContractAnnotationAttribute([NotNull] string contract)
+        public ContractAnnotationAttribute ( [NotNull] string contract )
             : this(contract, false)
         {
         }
 
-        public ContractAnnotationAttribute([NotNull] string contract, bool forceFullStates)
+        public ContractAnnotationAttribute ( [NotNull] string contract, bool forceFullStates )
         {
             Contract = contract;
             ForceFullStates = forceFullStates;
@@ -323,11 +323,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.All)]
     public sealed class LocalizationRequiredAttribute : Attribute
     {
-        public LocalizationRequiredAttribute() : this(true)
+        public LocalizationRequiredAttribute () : this(true)
         {
         }
 
-        public LocalizationRequiredAttribute(bool required)
+        public LocalizationRequiredAttribute ( bool required )
         {
             Required = required;
         }
@@ -379,7 +379,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [BaseTypeRequired(typeof(Attribute))]
     public sealed class BaseTypeRequiredAttribute : Attribute
     {
-        public BaseTypeRequiredAttribute([NotNull] Type baseType)
+        public BaseTypeRequiredAttribute ( [NotNull] Type baseType )
         {
             BaseType = baseType;
         }
@@ -394,22 +394,22 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.All)]
     public sealed class UsedImplicitlyAttribute : Attribute
     {
-        public UsedImplicitlyAttribute()
+        public UsedImplicitlyAttribute ()
             : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default)
         {
         }
 
-        public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags)
+        public UsedImplicitlyAttribute ( ImplicitUseKindFlags useKindFlags )
             : this(useKindFlags, ImplicitUseTargetFlags.Default)
         {
         }
 
-        public UsedImplicitlyAttribute(ImplicitUseTargetFlags targetFlags)
+        public UsedImplicitlyAttribute ( ImplicitUseTargetFlags targetFlags )
             : this(ImplicitUseKindFlags.Default, targetFlags)
         {
         }
 
-        public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
+        public UsedImplicitlyAttribute ( ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags )
         {
             UseKindFlags = useKindFlags;
             TargetFlags = targetFlags;
@@ -427,22 +427,22 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.GenericParameter)]
     public sealed class MeansImplicitUseAttribute : Attribute
     {
-        public MeansImplicitUseAttribute()
+        public MeansImplicitUseAttribute ()
             : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default)
         {
         }
 
-        public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags)
+        public MeansImplicitUseAttribute ( ImplicitUseKindFlags useKindFlags )
             : this(useKindFlags, ImplicitUseTargetFlags.Default)
         {
         }
 
-        public MeansImplicitUseAttribute(ImplicitUseTargetFlags targetFlags)
+        public MeansImplicitUseAttribute ( ImplicitUseTargetFlags targetFlags )
             : this(ImplicitUseKindFlags.Default, targetFlags)
         {
         }
 
-        public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
+        public MeansImplicitUseAttribute ( ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags )
         {
             UseKindFlags = useKindFlags;
             TargetFlags = targetFlags;
@@ -498,11 +498,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
     public sealed class PublicAPIAttribute : Attribute
     {
-        public PublicAPIAttribute()
+        public PublicAPIAttribute ()
         {
         }
 
-        public PublicAPIAttribute([NotNull] string comment)
+        public PublicAPIAttribute ( [NotNull] string comment )
         {
             Comment = comment;
         }
@@ -544,11 +544,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class MustUseReturnValueAttribute : Attribute
     {
-        public MustUseReturnValueAttribute()
+        public MustUseReturnValueAttribute ()
         {
         }
 
-        public MustUseReturnValueAttribute([NotNull] string justification)
+        public MustUseReturnValueAttribute ( [NotNull] string justification )
         {
             Justification = justification;
         }
@@ -588,11 +588,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class PathReferenceAttribute : Attribute
     {
-        public PathReferenceAttribute()
+        public PathReferenceAttribute ()
         {
         }
 
-        public PathReferenceAttribute([NotNull] [PathReference] string basePath)
+        public PathReferenceAttribute ( [NotNull][PathReference] string basePath )
         {
             BasePath = basePath;
         }
@@ -689,7 +689,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
         true)]
     public sealed class AspMvcAreaMasterLocationFormatAttribute : Attribute
     {
-        public AspMvcAreaMasterLocationFormatAttribute([NotNull] string format)
+        public AspMvcAreaMasterLocationFormatAttribute ( [NotNull] string format )
         {
             Format = format;
         }
@@ -701,7 +701,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
         true)]
     public sealed class AspMvcAreaPartialViewLocationFormatAttribute : Attribute
     {
-        public AspMvcAreaPartialViewLocationFormatAttribute([NotNull] string format)
+        public AspMvcAreaPartialViewLocationFormatAttribute ( [NotNull] string format )
         {
             Format = format;
         }
@@ -713,7 +713,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
         true)]
     public sealed class AspMvcAreaViewLocationFormatAttribute : Attribute
     {
-        public AspMvcAreaViewLocationFormatAttribute([NotNull] string format)
+        public AspMvcAreaViewLocationFormatAttribute ( [NotNull] string format )
         {
             Format = format;
         }
@@ -725,7 +725,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
         true)]
     public sealed class AspMvcMasterLocationFormatAttribute : Attribute
     {
-        public AspMvcMasterLocationFormatAttribute([NotNull] string format)
+        public AspMvcMasterLocationFormatAttribute ( [NotNull] string format )
         {
             Format = format;
         }
@@ -737,7 +737,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
         true)]
     public sealed class AspMvcPartialViewLocationFormatAttribute : Attribute
     {
-        public AspMvcPartialViewLocationFormatAttribute([NotNull] string format)
+        public AspMvcPartialViewLocationFormatAttribute ( [NotNull] string format )
         {
             Format = format;
         }
@@ -749,7 +749,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
         true)]
     public sealed class AspMvcViewLocationFormatAttribute : Attribute
     {
-        public AspMvcViewLocationFormatAttribute([NotNull] string format)
+        public AspMvcViewLocationFormatAttribute ( [NotNull] string format )
         {
             Format = format;
         }
@@ -766,11 +766,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
     public sealed class AspMvcActionAttribute : Attribute
     {
-        public AspMvcActionAttribute()
+        public AspMvcActionAttribute ()
         {
         }
 
-        public AspMvcActionAttribute([NotNull] string anonymousProperty)
+        public AspMvcActionAttribute ( [NotNull] string anonymousProperty )
         {
             AnonymousProperty = anonymousProperty;
         }
@@ -786,11 +786,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class AspMvcAreaAttribute : Attribute
     {
-        public AspMvcAreaAttribute()
+        public AspMvcAreaAttribute ()
         {
         }
 
-        public AspMvcAreaAttribute([NotNull] string anonymousProperty)
+        public AspMvcAreaAttribute ( [NotNull] string anonymousProperty )
         {
             AnonymousProperty = anonymousProperty;
         }
@@ -807,11 +807,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
     public sealed class AspMvcControllerAttribute : Attribute
     {
-        public AspMvcControllerAttribute()
+        public AspMvcControllerAttribute ()
         {
         }
 
-        public AspMvcControllerAttribute([NotNull] string anonymousProperty)
+        public AspMvcControllerAttribute ( [NotNull] string anonymousProperty )
         {
             AnonymousProperty = anonymousProperty;
         }
@@ -936,11 +936,11 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Field)]
     public sealed class HtmlElementAttributesAttribute : Attribute
     {
-        public HtmlElementAttributesAttribute()
+        public HtmlElementAttributesAttribute ()
         {
         }
 
-        public HtmlElementAttributesAttribute([NotNull] string name)
+        public HtmlElementAttributesAttribute ( [NotNull] string name )
         {
             Name = name;
         }
@@ -951,7 +951,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class HtmlAttributeValueAttribute : Attribute
     {
-        public HtmlAttributeValueAttribute([NotNull] string name)
+        public HtmlAttributeValueAttribute ( [NotNull] string name )
         {
             Name = name;
         }
@@ -976,7 +976,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property)]
     public sealed class CollectionAccessAttribute : Attribute
     {
-        public CollectionAccessAttribute(CollectionAccessType collectionAccessType)
+        public CollectionAccessAttribute ( CollectionAccessType collectionAccessType )
         {
             CollectionAccessType = collectionAccessType;
         }
@@ -1018,7 +1018,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class AssertionConditionAttribute : Attribute
     {
-        public AssertionConditionAttribute(AssertionConditionType conditionType)
+        public AssertionConditionAttribute ( AssertionConditionType conditionType )
         {
             ConditionType = conditionType;
         }
@@ -1119,7 +1119,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class AspChildControlTypeAttribute : Attribute
     {
-        public AspChildControlTypeAttribute([NotNull] string tagName, [NotNull] Type controlType)
+        public AspChildControlTypeAttribute ( [NotNull] string tagName, [NotNull] Type controlType )
         {
             TagName = tagName;
             ControlType = controlType;
@@ -1148,7 +1148,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class AspRequiredAttributeAttribute : Attribute
     {
-        public AspRequiredAttributeAttribute([NotNull] string attribute)
+        public AspRequiredAttributeAttribute ( [NotNull] string attribute )
         {
             Attribute = attribute;
         }
@@ -1159,7 +1159,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class AspTypePropertyAttribute : Attribute
     {
-        public AspTypePropertyAttribute(bool createConstructorReferences)
+        public AspTypePropertyAttribute ( bool createConstructorReferences )
         {
             CreateConstructorReferences = createConstructorReferences;
         }
@@ -1170,7 +1170,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class RazorImportNamespaceAttribute : Attribute
     {
-        public RazorImportNamespaceAttribute([NotNull] string name)
+        public RazorImportNamespaceAttribute ( [NotNull] string name )
         {
             Name = name;
         }
@@ -1181,7 +1181,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class RazorInjectionAttribute : Attribute
     {
-        public RazorInjectionAttribute([NotNull] string type, [NotNull] string fieldName)
+        public RazorInjectionAttribute ( [NotNull] string type, [NotNull] string fieldName )
         {
             Type = type;
             FieldName = fieldName;
@@ -1195,7 +1195,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf.Annotations
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class RazorDirectiveAttribute : Attribute
     {
-        public RazorDirectiveAttribute([NotNull] string directive)
+        public RazorDirectiveAttribute ( [NotNull] string directive )
         {
             Directive = directive;
         }

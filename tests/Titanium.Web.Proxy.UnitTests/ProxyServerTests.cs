@@ -10,7 +10,7 @@ namespace Titanium.Web.Proxy.UnitTests
     {
         [TestMethod]
         public void
-            GivenOneEndpointIsAlreadyAddedToAddress_WhenAddingNewEndpointToExistingAddress_ThenExceptionIsThrown()
+            GivenOneEndpointIsAlreadyAddedToAddress_WhenAddingNewEndpointToExistingAddress_ThenExceptionIsThrown ()
         {
             // Arrange
             var proxy = new ProxyServer();
@@ -36,7 +36,7 @@ namespace Titanium.Web.Proxy.UnitTests
 
         [TestMethod]
         public void
-            GivenOneEndpointIsAlreadyAddedToAddress_WhenAddingNewEndpointToExistingAddress_ThenTwoEndpointsExists()
+            GivenOneEndpointIsAlreadyAddedToAddress_WhenAddingNewEndpointToExistingAddress_ThenTwoEndpointsExists ()
         {
             // Arrange
             var proxy = new ProxyServer();
@@ -53,7 +53,7 @@ namespace Titanium.Web.Proxy.UnitTests
         }
 
         [TestMethod]
-        public void GivenOneEndpointIsAlreadyAddedToPort_WhenAddingNewEndpointToExistingPort_ThenExceptionIsThrown()
+        public void GivenOneEndpointIsAlreadyAddedToPort_WhenAddingNewEndpointToExistingPort_ThenExceptionIsThrown ()
         {
             // Arrange
             var proxy = new ProxyServer();
@@ -77,7 +77,7 @@ namespace Titanium.Web.Proxy.UnitTests
 
         [TestMethod]
         public void
-            GivenOneEndpointIsAlreadyAddedToZeroPort_WhenAddingNewEndpointToExistingPort_ThenTwoEndpointsExists()
+            GivenOneEndpointIsAlreadyAddedToZeroPort_WhenAddingNewEndpointToExistingPort_ThenTwoEndpointsExists ()
         {
             // Arrange
             var proxy = new ProxyServer();

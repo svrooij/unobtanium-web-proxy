@@ -12,9 +12,9 @@ public partial class ProxyServer
     /// <summary>
     ///     Handle upgrade to websocket
     /// </summary>
-    private async Task HandleWebSocketUpgrade(SessionEventArgs args,
+    private async Task HandleWebSocketUpgrade ( SessionEventArgs args,
         HttpClientStream clientStream, TcpServerConnection serverConnection,
-        CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken )
     {
         await serverConnection.Stream.WriteRequestAsync(args.HttpClient.Request, cancellationToken);
 

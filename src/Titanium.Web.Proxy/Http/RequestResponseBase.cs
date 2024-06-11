@@ -212,7 +212,7 @@ public abstract class RequestResponseBase
 
     internal bool IsBodySent { get; set; }
 
-    internal abstract void EnsureBodyAvailable(bool throwWhenNotReadYet = true);
+    internal abstract void EnsureBodyAvailable ( bool throwWhenNotReadYet = true );
 
     /// <summary>
     ///     get the compressed body from given bytes
@@ -220,20 +220,18 @@ public abstract class RequestResponseBase
     /// <param name="encodingType"></param>
     /// <param name="body"></param>
     /// <returns></returns>
-    internal byte[] GetCompressedBody(HttpCompression encodingType, byte[] body)
+    internal byte[] GetCompressedBody ( HttpCompression encodingType, byte[] body )
     {
-        using (var ms = new MemoryStream())
+        using var ms = new MemoryStream();
+        using (var zip = CompressionFactory.Create(encodingType, ms))
         {
-            using (var zip = CompressionFactory.Create(encodingType, ms))
-            {
-                zip.Write(body, 0, body.Length);
-            }
-
-            return ms.ToArray();
+            zip.Write(body, 0, body.Length);
         }
+
+        return ms.ToArray();
     }
 
-    internal byte[]? CompressBodyAndUpdateContentLength()
+    internal byte[]? CompressBodyAndUpdateContentLength ()
     {
         if (!IsBodyRead && BodyInternal == null) return null;
 
@@ -260,7 +258,7 @@ public abstract class RequestResponseBase
         return null;
     }
 
-    internal void UpdateContentLength()
+    internal void UpdateContentLength ()
     {
         ContentLength = IsChunked ? -1 : BodyInternal?.Length ?? 0;
     }
@@ -268,7 +266,7 @@ public abstract class RequestResponseBase
     /// <summary>
     ///     Set values for original headers using current headers.
     /// </summary>
-    internal void SetOriginalHeaders()
+    internal void SetOriginalHeaders ()
     {
         OriginalHasBody = HasBody;
         OriginalContentLength = ContentLength;
@@ -280,7 +278,7 @@ public abstract class RequestResponseBase
     ///     Copy original header values.
     /// </summary>
     /// <param name="requestResponseBase"></param>
-    internal void SetOriginalHeaders(RequestResponseBase requestResponseBase)
+    internal void SetOriginalHeaders ( RequestResponseBase requestResponseBase )
     {
         OriginalHasBody = requestResponseBase.OriginalHasBody;
         OriginalContentLength = requestResponseBase.OriginalContentLength;
@@ -291,7 +289,7 @@ public abstract class RequestResponseBase
     /// <summary>
     ///     Finish the session
     /// </summary>
-    internal void FinishSession()
+    internal void FinishSession ()
     {
         if (!KeepBody)
         {
@@ -303,7 +301,7 @@ public abstract class RequestResponseBase
     /// <summary>
     /// HeaderText as string
     /// </summary>
-    public override string ToString()
+    public override string ToString ()
     {
         return HeaderText;
     }

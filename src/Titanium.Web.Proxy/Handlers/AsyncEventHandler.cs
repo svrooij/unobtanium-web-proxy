@@ -9,4 +9,4 @@ namespace Titanium.Web.Proxy.EventArguments;
 /// <param name="sender">The proxy server instance.</param>
 /// <param name="e">The event arguments.</param>
 /// <returns></returns>
-public delegate Task AsyncEventHandler<in TEventArgs>(object sender, TEventArgs e);
+public delegate Task AsyncEventHandler<in TEventArgs> ( object sender, TEventArgs e );

@@ -16,7 +16,7 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="session">The session event arguments.</param>
     /// <returns>True if authorized.</returns>
-    private async Task<bool> CheckAuthorization(SessionEventArgsBase session)
+    private async Task<bool> CheckAuthorization ( SessionEventArgsBase session )
     {
         // If we are not authorizing clients return true
         if (ProxyBasicAuthenticateFunc == null && ProxySchemeAuthenticateFunc == null) return true;
@@ -79,9 +79,9 @@ public partial class ProxyServer
         }
     }
 
-    private async Task<bool> AuthenticateUserBasic(SessionEventArgsBase session,
+    private async Task<bool> AuthenticateUserBasic ( SessionEventArgsBase session,
         ReadOnlyMemory<char> authenticationType, ReadOnlyMemory<char> credentials,
-        Func<SessionEventArgsBase, string, string, Task<bool>> proxyBasicAuthenticateFunc)
+        Func<SessionEventArgsBase, string, string, Task<bool>> proxyBasicAuthenticateFunc )
     {
         if (!KnownHeaders.ProxyAuthorizationBasic.Equals(authenticationType.Span))
         {
@@ -99,8 +99,8 @@ public partial class ProxyServer
             return false;
         }
 
-        var username = decoded.Substring(0, colonIndex);
-        var password = decoded.Substring(colonIndex + 1);
+        var username = decoded[..colonIndex];
+        var password = decoded[(colonIndex + 1)..];
         var authenticated = await proxyBasicAuthenticateFunc(session, username, password);
         if (!authenticated)
             session.HttpClient.Response = CreateAuthentication407Response("Proxy Authentication Invalid");
@@ -114,7 +114,7 @@ public partial class ProxyServer
     /// <param name="description">Response description.</param>
     /// <param name="continuation">The continuation.</param>
     /// <returns></returns>
-    private Response CreateAuthentication407Response(string description, string? continuation = null)
+    private Response CreateAuthentication407Response ( string description, string? continuation = null )
     {
         var response = new Response
         {
@@ -138,7 +138,7 @@ public partial class ProxyServer
         return response;
     }
 
-    private Response CreateContinuationResponse(Response response, string continuation)
+    private static Response CreateContinuationResponse ( Response response, string continuation )
     {
         response.Headers.AddHeader(KnownHeaders.ProxyAuthenticate, continuation);
 

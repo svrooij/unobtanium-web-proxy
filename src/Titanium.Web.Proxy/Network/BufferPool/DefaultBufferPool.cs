@@ -20,7 +20,7 @@ internal class DefaultBufferPool : IBufferPool
     ///     Gets a buffer with a default size.
     /// </summary>
     /// <returns></returns>
-    public byte[] GetBuffer()
+    public byte[] GetBuffer ()
     {
         return ArrayPool<byte>.Shared.Rent(BufferSize);
     }
@@ -30,7 +30,7 @@ internal class DefaultBufferPool : IBufferPool
     /// </summary>
     /// <param name="bufferSize">Size of the buffer.</param>
     /// <returns></returns>
-    public byte[] GetBuffer(int bufferSize)
+    public byte[] GetBuffer ( int bufferSize )
     {
         return ArrayPool<byte>.Shared.Rent(bufferSize);
     }
@@ -39,12 +39,12 @@ internal class DefaultBufferPool : IBufferPool
     ///     Returns the buffer.
     /// </summary>
     /// <param name="buffer">The buffer.</param>
-    public void ReturnBuffer(byte[] buffer)
+    public void ReturnBuffer ( byte[] buffer )
     {
         ArrayPool<byte>.Shared.Return(buffer);
     }
 
-    public void Dispose()
+    public void Dispose ()
     {
         //Nothing to dispose. But need for the interface
     }

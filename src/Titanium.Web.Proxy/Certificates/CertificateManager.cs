@@ -65,7 +65,7 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// A list of pending certificate creation tasks.
     /// </summary>
-    private readonly Dictionary<string, Task<X509Certificate2?>> pendingCertificateCreationTasks = new();
+    private readonly Dictionary<string, Task<X509Certificate2?>> pendingCertificateCreationTasks = [];
 
     private readonly object rootCertCreationLock = new();
 
@@ -98,9 +98,9 @@ public sealed class CertificateManager : IDisposable
     /// prompting for UAC if required?
     /// </param>
     /// <param name="exceptionFunc"></param>
-    internal CertificateManager(string? rootCertificateName, string? rootCertificateIssuerName,
+    internal CertificateManager ( string? rootCertificateName, string? rootCertificateIssuerName,
         bool userTrustRootCertificate, bool machineTrustRootCertificate, bool trustRootCertificateAsAdmin,
-        ExceptionHandler? exceptionFunc)
+        ExceptionHandler? exceptionFunc )
     {
         ExceptionFunc = exceptionFunc;
 
@@ -120,21 +120,12 @@ public sealed class CertificateManager : IDisposable
     {
         get
         {
-            if (certEngineValue == null)
-                switch (engine)
-                {
-                    case CertificateEngine.BouncyCastle:
-                        certEngineValue = new BcCertificateMaker(ExceptionFunc, CertificateValidDays);
-                        break;
-                    case CertificateEngine.BouncyCastleFast:
-                        certEngineValue = new BcCertificateMakerFast(ExceptionFunc, CertificateValidDays);
-                        break;
-                    case CertificateEngine.DefaultWindows:
-                    default:
-                        certEngineValue = new WinCertificateMaker(ExceptionFunc, CertificateValidDays);
-                        break;
-                }
-
+            certEngineValue ??= engine switch
+            {
+                CertificateEngine.BouncyCastle => new BcCertificateMaker(CertificateValidDays),
+                CertificateEngine.BouncyCastleFast => new BcCertificateMakerFast(CertificateValidDays),
+                _ => new WinCertificateMaker(CertificateValidDays),
+            };
             return certEngineValue;
         }
     }
@@ -284,7 +275,7 @@ public sealed class CertificateManager : IDisposable
     public bool DisableWildCardCertificates { get; set; } = false;
 
     /// <inheritdoc />
-    public void Dispose()
+    public void Dispose ()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
@@ -295,7 +286,7 @@ public sealed class CertificateManager : IDisposable
     /// </summary>
     /// <param name="storeLocation"></param>
     /// <returns></returns>
-    private bool RootCertificateInstalled(StoreLocation storeLocation)
+    private bool RootCertificateInstalled ( StoreLocation storeLocation )
     {
         if (RootCertificate == null) throw new Exception("Root certificate is null.");
 
@@ -305,8 +296,8 @@ public sealed class CertificateManager : IDisposable
                    || FindCertificates(StoreName.My, storeLocation, value).Count > 0);
     }
 
-    private static X509Certificate2Collection FindCertificates(StoreName storeName, StoreLocation storeLocation,
-        string findValue)
+    private static X509Certificate2Collection FindCertificates ( StoreName storeName, StoreLocation storeLocation,
+        string findValue )
     {
         var x509Store = new X509Store(storeName, storeLocation);
         try
@@ -325,7 +316,7 @@ public sealed class CertificateManager : IDisposable
     /// </summary>
     /// <param name="storeName"></param>
     /// <param name="storeLocation"></param>
-    private void InstallCertificate(StoreName storeName, StoreLocation storeLocation)
+    private void InstallCertificate ( StoreName storeName, StoreLocation storeLocation )
     {
         if (RootCertificate == null) throw new Exception("Could not install certificate as it is null or empty.");
 
@@ -357,7 +348,7 @@ public sealed class CertificateManager : IDisposable
     /// <param name="storeName"></param>
     /// <param name="storeLocation"></param>
     /// <param name="certificate"></param>
-    private void UninstallCertificate(StoreName storeName, StoreLocation storeLocation, X509Certificate2? certificate)
+    private void UninstallCertificate ( StoreName storeName, StoreLocation storeLocation, X509Certificate2? certificate )
     {
         if (certificate == null)
         {
@@ -384,7 +375,7 @@ public sealed class CertificateManager : IDisposable
         }
     }
 
-    private X509Certificate2 MakeCertificate(string certificateName, bool isRootCertificate)
+    private X509Certificate2 MakeCertificate ( string certificateName, bool isRootCertificate )
     {
         //if (isRoot != (null == signingCertificate))
         //{
@@ -403,7 +394,7 @@ public sealed class CertificateManager : IDisposable
         return certificate;
     }
 
-    private void OnException(Exception exception)
+    private void OnException ( Exception exception )
     {
         ExceptionFunc?.Invoke(exception);
     }
@@ -414,7 +405,7 @@ public sealed class CertificateManager : IDisposable
     /// <param name="certificateName"></param>
     /// <param name="isRootCertificate"></param>
     /// <returns></returns>
-    internal X509Certificate2? CreateCertificate(string certificateName, bool isRootCertificate)
+    internal X509Certificate2? CreateCertificate ( string certificateName, bool isRootCertificate )
     {
         X509Certificate2? certificate;
         try
@@ -493,7 +484,7 @@ public sealed class CertificateManager : IDisposable
     /// </summary>
     /// <param name="certificateName"></param>
     /// <returns></returns>
-    public async Task<X509Certificate2?> CreateServerCertificate(string certificateName)
+    public async Task<X509Certificate2?> CreateServerCertificate ( string certificateName )
     {
         // check in cache first
         if (cachedCertificates.TryGetValue(certificateName, out var cached))
@@ -558,7 +549,7 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// A method to clear outdated certificates
     /// </summary>
-    internal async void ClearIdleCertificates()
+    internal async void ClearIdleCertificates ()
     {
         var cancellationToken = clearCertificatesTokenSource.Token;
         while (!cancellationToken.IsCancellationRequested)
@@ -584,7 +575,7 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// Stops the certificate cache clear process
     /// </summary>
-    internal void StopClearIdleCertificates()
+    internal void StopClearIdleCertificates ()
     {
         clearCertificatesTokenSource.Cancel();
     }
@@ -596,7 +587,7 @@ public sealed class CertificateManager : IDisposable
     /// <returns>
     /// true if succeeded, else false.
     /// </returns>
-    public bool CreateRootCertificate(bool persistToFile = true)
+    public bool CreateRootCertificate ( bool persistToFile = true )
     {
         lock (rootCertCreationLock)
         {
@@ -664,7 +655,7 @@ public sealed class CertificateManager : IDisposable
     /// Loads root certificate from current executing assembly location with expected name rootCert.pfx.
     /// </summary>
     /// <returns></returns>
-    public X509Certificate2? LoadRootCertificate()
+    public X509Certificate2? LoadRootCertificate ()
     {
         try
         {
@@ -702,8 +693,8 @@ public sealed class CertificateManager : IDisposable
     /// <returns>
     /// true if succeeded, else false.
     /// </returns>
-    public bool LoadRootCertificate(string pfxFilePath, string password, bool overwritePfXFile = true,
-        X509KeyStorageFlags storageFlag = X509KeyStorageFlags.Exportable)
+    public bool LoadRootCertificate ( string pfxFilePath, string password, bool overwritePfXFile = true,
+        X509KeyStorageFlags storageFlag = X509KeyStorageFlags.Exportable )
     {
         PfxFilePath = pfxFilePath;
         PfxPassword = password;
@@ -719,7 +710,7 @@ public sealed class CertificateManager : IDisposable
     /// Trusts the root certificate in user store, optionally also in machine store.
     /// Machine trust would require elevated permissions (will silently fail otherwise).
     /// </summary>
-    public void TrustRootCertificate(bool machineTrusted = false)
+    public void TrustRootCertificate ( bool machineTrusted = false )
     {
         // currentUser\personal
         InstallCertificate(StoreName.My, StoreLocation.CurrentUser);
@@ -744,7 +735,7 @@ public sealed class CertificateManager : IDisposable
     /// Prompts with UAC if elevated permissions are required. Works only on Windows.
     /// </summary>
     /// <returns>True if success.</returns>
-    public bool TrustRootCertificateAsAdmin(bool machineTrusted = false)
+    public bool TrustRootCertificateAsAdmin ( bool machineTrusted = false )
     {
         if (!RunTime.IsWindows) return false;
 
@@ -791,7 +782,7 @@ public sealed class CertificateManager : IDisposable
     /// Ensure certificates are setup (creates root if required).
     /// Also makes root certificate trusted based on initial setup from proxy constructor for user/machine trust.
     /// </summary>
-    public void EnsureRootCertificate()
+    public void EnsureRootCertificate ()
     {
         if (!CertValidated) CreateRootCertificate();
 
@@ -814,8 +805,8 @@ public sealed class CertificateManager : IDisposable
     /// Should we attempt to trust certificates with elevated permissions by
     /// prompting for UAC if required?
     /// </param>
-    public void EnsureRootCertificate(bool userTrustRootCertificate,
-        bool machineTrustRootCertificate, bool trustRootCertificateAsAdmin = false)
+    public void EnsureRootCertificate ( bool userTrustRootCertificate,
+        bool machineTrustRootCertificate, bool trustRootCertificateAsAdmin = false )
     {
         UserTrustRoot = userTrustRootCertificate || machineTrustRootCertificate;
         MachineTrustRoot = machineTrustRootCertificate;
@@ -827,7 +818,7 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// Determines whether the root certificate is trusted.
     /// </summary>
-    public bool IsRootCertificateUserTrusted()
+    public bool IsRootCertificateUserTrusted ()
     {
         return RootCertificateInstalled(StoreLocation.CurrentUser) || IsRootCertificateMachineTrusted();
     }
@@ -835,7 +826,7 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// Determines whether the root certificate is machine trusted.
     /// </summary>
-    public bool IsRootCertificateMachineTrusted()
+    public bool IsRootCertificateMachineTrusted ()
     {
         return RootCertificateInstalled(StoreLocation.LocalMachine);
     }
@@ -845,7 +836,7 @@ public sealed class CertificateManager : IDisposable
     /// To remove from machine store elevated permissions are required (will fail silently otherwise).
     /// </summary>
     /// <param name="machineTrusted">Should also remove from machine store?</param>
-    public void RemoveTrustedRootCertificate(bool machineTrusted = false)
+    public void RemoveTrustedRootCertificate ( bool machineTrusted = false )
     {
         // currentUser\personal
         UninstallCertificate(StoreName.My, StoreLocation.CurrentUser, RootCertificate);
@@ -869,7 +860,7 @@ public sealed class CertificateManager : IDisposable
     /// Removes the trusted certificates from user store, optionally also from machine store
     /// </summary>
     /// <returns>Should also remove from machine store?</returns>
-    public bool RemoveTrustedRootCertificateAsAdmin(bool machineTrusted = false)
+    public bool RemoveTrustedRootCertificateAsAdmin ( bool machineTrusted = false )
     {
         if (!RunTime.IsWindows) return false;
 
@@ -890,8 +881,7 @@ public sealed class CertificateManager : IDisposable
             });
         else
             infos.AddRange(
-                new List<ProcessStartInfo>
-                {
+                [
                     // currentMachine\Personal
                     new()
                     {
@@ -915,7 +905,7 @@ public sealed class CertificateManager : IDisposable
                         ErrorDialog = false,
                         WindowStyle = ProcessWindowStyle.Hidden
                     }
-                });
+                ]);
 
         var success = true;
         try
@@ -940,14 +930,14 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// Clear the root certificate and cache.
     /// </summary>
-    public void ClearRootCertificate()
+    public void ClearRootCertificate ()
     {
         certificateCache.Clear();
         cachedCertificates.Clear();
         rootCertificate = null;
     }
 
-    private void Dispose(bool disposing)
+    private void Dispose ( bool disposing )
     {
         if (disposed) return;
 
@@ -957,7 +947,7 @@ public sealed class CertificateManager : IDisposable
     }
 
     /// <inheritdoc />
-    ~CertificateManager()
+    ~CertificateManager ()
     {
         Dispose(false);
     }

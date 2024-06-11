@@ -11,14 +11,14 @@ namespace Titanium.Web.Proxy.StreamExtended.Network;
 /// </summary>
 public interface IHttpStreamReader : ILineStream
 {
-    /// <summary>
-    /// Reads a sequence of bytes from the stream.
-    /// </summary>
-    /// <param name="buffer">The buffer to write data into.</param>
-    /// <param name="offset">The zero-based byte offset in buffer at which to begin storing the data read from the stream.</param>
-    /// <param name="count">The maximum number of bytes to be read from the stream.</param>
-    /// <returns>The total number of bytes read into the buffer.</returns>
-    int Read(byte[] buffer, int offset, int count);
+    ///// <summary>
+    ///// Reads a sequence of bytes from the stream.
+    ///// </summary>
+    ///// <param name="buffer">The buffer to write data into.</param>
+    ///// <param name="offset">The zero-based byte offset in buffer at which to begin storing the data read from the stream.</param>
+    ///// <param name="count">The maximum number of bytes to be read from the stream.</param>
+    ///// <returns>The total number of bytes read into the buffer.</returns>
+    //int Read(byte[] buffer, int offset, int count);
 
     /// <summary>
     /// Asynchronously reads a sequence of bytes from the stream.
@@ -28,7 +28,7 @@ public interface IHttpStreamReader : ILineStream
     /// <param name="count">The maximum number of bytes to be read from the stream.</param>
     /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
     /// <returns>A Task that represents the asynchronous read operation. The value of the TResult parameter contains the total number of bytes read into the buffer.</returns>
-    Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken);
+    Task<int> ReadAsync ( byte[] buffer, int offset, int count, CancellationToken cancellationToken );
 
     /// <summary>
     /// Asynchronously copies the body of an HTTP message to a writer.
@@ -40,6 +40,6 @@ public interface IHttpStreamReader : ILineStream
     /// <param name="args">The SessionEventArgs associated with the HTTP session.</param>
     /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
     /// <returns>A Task that represents the asynchronous copy operation.</returns>
-    Task CopyBodyAsync(IHttpStreamWriter writer, bool isChunked, long contentLength,
-        bool isRequest, SessionEventArgs args, CancellationToken cancellationToken);
+    Task CopyBodyAsync ( IHttpStreamWriter writer, bool isChunked, long contentLength,
+        bool isRequest, SessionEventArgs args, CancellationToken cancellationToken );
 }

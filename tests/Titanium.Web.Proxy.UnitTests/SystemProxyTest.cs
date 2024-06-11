@@ -15,7 +15,7 @@ namespace Titanium.Web.Proxy.UnitTests
         /// </summary>
         [TestMethod()]
         [Ignore("This test fails since NET8.0 upgrade. Need to fix it.")]
-        public void CompareProxyAddressReturnedByWebProxyAndWinHttpProxyResolver()
+        public void CompareProxyAddressReturnedByWebProxyAndWinHttpProxyResolver ()
         {
             var proxyManager = new SystemProxyManager();
 
@@ -73,7 +73,7 @@ namespace Titanium.Web.Proxy.UnitTests
             }
         }
 
-        private void CompareUrls()
+        private void CompareUrls ()
         {
             var webProxy = WebRequest.GetSystemWebProxy();
 
@@ -110,7 +110,7 @@ namespace Titanium.Web.Proxy.UnitTests
             CompareProxy(webProxy, resolver, "https://test.local");
         }
 
-        private void CompareProxy(IWebProxy webProxy, WinHttpWebProxyFinder resolver, string url)
+        private void CompareProxy ( IWebProxy webProxy, WinHttpWebProxyFinder resolver, string url )
         {
             var uri = new Uri(url);
 

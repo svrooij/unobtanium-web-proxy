@@ -29,7 +29,7 @@ public class WebSocketFrame
     /// Gets the data contained in this frame as a text string, using UTF-8 encoding.
     /// </summary>
     /// <returns>The data as a text string.</returns>
-    public string GetText()
+    public string GetText ()
     {
         return GetText(Encoding.UTF8);
     }
@@ -39,7 +39,7 @@ public class WebSocketFrame
     /// </summary>
     /// <param name="encoding">The encoding to use when converting the data to a string.</param>
     /// <returns>The data as a text string.</returns>
-    public string GetText(Encoding encoding)
+    public string GetText ( Encoding encoding )
     {
 #if NET6_0_OR_GREATER
         return encoding.GetString(Data.Span);

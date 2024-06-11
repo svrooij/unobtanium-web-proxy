@@ -54,7 +54,7 @@ internal sealed class AuthUserPass : AuthMethod
     /// <param name="user">The username to use.</param>
     /// <param name="pass">The password to use.</param>
     /// <exception cref="ArgumentNullException"><c>user</c> -or- <c>pass</c> is null.</exception>
-    public AuthUserPass(Socket server, string user, string pass) : base(server)
+    public AuthUserPass ( Socket server, string user, string pass ) : base(server)
     {
         Username = user;
         Password = pass;
@@ -68,7 +68,7 @@ internal sealed class AuthUserPass : AuthMethod
     private string Username
     {
         get => username!;
-        set => username = value ?? throw new ArgumentNullException();
+        set => username = value ?? throw new ArgumentNullException(nameof(Username));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ internal sealed class AuthUserPass : AuthMethod
     private string Password
     {
         get => password!;
-        set => password = value ?? throw new ArgumentNullException();
+        set => password = value ?? throw new ArgumentNullException(nameof(Password));
     }
 
     /// <summary>
@@ -90,17 +90,17 @@ internal sealed class AuthUserPass : AuthMethod
     ///     An array of bytes that has to be sent if the user wants to authenticate with the username/password
     ///     authentication scheme.
     /// </returns>
-    private void GetAuthenticationBytes(Memory<byte> buffer)
+    private void GetAuthenticationBytes ( Memory<byte> buffer )
     {
         var span = buffer.Span;
         span[0] = 1;
         span[1] = (byte)Username.Length;
-        Encoding.ASCII.GetBytes(Username).CopyTo(span.Slice(2));
+        Encoding.ASCII.GetBytes(Username).CopyTo(span[2..]);
         span[Username.Length + 2] = (byte)Password.Length;
-        Encoding.ASCII.GetBytes(Password).CopyTo(span.Slice(Username.Length + 3));
+        Encoding.ASCII.GetBytes(Password).CopyTo(span[(Username.Length + 3)..]);
     }
 
-    private int GetAuthenticationLength()
+    private int GetAuthenticationLength ()
     {
         return 3 + Username.Length + Password.Length;
     }
@@ -108,7 +108,7 @@ internal sealed class AuthUserPass : AuthMethod
     /// <summary>
     ///     Starts the authentication process.
     /// </summary>
-    public override void Authenticate()
+    public override void Authenticate ()
     {
         var length = GetAuthenticationLength();
         var buffer = ArrayPool<byte>.Shared.Rent(length);
@@ -143,7 +143,7 @@ internal sealed class AuthUserPass : AuthMethod
     ///     Starts the asynchronous authentication process.
     /// </summary>
     /// <param name="callback">The method to call when the authentication is complete.</param>
-    public override void BeginAuthenticate(HandShakeComplete callback)
+    public override void BeginAuthenticate ( HandShakeComplete callback )
     {
         var length = GetAuthenticationLength();
         Buffer = ArrayPool<byte>.Shared.Rent(length);
@@ -156,7 +156,7 @@ internal sealed class AuthUserPass : AuthMethod
     ///     Called when the authentication bytes have been sent.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnSent(IAsyncResult ar)
+    private void OnSent ( IAsyncResult ar )
     {
         try
         {
@@ -175,7 +175,7 @@ internal sealed class AuthUserPass : AuthMethod
     ///     Called when the socket received an authentication reply.
     /// </summary>
     /// <param name="ar">Stores state information for this asynchronous operation as well as any user-defined data.</param>
-    private void OnReceive(IAsyncResult ar)
+    private void OnReceive ( IAsyncResult ar )
     {
         try
         {
@@ -199,13 +199,13 @@ internal sealed class AuthUserPass : AuthMethod
         }
     }
 
-    private void OnCallBack(Exception? exception)
+    private void OnCallBack ( Exception? exception )
     {
         ArrayPool<byte>.Shared.Return(Buffer!);
         if (CallBack is not null)
         {
             CallBack(exception);
         }
-        
+
     }
 }

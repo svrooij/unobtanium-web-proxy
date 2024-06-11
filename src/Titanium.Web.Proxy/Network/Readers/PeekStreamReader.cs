@@ -8,7 +8,7 @@ internal class PeekStreamReader
 {
     private readonly IPeekStream baseStream;
 
-    public PeekStreamReader(IPeekStream baseStream, int startPosition = 0)
+    public PeekStreamReader ( IPeekStream baseStream, int startPosition = 0 )
     {
         this.baseStream = baseStream;
         Position = startPosition;
@@ -16,25 +16,25 @@ internal class PeekStreamReader
 
     public int Position { get; private set; }
 
-    public async ValueTask<bool> EnsureBufferLength(int length, CancellationToken cancellationToken)
+    public async ValueTask<bool> EnsureBufferLength ( int length, CancellationToken cancellationToken )
     {
         var val = await baseStream.PeekByteAsync(Position + length - 1, cancellationToken);
         return val != -1;
     }
 
-    public byte ReadByte()
+    public byte ReadByte ()
     {
         return baseStream.PeekByteFromBuffer(Position++);
     }
 
-    public int ReadInt16()
+    public int ReadInt16 ()
     {
         int i1 = ReadByte();
         int i2 = ReadByte();
         return (i1 << 8) + i2;
     }
 
-    public int ReadInt24()
+    public int ReadInt24 ()
     {
         int i1 = ReadByte();
         int i2 = ReadByte();
@@ -42,7 +42,7 @@ internal class PeekStreamReader
         return (i1 << 16) + (i2 << 8) + i3;
     }
 
-    public byte[] ReadBytes(int length)
+    public byte[] ReadBytes ( int length )
     {
         var buffer = new byte[length];
         for (var i = 0; i < buffer.Length; i++) buffer[i] = ReadByte();
@@ -50,7 +50,7 @@ internal class PeekStreamReader
         return buffer;
     }
 
-    public void ReadBytes(Span<byte> data)
+    public void ReadBytes ( Span<byte> data )
     {
         for (var i = 0; i < data.Length; i++) data[i] = ReadByte();
     }

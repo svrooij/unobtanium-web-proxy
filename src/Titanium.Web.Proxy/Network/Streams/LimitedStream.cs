@@ -18,8 +18,8 @@ internal class LimitedStream : Stream
 
     private bool readChunkTrail;
 
-    internal LimitedStream(IHttpStreamReader baseStream, IBufferPool bufferPool, bool isChunked,
-        long contentLength)
+    internal LimitedStream ( IHttpStreamReader baseStream, IBufferPool bufferPool, bool isChunked,
+        long contentLength )
     {
         baseReader = baseStream;
         this.bufferPool = bufferPool;
@@ -45,48 +45,48 @@ internal class LimitedStream : Stream
         set => throw new NotSupportedException();
     }
 
-    private void GetNextChunk()
-    {
-        if (readChunkTrail)
-        {
-            // read the chunk trail of the previous chunk
-            var s = baseReader.ReadLineAsync().Result;
-            if (s == null)
-            {
-                bytesRemaining = -1;
-                return;
-            }
-        }
+    //private void GetNextChunk()
+    //{
+    //    if (readChunkTrail)
+    //    {
+    //        // read the chunk trail of the previous chunk
+    //        var s = baseReader.ReadLineAsync().Result;
+    //        if (s == null)
+    //        {
+    //            bytesRemaining = -1;
+    //            return;
+    //        }
+    //    }
 
-        readChunkTrail = true;
+    //    readChunkTrail = true;
 
-        var chunkHead = baseReader.ReadLineAsync().Result;
-        if (chunkHead == null)
-        {
-            bytesRemaining = -1;
-            return;
-        }
+    //    var chunkHead = baseReader.ReadLineAsync().Result;
+    //    if (chunkHead == null)
+    //    {
+    //        bytesRemaining = -1;
+    //        return;
+    //    }
 
-        var idx = chunkHead.IndexOf(";", StringComparison.Ordinal);
-        if (idx >= 0) chunkHead = chunkHead.Substring(0, idx);
+    //    var idx = chunkHead.IndexOf(';');
+    //    if (idx >= 0) chunkHead = chunkHead[..idx];
 
-        if (!int.TryParse(chunkHead, NumberStyles.HexNumber, null, out var chunkSize))
-            throw new ProxyHttpException($"Invalid chunk length: '{chunkHead}'", null, null);
+    //    if (!int.TryParse(chunkHead, NumberStyles.HexNumber, null, out var chunkSize))
+    //        throw new ProxyHttpException($"Invalid chunk length: '{chunkHead}'", null, null);
 
-        bytesRemaining = chunkSize;
+    //    bytesRemaining = chunkSize;
 
-        if (chunkSize == 0)
-        {
-            bytesRemaining = -1;
+    //    if (chunkSize == 0)
+    //    {
+    //        bytesRemaining = -1;
 
-            // chunk trail
-            var task = baseReader.ReadLineAsync();
-            if (!task.IsCompleted)
-                task.AsTask().Wait();
-        }
-    }
+    //        // chunk trail
+    //        var task = baseReader.ReadLineAsync();
+    //        if (!task.IsCompleted)
+    //            task.AsTask().Wait();
+    //    }
+    //}
 
-    private async Task GetNextChunkAsync()
+    private async Task GetNextChunkAsync ()
     {
         if (readChunkTrail)
         {
@@ -108,8 +108,8 @@ internal class LimitedStream : Stream
             return;
         }
 
-        var idx = chunkHead.IndexOf(";", StringComparison.Ordinal);
-        if (idx >= 0) chunkHead = chunkHead.Substring(0, idx);
+        var idx = chunkHead.IndexOf(';');
+        if (idx >= 0) chunkHead = chunkHead[..idx];
 
         if (!int.TryParse(chunkHead, NumberStyles.HexNumber, null, out var chunkSize))
             throw new ProxyHttpException($"Invalid chunk length: '{chunkHead}'", null, null);
@@ -125,45 +125,35 @@ internal class LimitedStream : Stream
         }
     }
 
-    public override void Flush()
+    public override void Flush ()
     {
         throw new NotSupportedException();
     }
 
-    public override long Seek(long offset, SeekOrigin origin)
+    public override long Seek ( long offset, SeekOrigin origin )
     {
         throw new NotSupportedException();
     }
 
-    public override void SetLength(long value)
+    public override void SetLength ( long value )
     {
         throw new NotSupportedException();
     }
 
-    public override int Read(byte[] buffer, int offset, int count)
+    /// <summary>
+    /// Reads a sequence of bytes from the stream. Not supported. Use ReadAsync instead.
+    /// </summary>
+    /// <param name="buffer"></param>
+    /// <param name="offset"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public override int Read ( byte[] buffer, int offset, int count )
     {
-        if (bytesRemaining == -1) return 0;
-
-        if (bytesRemaining == 0)
-        {
-            if (isChunked)
-                GetNextChunk();
-            else
-                bytesRemaining = -1;
-        }
-
-        if (bytesRemaining == -1) return 0;
-
-        var toRead = (int)Math.Min(count, bytesRemaining);
-        var res = baseReader.Read(buffer, offset, toRead);
-        bytesRemaining -= res;
-
-        if (res == 0) bytesRemaining = -1;
-
-        return res;
+        throw new NotImplementedException();
     }
 
-    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    public override async Task<int> ReadAsync ( byte[] buffer, int offset, int count, CancellationToken cancellationToken )
     {
         if (bytesRemaining == -1) return 0;
 
@@ -186,7 +176,7 @@ internal class LimitedStream : Stream
         return res;
     }
 
-    public async Task Finish()
+    public async Task Finish ()
     {
         if (bytesRemaining != -1)
         {
@@ -203,7 +193,7 @@ internal class LimitedStream : Stream
         }
     }
 
-    public override void Write(byte[] buffer, int offset, int count)
+    public override void Write ( byte[] buffer, int offset, int count )
     {
         throw new NotSupportedException();
     }

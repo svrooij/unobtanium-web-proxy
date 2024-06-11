@@ -47,7 +47,7 @@ internal class HuffmanEncoder
     ///     if an I/O error occurs. In particular, an <code>IOException</code> may be thrown if the
     ///     output stream has been closed.
     /// </exception>
-    public void Encode(BinaryWriter output, ByteString data)
+    public void Encode ( BinaryWriter output, ByteString data )
     {
         if (output == null) throw new ArgumentNullException(nameof(output));
 
@@ -86,7 +86,7 @@ internal class HuffmanEncoder
     /// </summary>
     /// <returns>the number of bytes required to Huffman encode <code>data</code></returns>
     /// <param name="data">the string literal to be Huffman encoded</param>
-    public int GetEncodedLength(ByteString data)
+    public int GetEncodedLength ( ByteString data )
     {
         var len = 0L;
         foreach (var b in data.Span) len += lengths[b];

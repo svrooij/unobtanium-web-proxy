@@ -8,7 +8,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
     {
         private static readonly ProxyTestController controller = new ProxyTestController();
 
-        public static void Main(string[] args)
+        public static void Main ( string[] args )
         {
             if (RunTime.IsWindows)
                 // fix console hang due to QuickEdit mode

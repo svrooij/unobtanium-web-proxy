@@ -21,6 +21,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Titanium.Web.Proxy.Integrat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Titanium.Web.Proxy.UnitTests", "tests\Titanium.Web.Proxy.UnitTests\Titanium.Web.Proxy.UnitTests.csproj", "{84478257-32A3-4B14-AD56-F95374AFDDCF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0B43DBA0-F59D-43DC-A1D7-2BB6AFF31E10}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -69,7 +69,7 @@ public class Request : RequestResponseBase
             {
                 var hostAndPath = Host ?? Authority.GetString();
 
-                if (url.StartsWith("/"))
+                if (url.StartsWith('/'))
                 {
                     hostAndPath += url;
                 }
@@ -197,29 +197,25 @@ public class Request : RequestResponseBase
         }
     }
 
-    internal override void EnsureBodyAvailable(bool throwWhenNotReadYet = true)
+    internal override void EnsureBodyAvailable ( bool throwWhenNotReadYet = true )
     {
         if (BodyInternal != null) return;
 
         // GET request don't have a request body to read
         if (!HasBody)
-            throw new BodyNotFoundException("Request don't have a body. " +
-                                            "Please verify that this request is a Http POST/PUT/PATCH and request " +
-                                            "content length is greater than zero before accessing the body.");
+            throw new BodyNotFoundException();
 
         if (!IsBodyRead)
         {
-            if (Locked) throw new Exception("You cannot get the request body after request is made to server.");
+            if (Locked) throw new BodyLockedException();
 
             if (throwWhenNotReadYet)
-                throw new Exception("Request body is not read yet. " +
-                                    "Use SessionEventArgs.GetRequestBody() or SessionEventArgs.GetRequestBodyAsString() " +
-                                    "method to read the request body.");
+                throw new BodyNotLoadedException();
         }
     }
 
-    internal static void ParseRequestLine(string httpCmd, out string method, out ByteString requestUri,
-        out Version version)
+    internal static void ParseRequestLine ( string httpCmd, out string method, out ByteString requestUri,
+        out Version version )
     {
         var firstSpace = httpCmd.IndexOf(' ');
         if (firstSpace == -1)
@@ -231,7 +227,7 @@ public class Request : RequestResponseBase
         // break up the line into three components (method, remote URL & Http Version)
 
         // Find the request Verb
-        method = httpCmd.Substring(0, firstSpace);
+        method = httpCmd[..firstSpace];
         if (!IsAllUpper(method)) method = method.ToUpper();
 
         version = HttpHeader.Version11;
@@ -251,7 +247,7 @@ public class Request : RequestResponseBase
         }
     }
 
-    private static bool IsAllUpper(string input)
+    private static bool IsAllUpper ( string input )
     {
         for (var i = 0; i < input.Length; i++)
         {

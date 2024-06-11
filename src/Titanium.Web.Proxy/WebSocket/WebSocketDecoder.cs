@@ -15,7 +15,7 @@ public class WebSocketDecoder
 
     private long bufferLength;
 
-    internal WebSocketDecoder(IBufferPool bufferPool)
+    internal WebSocketDecoder ( IBufferPool bufferPool )
     {
         buffer = new byte[bufferPool.BufferSize];
     }
@@ -27,7 +27,7 @@ public class WebSocketDecoder
     /// <param name="offset">The offset in the data at which to start decoding.</param>
     /// <param name="count">The number of bytes in the data to decode.</param>
     /// <returns>An IEnumerable of WebSocketFrame representing the decoded frames.</returns>
-    public IEnumerable<WebSocketFrame> Decode(byte[] data, int offset, int count)
+    public IEnumerable<WebSocketFrame> Decode ( byte[] data, int offset, int count )
     {
         var buffer = data.AsMemory(offset, count);
 
@@ -83,7 +83,7 @@ public class WebSocketDecoder
                 var size1 = size;
                 if (size > 4)
                 {
-                    uData = uData.Slice(1);
+                    uData = uData[1..];
                     for (var i = 0; i < uData.Length; i++) uData[i] = uData[i] ^ mask;
 
                     size1 -= uData.Length * 4;
@@ -104,7 +104,7 @@ public class WebSocketDecoder
             var frame = new WebSocketFrame { IsFinal = isFinal, Data = frameData, OpCode = opCode };
             yield return frame;
 
-            buffer = buffer.Slice((int)(idx + size));
+            buffer = buffer[(int)(idx + size)..];
         }
 
         if (!copied && buffer.Length > 0) CopyToBuffer(buffer);
@@ -123,7 +123,7 @@ public class WebSocketDecoder
         }
     }
 
-    private Memory<byte> CopyToBuffer(ReadOnlyMemory<byte> data)
+    private Memory<byte> CopyToBuffer ( ReadOnlyMemory<byte> data )
     {
         var requiredLength = bufferLength + data.Length;
         if (requiredLength > buffer.Length) Array.Resize(ref buffer, (int)Math.Min(requiredLength, buffer.Length * 2));
@@ -133,7 +133,7 @@ public class WebSocketDecoder
         return buffer.AsMemory(0, (int)bufferLength);
     }
 
-    private static bool IsDataEnough(ReadOnlySpan<byte> data)
+    private static bool IsDataEnough ( ReadOnlySpan<byte> data )
     {
         var length = data.Length;
         if (length < 2)

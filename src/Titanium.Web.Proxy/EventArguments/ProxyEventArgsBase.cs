@@ -17,7 +17,7 @@ public abstract class ProxyEventArgsBase : EventArgs
     /// </summary>
     /// <param name="server">The proxy server instance.</param>
     /// <param name="clientConnection">The client connection.</param>
-    internal ProxyEventArgsBase(ProxyServer server, TcpClientConnection clientConnection)
+    internal ProxyEventArgsBase ( ProxyServer server, TcpClientConnection clientConnection )
     {
         this.clientConnection = clientConnection;
         Server = server;

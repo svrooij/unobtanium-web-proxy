@@ -15,7 +15,7 @@ public class HttpWebClient
 {
     private TcpServerConnection? connection;
 
-    internal HttpWebClient(ConnectRequest? connectRequest, Request request, Lazy<int> processIdFunc)
+    internal HttpWebClient ( ConnectRequest? connectRequest, Request request, Lazy<int> processIdFunc )
     {
         ConnectRequest = connectRequest;
         Request = request;
@@ -46,7 +46,7 @@ public class HttpWebClient
     /// <summary>
     ///     Stores internal data for the session.
     /// </summary>
-    internal InternalDataStore Data { get; } = new();
+    internal InternalDataStore Data { get; } = [];
 
     /// <summary>
     ///     Gets or sets the user data.
@@ -88,7 +88,7 @@ public class HttpWebClient
     ///     Set the tcp connection to server used by this webclient
     /// </summary>
     /// <param name="serverConnection">Instance of <see cref="TcpServerConnection" /></param>
-    internal void SetConnection(TcpServerConnection serverConnection)
+    internal void SetConnection ( TcpServerConnection serverConnection )
     {
         serverConnection.LastAccess = DateTime.UtcNow;
         connection = serverConnection;
@@ -98,8 +98,8 @@ public class HttpWebClient
     ///     Prepare and send the http(s) request
     /// </summary>
     /// <returns></returns>
-    internal async Task SendRequest(bool enable100ContinueBehaviour, bool isTransparent,
-        CancellationToken cancellationToken)
+    internal async Task SendRequest ( bool enable100ContinueBehaviour, bool isTransparent,
+        CancellationToken cancellationToken )
     {
         var upstreamProxy = Connection.UpStreamProxy;
 
@@ -161,7 +161,7 @@ public class HttpWebClient
     ///     Receive and parse the http response from server
     /// </summary>
     /// <returns></returns>
-    internal async Task ReceiveResponse(CancellationToken cancellationToken)
+    internal async Task ReceiveResponse ( CancellationToken cancellationToken )
     {
         // return if this is already read
         if (Response.StatusCode != 0) return;
@@ -180,7 +180,7 @@ public class HttpWebClient
     /// <summary>
     ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
-    internal void FinishSession()
+    internal void FinishSession ()
     {
         connection = null;
 
