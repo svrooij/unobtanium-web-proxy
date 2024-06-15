@@ -427,6 +427,26 @@ internal static class SslCiphers
         { 0x830004, "PCT_SSL_CIPHER_TYPE_1ST_HALF | PCT1_CIPHER_RC4" },
         { 0x842840, "PCT_SSL_CIPHER_TYPE_2ND_HALF | PCT1_ENC_BITS_40 | PCT1_MAC_BITS_128" },
         { 0x848040, "PCT_SSL_CIPHER_TYPE_2ND_HALF | PCT1_ENC_BITS_128 | PCT1_MAC_BITS_128" },
-        { 0x8F8001, "PCT_SSL_COMPAT | PCT_VERSION_1" }
+        { 0x8F8001, "PCT_SSL_COMPAT | PCT_VERSION_1" },
+        // Chrome is testing out GREASE. When these cipher suite was added, there
+	    // was no name given in their IETF draft, so we call them
+	    // "TLS_GREASE_IS_THE_WORD_${PREFIX}". See draft 01
+	    // <https://tools.ietf.org/html/draft-davidben-tls-grease-01>.
+	    {0x0A0A, "TLS_GREASE_IS_THE_WORD_0A" },
+        {0x1A1A, "TLS_GREASE_IS_THE_WORD_1A" },
+        {0x2A2A, "TLS_GREASE_IS_THE_WORD_2A" },
+        {0x3A3A, "TLS_GREASE_IS_THE_WORD_3A" },
+        {0x4A4A, "TLS_GREASE_IS_THE_WORD_4A" },
+        {0x5A5A, "TLS_GREASE_IS_THE_WORD_5A" },
+        {0x6A6A, "TLS_GREASE_IS_THE_WORD_6A" },
+        {0x7A7A, "TLS_GREASE_IS_THE_WORD_7A" },
+        {0x8A8A, "TLS_GREASE_IS_THE_WORD_8A" },
+        {0x9A9A, "TLS_GREASE_IS_THE_WORD_9A" },
+        {0xAAAA, "TLS_GREASE_IS_THE_WORD_AA" },
+        {0xBABA, "TLS_GREASE_IS_THE_WORD_BA" },
+        {0xCACA, "TLS_GREASE_IS_THE_WORD_CA" },
+        {0xDADA, "TLS_GREASE_IS_THE_WORD_DA" },
+        {0xEAEA, "TLS_GREASE_IS_THE_WORD_EA" },
+        {0xFAFA, "TLS_GREASE_IS_THE_WORD_FA" },
     };
 }
