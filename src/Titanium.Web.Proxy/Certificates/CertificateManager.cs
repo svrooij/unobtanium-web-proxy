@@ -22,12 +22,14 @@ public enum CertificateEngine
     /// Uses BouncyCastle 3rd party library.
     /// Default.
     /// </summary>
+    [Obsolete("BouncyCastle will be removed soon")]
     BouncyCastle = 0,
 
     /// <summary>
     /// Uses BouncyCastle 3rd party library.
     /// Observed to be faster than BouncyCastle.
     /// </summary>
+    [Obsolete("BouncyCastle will be removed soon")]
     BouncyCastleFast = 2,
 
     /// <summary>
@@ -35,7 +37,14 @@ public enum CertificateEngine
     /// Observed to be faster than BouncyCastle.
     /// Bug #468 Reported.
     /// </summary>
-    DefaultWindows = 1
+    [Obsolete("Windows Certificate Maker is not recommended")]
+    DefaultWindows = 1,
+
+    /// <summary>
+    /// Uses System.Security.Cryptography.X509Certificates to generate certificates.
+    /// </summary>
+    /// <remarks>No external library needed.</remarks>
+    Pure = 3,
 }
 
 /// <summary>
@@ -113,7 +122,7 @@ public sealed class CertificateManager : IDisposable
 
         if (rootCertificateIssuerName != null) RootCertificateIssuerName = rootCertificateIssuerName;
 
-        CertificateEngine = CertificateEngine.BouncyCastle;
+        CertificateEngine = CertificateEngine.Pure;
     }
 
     private ICertificateMaker CertEngine
@@ -124,6 +133,7 @@ public sealed class CertificateManager : IDisposable
             {
                 CertificateEngine.BouncyCastle => new BcCertificateMaker(CertificateValidDays),
                 CertificateEngine.BouncyCastleFast => new BcCertificateMakerFast(CertificateValidDays),
+                CertificateEngine.Pure => new DotnetCertificateMaker(CertificateValidDays),
                 _ => new WinCertificateMaker(CertificateValidDays),
             };
             return certEngineValue;
@@ -168,7 +178,8 @@ public sealed class CertificateManager : IDisposable
         set
         {
             // For Mono (or Non-Windows) only Bouncy Castle is supported
-            if (!RunTime.IsWindows) value = CertificateEngine.BouncyCastle;
+            if (value == CertificateEngine.DefaultWindows && !RunTime.IsWindows)
+                throw new PlatformNotSupportedException("Windows Certificate Engine is only supported on Windows OS.");
 
             if (value != engine)
             {
@@ -596,6 +607,7 @@ public sealed class CertificateManager : IDisposable
             if (RootCertificate != null) return true;
 
             if (!OverwritePfxFile)
+            {
                 try
                 {
                     var rootCert = certificateCache.LoadRootCertificate(PfxFilePath, PfxPassword,
@@ -618,6 +630,7 @@ public sealed class CertificateManager : IDisposable
                     // root cert cannot be loaded
                     OnException(new Exception("Root cert cannot be loaded.", e));
                 }
+            }
 
             try
             {
