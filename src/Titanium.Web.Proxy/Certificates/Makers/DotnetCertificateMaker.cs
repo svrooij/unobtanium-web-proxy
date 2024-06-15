@@ -37,7 +37,7 @@ public class DotnetCertificateMaker : ICertificateMaker
 
     private X509Certificate2 CreateRootCertificate ( string subjectCn , int keySize = 2048)
     {
-        var rsa = RSA.Create(keySize); // Generate a new RSA key pair
+        using var rsa = RSA.Create(keySize); // Generate a new RSA key pair
 
         var request = new CertificateRequest($"CN={subjectCn}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
