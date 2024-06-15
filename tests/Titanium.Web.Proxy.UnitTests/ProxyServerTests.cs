@@ -124,6 +124,37 @@ namespace Titanium.Web.Proxy.UnitTests
         }
 
         [TestMethod]
+        public async Task InvokeClientConnectionCreateEvent_WhenCalledWithThrowInHandler_InvokesExceptionFunc ()
+        {
+            var proxy = new ProxyServer();
+            bool isEventHit = false;
+            bool isExceptionHit = false;
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var exception = new Exception("Test exception");
+            proxy.OnClientConnectionCreate += ( sender, args ) =>
+            {
+                isEventHit = true;
+                throw exception;
+            };
+
+            proxy.ExceptionFunc = ( ex ) =>
+            {
+                Assert.IsInstanceOfType(ex, typeof(Exceptions.EventException));
+                Assert.AreEqual(exception, ex.InnerException);
+                isExceptionHit = true;
+            };
+
+
+            // Act
+            await proxy.InvokeClientConnectionCreateEvent(socket);
+
+            // Assert
+            Assert.IsTrue(isEventHit);
+            Assert.IsTrue(isExceptionHit);
+
+        }
+
+        [TestMethod]
         public async Task InvokeServerConnectionCreateEvent_WhenCalled_InvokesEventHandler ()
         {
             var proxy = new ProxyServer();

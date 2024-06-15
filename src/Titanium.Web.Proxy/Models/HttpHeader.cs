@@ -29,6 +29,7 @@ public class HttpHeader
     /// <summary>
     ///     Default encoding used in headers.
     /// </summary>
+    /// <remarks>Returns <see cref="DefaultEncoding"/> which is `ISO-8859-1`</remarks>
     public static Encoding Encoding => DefaultEncoding;
 
     internal static readonly HttpHeader ProxyConnectionKeepAlive = new("Proxy-Connection", "keep-alive");

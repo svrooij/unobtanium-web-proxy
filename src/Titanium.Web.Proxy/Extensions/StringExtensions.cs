@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers;
 using System.Buffers.Text;
-using System.Globalization;
 using System.Text;
 
 namespace Titanium.Web.Proxy.Extensions;
@@ -10,12 +9,12 @@ internal static class StringExtensions
 {
     internal static bool EqualsIgnoreCase ( this string str, string? value )
     {
-        return str.Equals(value, StringComparison.CurrentCultureIgnoreCase);
+        return str.Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 
     internal static bool EqualsIgnoreCase ( this ReadOnlySpan<char> str, ReadOnlySpan<char> value )
     {
-        return str.Equals(value, StringComparison.CurrentCultureIgnoreCase);
+        return str.Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 
     internal static bool ContainsIgnoreCase ( this string str, string? value )
@@ -24,7 +23,7 @@ internal static class StringExtensions
         {
             return false;
         }
-        return CultureInfo.CurrentCulture.CompareInfo.IndexOf(str, value, CompareOptions.IgnoreCase) >= 0;
+        return str.Contains(value, StringComparison.OrdinalIgnoreCase);
     }
 
     internal static int IndexOfIgnoreCase ( this string str, string? value )
@@ -33,7 +32,7 @@ internal static class StringExtensions
         {
             return -1;
         }
-        return CultureInfo.CurrentCulture.CompareInfo.IndexOf(str, value, CompareOptions.IgnoreCase);
+        return str.IndexOf(value, StringComparison.OrdinalIgnoreCase);
     }
 
     internal static unsafe string ByteArrayToHexString ( this ReadOnlySpan<byte> data )
