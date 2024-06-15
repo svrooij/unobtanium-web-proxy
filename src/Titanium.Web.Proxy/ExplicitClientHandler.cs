@@ -283,8 +283,7 @@ sslStream.NegotiatedApplicationProtocol;
                         }
 
                         if (!clientStream.IsClosed && !connection.Stream.IsClosed)
-                            await TcpHelper.SendRaw(clientStream, connection.Stream, BufferPool,
-                                null, null, connectArgs.CancellationTokenSource, ExceptionFunc);
+                            await TcpHelper.SendRaw(clientStream, connection.Stream, connectArgs.CancellationTokenSource);
                     }
                     finally
                     {

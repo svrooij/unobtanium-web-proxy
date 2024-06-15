@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using Titanium.Web.Proxy.Compression;
 using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Exceptions;
-using Titanium.Web.Proxy.Extensions;
 using Titanium.Web.Proxy.Http;
 using Titanium.Web.Proxy.Models;
 using Titanium.Web.Proxy.Shared;
@@ -639,7 +637,9 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         try
         {
             var readTask = BaseStream.ReadAsync(streamBuffer, Available, bytesToRead, cancellationToken);
-            if (IsNetworkStream) readTask = readTask.WithCancellation(cancellationToken);
+            // NetworkStream.ReadAsync did not support cancellation token, seems fixed:
+            // https://github.com/dotnet/runtime/issues/23736
+            //if (IsNetworkStream) readTask = readTask.WithCancellation(cancellationToken);
 
             var readBytes = await readTask;
             result = readBytes > 0;
@@ -736,7 +736,9 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         if (!networkStreamHack) return base.BeginRead(buffer, offset, count, callback, state);
 
         var vAsyncResult = ReadAsync(buffer, offset, count, cancellationToken);
-        if (IsNetworkStream) vAsyncResult = vAsyncResult.WithCancellation(cancellationToken);
+        // NetworkStream.ReadAsync did not support cancellation token, seems fixed:
+        // https://github.com/dotnet/runtime/issues/23736
+        //if (IsNetworkStream) vAsyncResult = vAsyncResult.WithCancellation(cancellationToken);
 
         vAsyncResult.ContinueWith(pAsyncResult =>
         {

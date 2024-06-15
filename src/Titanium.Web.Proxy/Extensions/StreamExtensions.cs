@@ -11,18 +11,6 @@ namespace Titanium.Web.Proxy.Extensions;
 /// </summary>
 internal static class StreamExtensions
 {
-    /// <summary>
-    ///     Copy streams asynchronously
-    /// </summary>
-    /// <param name="input"></param>
-    /// <param name="output"></param>
-    /// <param name="onCopy"></param>
-    /// <param name="bufferPool"></param>
-    internal static Task CopyToAsync ( this Stream input, Stream output, Action<byte[], int, int> onCopy,
-        IBufferPool bufferPool )
-    {
-        return CopyToAsync(input, output, onCopy, bufferPool, CancellationToken.None);
-    }
 
     /// <summary>
     ///     Copy streams asynchronously
@@ -42,8 +30,8 @@ internal static class StreamExtensions
             {
                 // cancellation is not working on Socket ReadAsync
                 // https://github.com/dotnet/corefx/issues/15033
-                var num = await input.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
-                    .WithCancellation(cancellationToken);
+                // https://github.com/dotnet/runtime/issues/23736 seems no longer needed
+                var num = await input.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
                 int bytesRead;
                 if ((bytesRead = num) != 0 && !cancellationToken.IsCancellationRequested)
                 {
@@ -62,6 +50,9 @@ internal static class StreamExtensions
         }
     }
 
+    // NetworkStream.ReadAsync did not support cancellation token, seems fixed:
+    // https://github.com/dotnet/runtime/issues/23736
+    // This makes the below method redundant, but keeping it for now
     internal static async Task<T> WithCancellation<T> ( this Task<T> task, CancellationToken cancellationToken )
         where T : struct
     {

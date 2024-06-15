@@ -33,7 +33,7 @@ public partial class ProxyServer
         // If user requested call back then do it
         if (!args.HttpClient.Response.Locked) await OnBeforeResponse(args);
 
-        await TcpHelper.SendRaw(clientStream, serverConnection.Stream, BufferPool,
+        await TcpHelper.SendRawWithCallbacks(clientStream, serverConnection.Stream, BufferPool,
             args.OnDataSent, args.OnDataReceived, cancellationTokenSource, ExceptionFunc);
     }
 }
