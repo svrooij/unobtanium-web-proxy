@@ -8,9 +8,10 @@ internal partial class NativeMethods
     // Keeps it from getting garbage collected
     internal static ConsoleEventDelegate? Handler;
 
-    [LibraryImport("wininet.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    internal static partial bool InternetSetOption ( IntPtr hInternet, int dwOption, IntPtr lpBuffer,
+    //[LibraryImport("wininet.dll")]
+    //[return: MarshalAs(UnmanagedType.Bool)]
+    [DllImport("wininet.dll")]
+    internal static extern bool InternetSetOption ( IntPtr hInternet, int dwOption, IntPtr lpBuffer,
         int dwBufferLength );
 
     [LibraryImport("kernel32.dll")]
