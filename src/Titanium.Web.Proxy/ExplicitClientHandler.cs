@@ -197,10 +197,10 @@ public partial class ProxyServer
                         options.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
                         await sslStream.AuthenticateAsServerAsync(options, cancellationToken);
 
-#if NET6_0_OR_GREATER
+
                         clientStream.Connection.NegotiatedApplicationProtocol =
 sslStream.NegotiatedApplicationProtocol;
-#endif
+
 
                         // HTTPS server created - we can now decrypt the client's traffic
                         clientStream = new HttpClientStream(this, clientStream.Connection, sslStream, BufferPool,
@@ -283,8 +283,7 @@ sslStream.NegotiatedApplicationProtocol;
                         }
 
                         if (!clientStream.IsClosed && !connection.Stream.IsClosed)
-                            await TcpHelper.SendRaw(clientStream, connection.Stream, BufferPool,
-                                null, null, connectArgs.CancellationTokenSource, ExceptionFunc);
+                            await TcpHelper.SendRaw(clientStream, connection.Stream, connectArgs.CancellationTokenSource);
                     }
                     finally
                     {
@@ -321,7 +320,6 @@ sslStream.NegotiatedApplicationProtocol;
                         true, false, cancellationToken))!;
                     try
                     {
-#if NET6_0_OR_GREATER
                         var connectionPreface = new ReadOnlyMemory<byte>(Http2Helper.ConnectionPreface);
                         await connection.Stream.WriteAsync(connectionPreface, cancellationToken);
                         await Http2Helper.SendHttp2(clientStream, connection.Stream,
@@ -332,7 +330,6 @@ sslStream.NegotiatedApplicationProtocol;
                             async args => { await OnBeforeRequest(args); },
                             async args => { await OnBeforeResponse(args); },
                             connectArgs.CancellationTokenSource, clientStream.Connection.Id, ExceptionFunc);
-#endif
                     }
                     finally
                     {

@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 
@@ -46,4 +48,17 @@ public abstract class ProxyEndPoint
     ///     Generic certificate to use for SSL decryption.
     /// </summary>
     public X509Certificate2? GenericCertificate { get; set; }
+}
+
+internal class ProxyEndPointComparer : IEqualityComparer<ProxyEndPoint>
+{
+    public bool Equals ( ProxyEndPoint? x, ProxyEndPoint? y )
+    {
+        return x?.IpAddress.Equals(y?.IpAddress) == true && x.Port == y.Port;
+    }
+
+    public int GetHashCode ( ProxyEndPoint obj )
+    {
+        return HashCode.Combine(obj.IpAddress, obj.Port);
+    }
 }

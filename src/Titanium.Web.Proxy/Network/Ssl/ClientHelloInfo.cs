@@ -120,7 +120,7 @@ public class ClientHelloInfo
             var minor = MinorVersion;
             if (major == 3 && minor == 3)
             {
-#if NET6_0_OR_GREATER
+
                 var protocols = this.GetSslProtocols();
                 if (protocols != null)
                 {
@@ -129,7 +129,6 @@ public class ClientHelloInfo
                         return SslProtocols.Tls12 | SslProtocols.Tls13;
                     }
                 }
-#endif
 
                 return SslProtocols.Tls12;
             }

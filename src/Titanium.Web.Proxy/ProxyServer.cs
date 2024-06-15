@@ -367,12 +367,12 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Event occurs when client connection count changed.
     /// </summary>
-    public event EventHandler? ClientConnectionCountChanged;
+    public event EventHandler<ConnectionCountChangedEventArgs>? ClientConnectionCountChanged;
 
     /// <summary>
     ///     Event occurs when server connection count changed.
     /// </summary>
-    public event EventHandler? ServerConnectionCountChanged;
+    public event EventHandler<ConnectionCountChangedEventArgs>? ServerConnectionCountChanged;
 
     /// <summary>
     ///     Event to override the default verification logic of remote SSL certificate received during authentication.
@@ -440,7 +440,7 @@ public partial class ProxyServer : IDisposable
         if (ProxyEndPoints.Any(x =>
                 x.IpAddress.Equals(endPoint.IpAddress) && endPoint.Port != 0 && x.Port == endPoint.Port))
         {
-            var ex = new Exception("Cannot add another endpoint to same port & ip address");
+            var ex = new ArgumentException("Cannot add another endpoint to same port & ip address", nameof(endPoint));
             logger.LogWarning(ex, "Cannot add another endpoint to same port & ip address");
             throw ex;
         }
@@ -458,9 +458,9 @@ public partial class ProxyServer : IDisposable
     /// <param name="endPoint">The existing endpoint to remove.</param>
     public void RemoveEndPoint ( ProxyEndPoint endPoint )
     {
-        if (ProxyEndPoints.Contains(endPoint) == false)
+        if (ProxyEndPoints.Contains(endPoint, new ProxyEndPointComparer()) == false)
         {
-            var ex = new Exception("Cannot remove endPoints not added to proxy");
+            var ex = new ArgumentException("Cannot remove endPoints not added to proxy", nameof(endPoint));
 
             logger.LogWarning(ex, "Cannot remove endPoints not added to proxy");
             throw ex;
@@ -625,7 +625,7 @@ public partial class ProxyServer : IDisposable
     /// </param>
     public void Start ( bool changeSystemProxySettings = true )
     {
-        if (ProxyRunning) throw new Exception("Proxy is already running.");
+        if (ProxyRunning) throw new InvalidOperationException("Proxy is already running.");
 
         SetThreadPoolMinThread(ThreadPoolWorkerThread);
 
@@ -674,7 +674,7 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     public void Stop ()
     {
-        if (!ProxyRunning) throw new Exception("Proxy is not running.");
+        if (!ProxyRunning) throw new InvalidOperationException("Proxy is not running.");
 
         if (SystemProxySettingsManager != null)
         {
@@ -733,9 +733,9 @@ public partial class ProxyServer : IDisposable
         ArgumentNullException.ThrowIfNull(endPoint);
 
         if (!ProxyEndPoints.Contains(endPoint))
-            throw new Exception("Cannot set endPoints not added to proxy as system proxy");
+            throw new ArgumentException("Cannot set endPoints not added to proxy as system proxy", nameof(endPoint));
 
-        if (!ProxyRunning) throw new Exception("Cannot set system proxy settings before proxy has been started.");
+        if (!ProxyRunning) throw new InvalidOperationException("Cannot set system proxy settings before proxy has been started.");
     }
 
     /// <summary>
@@ -856,6 +856,7 @@ public partial class ProxyServer : IDisposable
     /// <param name="increment">Should we increment/decrement?</param>
     internal void UpdateClientConnectionCount ( bool increment )
     {
+        int old = clientConnectionCount;
         if (increment)
             Interlocked.Increment(ref clientConnectionCount);
         else
@@ -863,10 +864,11 @@ public partial class ProxyServer : IDisposable
 
         try
         {
-            ClientConnectionCountChanged?.Invoke(this, EventArgs.Empty);
+            ClientConnectionCountChanged?.Invoke(this, new ConnectionCountChangedEventArgs(old, clientConnectionCount));
         }
         catch (Exception ex)
         {
+            logger.LogWarning(ex, "Error invoking ClientConnectionCountChanged event");
             OnException(null, ex);
         }
     }
@@ -877,6 +879,7 @@ public partial class ProxyServer : IDisposable
     /// <param name="increment">Should we increment/decrement?</param>
     internal void UpdateServerConnectionCount ( bool increment )
     {
+        var old = serverConnectionCount;
         if (increment)
             Interlocked.Increment(ref serverConnectionCount);
         else
@@ -884,10 +887,11 @@ public partial class ProxyServer : IDisposable
 
         try
         {
-            ServerConnectionCountChanged?.Invoke(this, EventArgs.Empty);
+            ServerConnectionCountChanged?.Invoke(this, new ConnectionCountChangedEventArgs(old, serverConnectionCount));
         }
         catch (Exception ex)
         {
+            logger.LogWarning(ex, "Error invoking ServerConnectionCountChanged event");
             OnException(null, ex);
         }
     }

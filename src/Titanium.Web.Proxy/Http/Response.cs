@@ -137,20 +137,14 @@ public class Response : RequestResponseBase
         var secondSpace = httpStatus.IndexOf(' ', firstSpace + 1);
         if (secondSpace != -1)
         {
-#if NET6_0_OR_GREATER
+
             statusCode = int.Parse(httpStatus.AsSpan(firstSpace + 1, secondSpace - firstSpace - 1));
-#else
-            statusCode = int.Parse(httpStatus.AsSpan(firstSpace + 1, secondSpace - firstSpace - 1).ToString());
-#endif
             statusDescription = httpStatus.AsSpan(secondSpace + 1).ToString();
         }
         else
         {
-#if NET6_0_OR_GREATER
+
             statusCode = int.Parse(httpStatus.AsSpan(firstSpace + 1));
-#else
-            statusCode = int.Parse(httpStatus.AsSpan(firstSpace + 1).ToString());
-#endif
             statusDescription = string.Empty;
         }
     }

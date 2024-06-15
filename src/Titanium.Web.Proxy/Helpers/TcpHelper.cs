@@ -86,12 +86,40 @@ internal class TcpHelper
     /// </summary>
     /// <param name="clientStream"></param>
     /// <param name="serverStream"></param>
+    /// <param name="cancellationTokenSource"></param>
+    /// <returns></returns>
+    private static async Task SendRawTap ( Stream clientStream, Stream serverStream,
+        CancellationTokenSource cancellationTokenSource )
+    {
+        // Now async relay all server=>client & client=>server data
+        var sendRelay = clientStream.CopyToAsync(serverStream, cancellationTokenSource.Token);
+        //var sendRelay =
+        //    clientStream.CopyToAsync(serverStream, onDataSend, bufferPool, cancellationTokenSource.Token);
+        var receiveRelay =
+            serverStream.CopyToAsync(clientStream, cancellationTokenSource.Token);
+        //var receiveRelay =
+        //    serverStream.CopyToAsync(clientStream, onDataReceive, bufferPool, cancellationTokenSource.Token);
+
+        await Task.WhenAny(sendRelay, receiveRelay);
+        cancellationTokenSource.Cancel();
+
+        await Task.WhenAll(sendRelay, receiveRelay);
+    }
+
+    /// <summary>
+    ///     relays the input clientStream to the server at the specified host name and port with the given httpCmd and headers
+    ///     as prefix
+    ///     Useful for websocket requests
+    ///     Task-based Asynchronous Pattern
+    /// </summary>
+    /// <param name="clientStream"></param>
+    /// <param name="serverStream"></param>
     /// <param name="bufferPool"></param>
     /// <param name="onDataSend"></param>
     /// <param name="onDataReceive"></param>
     /// <param name="cancellationTokenSource"></param>
     /// <returns></returns>
-    private static async Task SendRawTap ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
+    private static async Task SendRawTapWithCallbacks ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
         Action<byte[], int, int>? onDataSend, Action<byte[], int, int>? onDataReceive,
         CancellationTokenSource cancellationTokenSource )
     {
@@ -120,13 +148,30 @@ internal class TcpHelper
     /// <param name="cancellationTokenSource"></param>
     /// <param name="exceptionFunc"></param>
     /// <returns></returns>
-    internal static Task SendRaw ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
-        Action<byte[], int, int>? onDataSend, Action<byte[], int, int>? onDataReceive,
+    internal static Task SendRawWithCallbacks ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
+        Action<byte[], int, int> onDataSend, Action<byte[], int, int> onDataReceive,
         CancellationTokenSource cancellationTokenSource,
         ExceptionHandler? exceptionFunc )
     {
         // todo: fix APM mode
-        return SendRawTap(clientStream, serverStream, bufferPool, onDataSend, onDataReceive,
+        return SendRawTapWithCallbacks(clientStream, serverStream, bufferPool, onDataSend, onDataReceive,
+            cancellationTokenSource);
+    }
+
+    /// <summary>
+    ///     relays the input clientStream to the server at the specified host name and port with the given httpCmd and headers
+    ///     as prefix
+    ///     Useful for websocket requests
+    /// </summary>
+    /// <param name="clientStream"></param>
+    /// <param name="serverStream"></param>
+    /// <param name="cancellationTokenSource"></param>
+    /// <returns></returns>
+    internal static Task SendRaw ( Stream clientStream, Stream serverStream,
+        CancellationTokenSource cancellationTokenSource)
+    {
+        // todo: fix APM mode
+        return SendRawTap(clientStream, serverStream,
             cancellationTokenSource);
     }
 }

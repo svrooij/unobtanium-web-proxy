@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Titanium.Web.Proxy.EventArguments;
+using Titanium.Web.Proxy.Exceptions;
 
 namespace Titanium.Web.Proxy.Extensions;
 
@@ -24,7 +25,8 @@ internal static class FuncExtensions
         }
         catch (Exception e)
         {
-            exceptionFunc?.Invoke(new Exception("Exception thrown in user event", e));
+            // Wrap the exception in EventException and pass it to the user
+            exceptionFunc?.Invoke(new EventException(e));
         }
     }
 }

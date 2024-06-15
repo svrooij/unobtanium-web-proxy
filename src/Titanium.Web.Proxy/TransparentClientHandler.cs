@@ -126,8 +126,7 @@ public partial class ProxyServer
                         }
 
                         if (!clientStream.IsClosed && !connection.Stream.IsClosed)
-                            await TcpHelper.SendRaw(clientStream, connection.Stream, BufferPool,
-                                null, null, cancellationTokenSource, ExceptionFunc);
+                            await TcpHelper.SendRaw(clientStream, connection.Stream, cancellationTokenSource);
                     }
                     finally
                     {
