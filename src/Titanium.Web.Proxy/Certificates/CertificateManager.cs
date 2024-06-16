@@ -46,7 +46,7 @@ public enum CertificateEngine
     /// <remarks>No external library needed.</remarks>
     Pure = 3,
 }
-#pragma warning disable CS0618 // Don't use obsolete members
+
 /// <summary>
 /// A class to manage SSL certificates used by this proxy server.
 /// </summary>
@@ -65,16 +65,16 @@ public sealed class CertificateManager : IDisposable
 
     private readonly CancellationTokenSource clearCertificatesTokenSource = new();
 
-    /// <summary>
-    /// Used to prevent multiple threads working on same certificate generation
-    /// when burst certificate generation requests happen for same certificate.
-    /// </summary>
-    private readonly SemaphoreSlim pendingCertificateCreationTaskLock = new(1);
+    ///// <summary>
+    ///// Used to prevent multiple threads working on same certificate generation
+    ///// when burst certificate generation requests happen for same certificate.
+    ///// </summary>
+    //private readonly SemaphoreSlim pendingCertificateCreationTaskLock = new(1);
 
-    /// <summary>
-    /// A list of pending certificate creation tasks.
-    /// </summary>
-    private readonly Dictionary<string, Task<X509Certificate2?>> pendingCertificateCreationTasks = [];
+    ///// <summary>
+    ///// A list of pending certificate creation tasks.
+    ///// </summary>
+    //private readonly Dictionary<string, Task<X509Certificate2?>> pendingCertificateCreationTasks = [];
 
     private readonly object rootCertCreationLock = new();
 
@@ -299,7 +299,7 @@ public sealed class CertificateManager : IDisposable
     /// <returns></returns>
     private bool RootCertificateInstalled ( StoreLocation storeLocation )
     {
-        if (RootCertificate == null) throw new Exception("Root certificate is null.");
+        if (RootCertificate == null) throw new InvalidOperationException("Root certificate is null.");
 
         var value = $"{RootCertificate.Issuer}";
         return FindCertificates(StoreName.Root, storeLocation, value).Count > 0
@@ -329,7 +329,7 @@ public sealed class CertificateManager : IDisposable
     /// <param name="storeLocation"></param>
     private void InstallCertificate ( StoreName storeName, StoreLocation storeLocation )
     {
-        if (RootCertificate == null) throw new Exception("Could not install certificate as it is null or empty.");
+        if (RootCertificate == null) throw new InvalidOperationException("Could not install certificate as it is null or empty.");
 
         var x509Store = new X509Store(storeName, storeLocation);
 
