@@ -150,7 +150,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
 
                 var path = Path.GetDirectoryName(assemblyLocation);
 
-                rootCertificatePath = path ?? throw new NullReferenceException();
+                rootCertificatePath = path ?? throw new InvalidOperationException("Certificate cache path could not be determind");
             }
         }
 

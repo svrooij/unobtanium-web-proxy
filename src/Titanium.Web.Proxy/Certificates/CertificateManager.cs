@@ -46,7 +46,7 @@ public enum CertificateEngine
     /// <remarks>No external library needed.</remarks>
     Pure = 3,
 }
-
+#pragma warning disable CS0618 // Don't use obsolete members
 /// <summary>
 /// A class to manage SSL certificates used by this proxy server.
 /// </summary>
@@ -495,66 +495,73 @@ public sealed class CertificateManager : IDisposable
     /// </summary>
     /// <param name="certificateName"></param>
     /// <returns></returns>
-    public async Task<X509Certificate2?> CreateServerCertificate ( string certificateName )
+    public Task<X509Certificate2?> CreateServerCertificate ( string certificateName )
     {
-        // check in cache first
-        if (cachedCertificates.TryGetValue(certificateName, out var cached))
+        var cachedCert = cachedCertificates.GetOrAdd(certificateName, (certificateName) =>
         {
-            cached.LastAccess = DateTime.UtcNow;
-            return cached.Certificate;
-        }
+            return new CachedCertificate(CreateCertificate(certificateName, false)!);
+        });
 
-        var createdTask = false;
-        Task<X509Certificate2?>? createCertificateTask;
-        await pendingCertificateCreationTaskLock.WaitAsync();
-        try
-        {
-            // check in cache first
-            if (cachedCertificates.TryGetValue(certificateName, out cached))
-            {
-                cached.LastAccess = DateTime.UtcNow;
-                return cached.Certificate;
-            }
+        return Task.FromResult(cachedCert?.Certificate);
 
-            // handle burst requests with same certificate name
-            // by checking for existing task for same certificate name
-            if (!pendingCertificateCreationTasks.TryGetValue(certificateName, out createCertificateTask))
-            {
-                // run certificate creation task & add it to pending tasks
-                createCertificateTask = Task.Run(() =>
-                {
-                    var result = CreateCertificate(certificateName, false);
-                    if (result != null) cachedCertificates.TryAdd(certificateName, new CachedCertificate(result));
+        //// check in cache first
+        //if (cachedCertificates.TryGetValue(certificateName, out var cached))
+        //{
+        //    cached.LastAccess = DateTime.UtcNow;
+        //    return cached.Certificate;
+        //}
 
-                    return result;
-                });
+        //var createdTask = false;
+        //Task<X509Certificate2?>? createCertificateTask;
+        //await pendingCertificateCreationTaskLock.WaitAsync();
+        //try
+        //{
+        //    // check in cache first
+        //    if (cachedCertificates.TryGetValue(certificateName, out cached))
+        //    {
+        //        cached.LastAccess = DateTime.UtcNow;
+        //        return cached.Certificate;
+        //    }
 
-                pendingCertificateCreationTasks[certificateName] = createCertificateTask;
-                createdTask = true;
-            }
-        }
-        finally
-        {
-            pendingCertificateCreationTaskLock.Release();
-        }
+        //    // handle burst requests with same certificate name
+        //    // by checking for existing task for same certificate name
+        //    if (!pendingCertificateCreationTasks.TryGetValue(certificateName, out createCertificateTask))
+        //    {
+        //        // run certificate creation task & add it to pending tasks
+        //        createCertificateTask = Task.Run(() =>
+        //        {
+        //            var result = CreateCertificate(certificateName, false);
+        //            if (result != null) cachedCertificates.TryAdd(certificateName, new CachedCertificate(result));
 
-        var certificate = await createCertificateTask;
+        //            return result;
+        //        });
 
-        if (createdTask)
-        {
-            // cleanup pending task
-            await pendingCertificateCreationTaskLock.WaitAsync();
-            try
-            {
-                pendingCertificateCreationTasks.Remove(certificateName);
-            }
-            finally
-            {
-                pendingCertificateCreationTaskLock.Release();
-            }
-        }
+        //        pendingCertificateCreationTasks[certificateName] = createCertificateTask;
+        //        createdTask = true;
+        //    }
+        //}
+        //finally
+        //{
+        //    pendingCertificateCreationTaskLock.Release();
+        //}
 
-        return certificate;
+        //var certificate = await createCertificateTask;
+
+        //if (createdTask)
+        //{
+        //    // cleanup pending task
+        //    await pendingCertificateCreationTaskLock.WaitAsync();
+        //    try
+        //    {
+        //        pendingCertificateCreationTasks.Remove(certificateName);
+        //    }
+        //    finally
+        //    {
+        //        pendingCertificateCreationTaskLock.Release();
+        //    }
+        //}
+
+        //return certificate;
     }
 
     /// <summary>
