@@ -67,16 +67,12 @@ internal class AsyncConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TK
     /// Dictionary to store semaphores for each key
     /// </summary>
     private readonly ConcurrentDictionary<TKey, Lazy<SemaphoreSlim>> _dicSemaphoreSlim = new ConcurrentDictionary<TKey, Lazy<SemaphoreSlim>>();
-
-    override protected void Dispose ( bool disposing )
+    
+    ~AsyncConcurrentDictionary()
     {
-        if (disposing)
+        foreach (var semaphore in _dicSemaphoreSlim)
         {
-            foreach (var semaphore in _dicSemaphoreSlim.Values)
-            {
-                semaphore.Value.Dispose();
-            }
+            semaphore.Value.Value.Dispose();
         }
-        base.Dispose(disposing);
     }
 }
