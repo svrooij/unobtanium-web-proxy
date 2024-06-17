@@ -122,7 +122,7 @@ public partial class ProxyServer : IDisposable
         if (RunTime.IsWindows && !RunTime.IsUwpOnWindows) SystemProxySettingsManager = new SystemProxyManager();
 
         CertificateManager = new CertificateManager(rootCertificateName, rootCertificateIssuerName,
-            userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin, ExceptionFunc);
+            userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin, this.loggerFactory.CreateLogger<CertificateManager>());
     }
 
     /// <summary>

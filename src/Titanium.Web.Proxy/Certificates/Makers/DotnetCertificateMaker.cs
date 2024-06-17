@@ -13,14 +13,14 @@ public class DotnetCertificateMaker : ICertificateMaker
 {
     private const int ValidFromDaysAdjustment = -1;
     private const int ValidToDaysAdjustmentRoot = 700;
-    
+
     private readonly int ValidToDaysAdjustment;
-    
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="DotnetCertificateMaker"/> class.
     /// </summary>
     /// <param name="certificateLifetime">The valid to days adjustment.</param>
-    public DotnetCertificateMaker(int certificateLifetime = 365)
+    public DotnetCertificateMaker ( int certificateLifetime = 365 )
     {
         ValidToDaysAdjustment = certificateLifetime;
     }
@@ -32,10 +32,10 @@ public class DotnetCertificateMaker : ICertificateMaker
     /// <param name="signingCert">The signing cert, will generate root certificate if empty</param>
     public X509Certificate2 MakeCertificate ( string subjectCn, X509Certificate2? signingCert )
     {
-      return signingCert == null ? CreateRootCertificate(subjectCn) : CreateLeafCertificate(subjectCn, signingCert);
+        return signingCert == null ? CreateRootCertificate(subjectCn) : CreateLeafCertificate(subjectCn, signingCert);
     }
 
-    private X509Certificate2 CreateRootCertificate ( string subjectCn , int keySize = 2048)
+    private X509Certificate2 CreateRootCertificate ( string subjectCn, int keySize = 2048 )
     {
         using var rsa = RSA.Create(keySize); // Generate a new RSA key pair
 
@@ -58,7 +58,7 @@ public class DotnetCertificateMaker : ICertificateMaker
         return new X509Certificate2(cert.Export(X509ContentType.Pfx), "", X509KeyStorageFlags.Exportable);
     }
 
-    private X509Certificate2 CreateLeafCertificate ( string subjectCn, X509Certificate2 signingCert , int keySize = 2048)
+    private X509Certificate2 CreateLeafCertificate ( string subjectCn, X509Certificate2 signingCert, int keySize = 2048 )
     {
         using var rsa = RSA.Create(keySize); // Generate a new RSA key pair
 
@@ -82,7 +82,7 @@ public class DotnetCertificateMaker : ICertificateMaker
         // Set enhanced key usage to server authentication
         var serverAuthenticationOid = new Oid("1.3.6.1.5.5.7.3.1");
         request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { serverAuthenticationOid }, false));
-        
+
         // Set the validity period
         var notBefore = DateTimeOffset.Now.AddDays(ValidFromDaysAdjustment);
         var notAfter = DateTimeOffset.Now.AddDays(ValidToDaysAdjustment);
