@@ -8,7 +8,7 @@ namespace Titanium.Web.Proxy.UnitTests.Extensions;
 public class HttpHeaderExtensionsTests
 {
     [TestMethod]
-    public void GetString_GivenByteString_ReturnsCorrectString()
+    public void GetString_GivenByteString_ReturnsCorrectString ()
     {
         // Arrange
         var data = new ByteString(new byte[] { 0x1A, 0x2B, 0x3C });
@@ -22,7 +22,7 @@ public class HttpHeaderExtensionsTests
     }
 
     [TestMethod]
-    public void GetString_GivenEmptyByteString_ReturnsEmptyString()
+    public void GetString_GivenEmptyByteString_ReturnsEmptyString ()
     {
         // Arrange
         var data = new ByteString(new byte[] { });
@@ -36,7 +36,7 @@ public class HttpHeaderExtensionsTests
     }
 
     [TestMethod]
-    public void GetByteString_GivenString_ReturnsCorrectByteString()
+    public void GetByteString_GivenString_ReturnsCorrectByteString ()
     {
         // Arrange
         string str = "HelloWorld";

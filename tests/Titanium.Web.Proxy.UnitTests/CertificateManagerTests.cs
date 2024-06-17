@@ -20,11 +20,7 @@ namespace Titanium.Web.Proxy.UnitTests
         {
             var tasks = new List<Task>();
 
-            using var mgr = new CertificateManager(null, null, false, false, false, new Lazy<ExceptionHandler>(() => e =>
-            {
-                Debug.WriteLine(e.ToString());
-                Debug.WriteLine(e.InnerException?.ToString());
-            }).Value)
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
             {
                 CertificateEngine = CertificateEngine.BouncyCastle
             };
@@ -47,11 +43,7 @@ namespace Titanium.Web.Proxy.UnitTests
         {
             var tasks = new List<Task>();
 
-            using var mgr = new CertificateManager(null, null, false, false, false, new Lazy<ExceptionHandler>(() => e =>
-            {
-                Debug.WriteLine(e.ToString());
-                Debug.WriteLine(e.InnerException?.ToString());
-            }).Value)
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
             {
                 CertificateEngine = CertificateEngine.Pure
             };
@@ -75,11 +67,7 @@ namespace Titanium.Web.Proxy.UnitTests
         {
             var tasks = new List<Task>();
 
-            using var mgr = new CertificateManager(null, null, false, false, false, new Lazy<ExceptionHandler>(() => e =>
-                {
-                    Debug.WriteLine(e.ToString());
-                    Debug.WriteLine(e.InnerException?.ToString());
-                }).Value)
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.DefaultWindows };
 
             mgr.CreateRootCertificate();
@@ -104,11 +92,7 @@ namespace Titanium.Web.Proxy.UnitTests
         {
             var tasks = new List<Task>();
 
-            using var mgr = new CertificateManager(null, null, false, false, false, new Lazy<ExceptionHandler>(() => e =>
-                {
-                    Debug.WriteLine(e.ToString());
-                    Debug.WriteLine(e.InnerException?.ToString());
-                }).Value)
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.BouncyCastleFast };
 
             mgr.SaveFakeCertificates = true;
@@ -128,11 +112,7 @@ namespace Titanium.Web.Proxy.UnitTests
         {
             var tasks = new List<Task>();
 
-            using var mgr = new CertificateManager(null, null, false, false, false, new Lazy<ExceptionHandler>(() => e =>
-            {
-                Debug.WriteLine(e.ToString());
-                Debug.WriteLine(e.InnerException?.ToString());
-            }).Value)
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.Pure };
 
             mgr.SaveFakeCertificates = true;

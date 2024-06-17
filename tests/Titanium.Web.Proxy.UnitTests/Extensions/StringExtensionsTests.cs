@@ -36,7 +36,7 @@ public class StringExtensionsTests
     }
 
     [TestMethod]
-    public void EqualsIgnoreCase_WithEqualStrings_ReturnsTrue()
+    public void EqualsIgnoreCase_WithEqualStrings_ReturnsTrue ()
     {
         string str = "HelloWorld";
         string value = "helloworld";
@@ -47,7 +47,7 @@ public class StringExtensionsTests
     }
 
     [TestMethod]
-    public void EqualsIgnoreCase_WithDifferentStrings_ReturnsFalse()
+    public void EqualsIgnoreCase_WithDifferentStrings_ReturnsFalse ()
     {
         string str = "HelloWorld";
         string value = "GoodbyeWorld";
@@ -80,7 +80,7 @@ public class StringExtensionsTests
     }
 
     [TestMethod]
-    public void ContainsIgnoreCase_WithStringContainingValue_ReturnsTrue()
+    public void ContainsIgnoreCase_WithStringContainingValue_ReturnsTrue ()
     {
         string str = "HelloWorld";
         string value = "WORLD";
@@ -91,7 +91,7 @@ public class StringExtensionsTests
     }
 
     [TestMethod]
-    public void ContainsIgnoreCase_WithStringNotContainingValue_ReturnsFalse()
+    public void ContainsIgnoreCase_WithStringNotContainingValue_ReturnsFalse ()
     {
         string str = "HelloWorld";
         string value = "Universe";
@@ -112,7 +112,7 @@ public class StringExtensionsTests
     }
 
     [TestMethod]
-    public void IndexOfIgnoreCase_WithStringContainingValue_ReturnsCorrectIndex()
+    public void IndexOfIgnoreCase_WithStringContainingValue_ReturnsCorrectIndex ()
     {
         string str = "HelloWorld";
         string value = "WORLD";
@@ -123,7 +123,7 @@ public class StringExtensionsTests
     }
 
     [TestMethod]
-    public void IndexOfIgnoreCase_WithStringNotContainingValue_ReturnsMinusOne()
+    public void IndexOfIgnoreCase_WithStringNotContainingValue_ReturnsMinusOne ()
     {
         string str = "HelloWorld";
         string value = "Universe";
