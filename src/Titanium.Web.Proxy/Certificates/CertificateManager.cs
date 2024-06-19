@@ -61,6 +61,8 @@ public sealed class CertificateManager : IDisposable
 
     private static readonly ConcurrentDictionary<string, object> _saveCertificateLocks = new();
 
+    private readonly SemaphoreSlim rootCertCreationLock = new SemaphoreSlim(1, 1);
+
     /// <summary>
     /// Cache dictionary
     /// </summary>
@@ -68,24 +70,11 @@ public sealed class CertificateManager : IDisposable
 
     private readonly CancellationTokenSource clearCertificatesTokenSource = new();
 
-    ///// <summary>
-    ///// Used to prevent multiple threads working on same certificate generation
-    ///// when burst certificate generation requests happen for same certificate.
-    ///// </summary>
-    //private readonly SemaphoreSlim pendingCertificateCreationTaskLock = new(1);
-
-    ///// <summary>
-    ///// A list of pending certificate creation tasks.
-    ///// </summary>
-    //private readonly Dictionary<string, Task<X509Certificate2?>> pendingCertificateCreationTasks = [];
-
-    private readonly object rootCertCreationLock = new();
-
     private readonly ILogger<CertificateManager> logger;
 
     private ICertificateMaker? certEngineValue;
 
-    private ICertificateCache certificateCache = new DefaultCertificateDiskCache();
+    private ICertificateCache certificateCache;
 
     private bool disposed;
 
@@ -128,6 +117,8 @@ public sealed class CertificateManager : IDisposable
         CertificateEngine = CertificateEngine.Pure;
 
         this.logger = logger ?? new NullLogger<CertificateManager>();
+        this.logger.LogTrace("Constructor called ({RootCertificateName}, {RootCertificateIssuerName}, {UserTrustRootCertificate}, {MachineTrustRootCertificate}, {TrustRootCertificateAsAdmin})", rootCertificateName, rootCertificateIssuerName, userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin);
+        this.certificateCache = new DefaultCertificateDiskCache(this.logger);
     }
 
     private ICertificateMaker CertEngine
@@ -270,7 +261,7 @@ public sealed class CertificateManager : IDisposable
     public ICertificateCache CertificateStorage
     {
         get => certificateCache;
-        set => certificateCache = value ?? new DefaultCertificateDiskCache();
+        set => certificateCache = value ?? new DefaultCertificateDiskCache(this.logger);
     }
 
     /// <summary>
@@ -399,9 +390,13 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// Generate a certificate using the Certificate Engine specified in <see cref="CertificateEngine"/>
     /// </summary>
-    private X509Certificate2 MakeCertificate ( string certificateName, bool isRootCertificate )
+    private async Task<X509Certificate2> MakeCertificate ( string certificateName, bool isRootCertificate, CancellationToken cancellationToken = default )
     {
-        if (!isRootCertificate && RootCertificate == null) CreateRootCertificate();
+        logger.LogTrace("MakeCertificate(certificateName: {CertificateName}, isRootCertificate: {IsRootCertificate}) called", certificateName, isRootCertificate);
+        if (!isRootCertificate && RootCertificate == null)
+        {
+            await CreateRootCertificate(cancellationToken: cancellationToken);
+        }
 
         var certificate = CertEngine.MakeCertificate(certificateName, isRootCertificate ? null : RootCertificate);
 
@@ -448,7 +443,7 @@ public sealed class CertificateManager : IDisposable
 
                 if (certificate == null)
                 {
-                    certificate = MakeCertificate(certificateName, false);
+                    certificate = MakeCertificate(certificateName, false, CancellationToken.None).GetAwaiter().GetResult();
 
                     //Don't need to wait for save to complete
                     _ = Task.Run(() =>
@@ -481,7 +476,7 @@ public sealed class CertificateManager : IDisposable
             }
             else
             {
-                certificate = MakeCertificate(certificateName, isRootCertificate);
+                certificate = MakeCertificate(certificateName, isRootCertificate, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         catch (Exception e)
@@ -524,7 +519,7 @@ public sealed class CertificateManager : IDisposable
 
                 if (certificate == null)
                 {
-                    certificate = MakeCertificate(certificateName, false);
+                    certificate = await MakeCertificate(certificateName, false, cancellationToken);
                     try
                     {
                         await certificateCache.SaveCertificateAsync(subjectName, certificate, cancellationToken);
@@ -537,7 +532,7 @@ public sealed class CertificateManager : IDisposable
             }
             else
             {
-                certificate = MakeCertificate(certificateName, isRootCertificate);
+                certificate = await MakeCertificate(certificateName, isRootCertificate, cancellationToken);
             }
         }
         catch (Exception e)
@@ -577,7 +572,10 @@ public sealed class CertificateManager : IDisposable
 
             var outdated = cachedCertificates.Where(x => x.Value.LastAccess < cutOff).ToList();
 
-            foreach (var cache in outdated) cachedCertificates.TryRemove(cache.Key, out _);
+            foreach (var cache in outdated)
+            {
+                cachedCertificates.TryRemove(cache.Key, out _);
+            }
 
             // after a minute come back to check for outdated certificates in cache
             try
@@ -606,20 +604,30 @@ public sealed class CertificateManager : IDisposable
     /// <returns>
     /// true if succeeded, else false.
     /// </returns>
-    public bool CreateRootCertificate ( bool persistToFile = true )
+    public async Task<bool> CreateRootCertificate ( bool persistToFile = true, CancellationToken cancellationToken = default )
     {
-        lock (rootCertCreationLock)
-        {
-            if (persistToFile && RootCertificate == null) RootCertificate = LoadRootCertificate();
+        logger.LogTrace("CreateRootCertificate({PersistToFile}) called", persistToFile);
 
-            if (RootCertificate != null) return true;
+        await rootCertCreationLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (persistToFile && RootCertificate == null)
+            {
+                RootCertificate = await LoadRootCertificate(cancellationToken);
+            }
+
+            if (RootCertificate != null)
+            {
+                logger.LogTrace("Root certificate loaded from file");
+                return true;
+            }
 
             if (!OverwritePfxFile)
             {
                 try
                 {
-                    var rootCert = certificateCache.LoadRootCertificate(PfxFilePath, PfxPassword,
-                        X509KeyStorageFlags.Exportable);
+                    var rootCert = await certificateCache.LoadRootCertificateAsync(PfxFilePath, PfxPassword,
+                        X509KeyStorageFlags.Exportable, cancellationToken);
 
                     if (rootCert != null && rootCert.NotAfter <= DateTime.Now)
                     {
@@ -641,7 +649,8 @@ public sealed class CertificateManager : IDisposable
 
             try
             {
-                RootCertificate = CreateCertificate(RootCertificateName, true);
+                logger.LogTrace("Generating new root certificate");
+                RootCertificate = await GetX509Certificate2Async(RootCertificateName, true, cancellationToken);
             }
             catch (Exception e)
             {
@@ -651,23 +660,20 @@ public sealed class CertificateManager : IDisposable
             if (persistToFile && RootCertificate != null)
                 try
                 {
-                    try
-                    {
-                        certificateCache.Clear();
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError(e, "An error happened when clearing certificate cache.");
-                    }
-
-                    certificateCache.SaveRootCertificate(PfxFilePath, PfxPassword, RootCertificate);
+                    await certificateCache.SaveRootCertificateAsync(PfxFilePath, PfxPassword, RootCertificate, cancellationToken);
                 }
                 catch (Exception e)
                 {
                     logger.LogError(e, "Root cert cannot be saved.");
                 }
+            logger.LogTrace("CreateRootCertificate() finished");
+            rootCertCreationLock.Release();
 
             return RootCertificate != null;
+        }
+        finally
+        {
+            rootCertCreationLock.Release();
         }
     }
 
@@ -675,18 +681,21 @@ public sealed class CertificateManager : IDisposable
     /// Loads root certificate from current executing assembly location with expected name rootCert.pfx.
     /// </summary>
     /// <returns></returns>
-    public X509Certificate2? LoadRootCertificate ()
+    public async Task<X509Certificate2?> LoadRootCertificate (CancellationToken cancellationToken)
     {
+        logger.LogTrace("LoadRootCertificate() called");
+
         try
         {
             var rootCert =
-                certificateCache.LoadRootCertificate(PfxFilePath, PfxPassword, X509KeyStorageFlags.Exportable);
+                await certificateCache.LoadRootCertificateAsync(PfxFilePath, PfxPassword, X509KeyStorageFlags.Exportable, cancellationToken);
 
             if (rootCert != null && rootCert.NotAfter <= DateTime.Now)
             {
                 logger.LogError("Loaded root certificate has expired.");
                 return null;
             }
+            logger.LogTrace("LoadRootCertificate() finished");
 
             return rootCert;
         }
@@ -713,15 +722,15 @@ public sealed class CertificateManager : IDisposable
     /// <returns>
     /// true if succeeded, else false.
     /// </returns>
-    public bool LoadRootCertificate ( string pfxFilePath, string password, bool overwritePfXFile = true,
-        X509KeyStorageFlags storageFlag = X509KeyStorageFlags.Exportable )
+    public async Task<bool> LoadRootCertificate ( string pfxFilePath, string password, bool overwritePfXFile = true,
+        X509KeyStorageFlags storageFlag = X509KeyStorageFlags.Exportable, CancellationToken cancellationToken = default )
     {
         PfxFilePath = pfxFilePath;
         PfxPassword = password;
         OverwritePfxFile = overwritePfXFile;
         StorageFlag = storageFlag;
 
-        RootCertificate = LoadRootCertificate();
+        RootCertificate = await LoadRootCertificate(cancellationToken);
 
         return RootCertificate != null;
     }
@@ -732,6 +741,8 @@ public sealed class CertificateManager : IDisposable
     /// </summary>
     public void TrustRootCertificate ( bool machineTrusted = false )
     {
+        logger.LogTrace("TrustRootCertificate({MachineTrusted}) called", machineTrusted);
+
         // currentUser\personal
         InstallCertificate(StoreName.My, StoreLocation.CurrentUser);
 
@@ -757,6 +768,8 @@ public sealed class CertificateManager : IDisposable
     /// <returns>True if success.</returns>
     public bool TrustRootCertificateAsAdmin ( bool machineTrusted = false )
     {
+        logger.LogTrace("TrustRootCertificateAsAdmin({MachineTrusted}) called", machineTrusted);
+
         if (!RunTime.IsWindows) return false;
 
         // currentUser\Personal
@@ -802,13 +815,16 @@ public sealed class CertificateManager : IDisposable
     /// Ensure certificates are setup (creates root if required).
     /// Also makes root certificate trusted based on initial setup from proxy constructor for user/machine trust.
     /// </summary>
-    public void EnsureRootCertificate ()
+    public async Task EnsureRootCertificateAsync (CancellationToken cancellationToken = default)
     {
-        if (!CertValidated) CreateRootCertificate();
+        logger.LogTrace("EnsureRootCertificate() called");
+        if (!CertValidated) await CreateRootCertificate(cancellationToken: cancellationToken);
 
         if (TrustRootAsAdministrator)
             TrustRootCertificateAsAdmin(MachineTrustRoot);
         else if (UserTrustRoot) TrustRootCertificate(MachineTrustRoot);
+        logger.LogTrace("EnsureRootCertificate() finished");
+
     }
 
     /// <summary>
@@ -832,7 +848,7 @@ public sealed class CertificateManager : IDisposable
         MachineTrustRoot = machineTrustRootCertificate;
         TrustRootAsAdministrator = trustRootCertificateAsAdmin;
 
-        EnsureRootCertificate();
+        EnsureRootCertificateAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,6 +29,8 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             nameof(ServerConnectionCount), typeof(int), typeof(MainWindow), new PropertyMetadata(default(int)));
 
         private readonly ProxyServer proxyServer;
+        private readonly ILoggerFactory loggerFactory;
+        private readonly ILogger logger;
 
         private readonly Dictionary<HttpWebClient, SessionListItem> sessionDictionary =
             new Dictionary<HttpWebClient, SessionListItem>();
@@ -37,7 +40,27 @@ namespace Titanium.Web.Proxy.Examples.Wpf
 
         public MainWindow ()
         {
-            proxyServer = new ProxyServer();
+            InitializeComponent();
+            Closing += MainWindow_Closing;
+
+            loggerFactory = LoggerFactory.Create(builder =>
+                builder
+                    .AddFilter("Titanium", LogLevel.Trace)
+                    .AddFilter("Titanium.Web.Proxy.Network.CertificateManager", LogLevel.Trace)
+                    .AddFilter("Microsoft", LogLevel.Warning)
+                    .AddDebug()
+            );
+            logger = loggerFactory.CreateLogger<MainWindow>();
+            proxyServer = new ProxyServer(loggerFactory: loggerFactory)
+            {
+                TcpTimeWaitSeconds = 10,
+                ConnectionTimeOutSeconds = 15,
+                ReuseSocket = false,
+                EnableConnectionPool = true,
+                //ForwardToUpstreamGateway = true,
+            };
+
+            proxyServer.CertificateManager.SaveFakeCertificates = false;
 
             //proxyServer.EnableHttp2 = true;
 
@@ -56,7 +79,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             ////if create new Root certificate file(.pfx) ====> delete folder "crts"
             //proxyServer.CertificateManager.SaveFakeCertificates = true;
 
-            proxyServer.ForwardToUpstreamGateway = true;
+            //proxyServer.ForwardToUpstreamGateway = true;
 
             //increase the ThreadPool (for server prod)
             //proxyServer.ThreadPoolWorkerThread = Environment.ProcessorCount * 6;
@@ -70,9 +93,7 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             ////note : load now (if existed)
             //proxyServer.CertificateManager.LoadRootCertificate(@"C:\NameFolder\rootCert.pfx", "PfxPassword");
 
-            var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000);
-
-            proxyServer.AddEndPoint(explicitEndPoint);
+            
             //proxyServer.UpStreamHttpProxy = new ExternalProxy
             //{
             //    HostName = "158.69.115.45",
@@ -93,6 +114,8 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             proxyServer.BeforeRequest += ProxyServer_BeforeRequest;
             proxyServer.BeforeResponse += ProxyServer_BeforeResponse;
             proxyServer.AfterResponse += ProxyServer_AfterResponse;
+
+            var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000);
             explicitEndPoint.BeforeTunnelConnectRequest += ProxyServer_BeforeTunnelConnectRequest;
             explicitEndPoint.BeforeTunnelConnectResponse += ProxyServer_BeforeTunnelConnectResponse;
             proxyServer.ClientConnectionCountChanged += delegate
@@ -103,11 +126,28 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             {
                 Dispatcher.Invoke(() => { ServerConnectionCount = proxyServer.ServerConnectionCount; });
             };
-            proxyServer.Start();
 
-            proxyServer.SetAsSystemProxy(explicitEndPoint, ProxyProtocolType.AllHttp);
+            proxyServer.AddEndPoint(explicitEndPoint);
 
-            InitializeComponent();
+            try
+            {
+                proxyServer.Start();
+                proxyServer.SetAsSystemProxy(explicitEndPoint, ProxyProtocolType.AllHttp);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error starting server");
+            }
+
+            
+            
+        }
+
+        private void MainWindow_Closing ( object sender, System.ComponentModel.CancelEventArgs e )
+        {
+            
+            proxyServer.RestoreOriginalProxySettings();
+            proxyServer.Stop();
         }
 
         public ObservableCollectionEx<SessionListItem> Sessions { get; } =

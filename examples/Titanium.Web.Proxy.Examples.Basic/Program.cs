@@ -24,7 +24,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             Console.CancelKeyPress += Console_CancelKeyPress;
 
             // Start proxy controller
-            controller.StartProxy();
+            await controller.StartProxy(tokenSource.Token);
             Console.WriteLine("CTRL + C to exit");
 
             while (!tokenSource.Token.IsCancellationRequested)
@@ -43,8 +43,9 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private static void Console_CancelKeyPress ( object sender, ConsoleCancelEventArgs e )
         {
             Console.WriteLine("Received CTRL + C, stopping");
-            controller.Stop();
             tokenSource.Cancel();
+            controller.Stop();
+            
             Console.WriteLine("Proxy stopped greasefully");
             
             Environment.Exit(0);
