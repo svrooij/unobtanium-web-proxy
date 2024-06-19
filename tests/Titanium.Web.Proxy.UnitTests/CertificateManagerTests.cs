@@ -26,6 +26,7 @@ namespace Titanium.Web.Proxy.UnitTests
                 CertificateEngine = CertificateEngine.BouncyCastle
             };
             mgr.ClearIdleCertificates();
+            await mgr.CreateRootCertificate(false, CancellationToken.None);
             for (var i = 0; i < 5; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
@@ -51,6 +52,7 @@ namespace Titanium.Web.Proxy.UnitTests
                 CertificateEngine = CertificateEngine.Pure
             };
             mgr.ClearIdleCertificates();
+            await mgr.CreateRootCertificate(false, CancellationToken.None);
             for (var i = 0; i < 5; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
@@ -75,7 +77,7 @@ namespace Titanium.Web.Proxy.UnitTests
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.DefaultWindows };
 
-            await mgr.CreateRootCertificate();
+            await mgr.CreateRootCertificate(false, CancellationToken.None);
             mgr.TrustRootCertificate(true);
             mgr.ClearIdleCertificates();
 
@@ -102,9 +104,9 @@ namespace Titanium.Web.Proxy.UnitTests
 
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.BouncyCastleFast };
-
-            mgr.SaveFakeCertificates = true;
-
+            
+            mgr.SaveFakeCertificates = false;
+            await mgr.CreateRootCertificate(false, CancellationToken.None);
             for (var i = 0; i < 100; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
@@ -126,9 +128,9 @@ namespace Titanium.Web.Proxy.UnitTests
 
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.Pure };
-
-            mgr.SaveFakeCertificates = true;
-
+            
+            mgr.SaveFakeCertificates = false;
+            await mgr.CreateRootCertificate(false, CancellationToken.None);
             for (var i = 0; i < 100; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {

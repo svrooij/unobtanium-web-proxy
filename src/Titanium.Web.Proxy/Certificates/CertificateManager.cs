@@ -671,7 +671,6 @@ public sealed class CertificateManager : IDisposable
                     logger.LogError(e, "Root cert cannot be saved.");
                 }
             logger.LogTrace("CreateRootCertificate() finished");
-            rootCertCreationLock.Release();
 
             return RootCertificate != null;
         }
