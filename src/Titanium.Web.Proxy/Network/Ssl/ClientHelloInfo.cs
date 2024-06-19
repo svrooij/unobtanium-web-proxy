@@ -133,6 +133,7 @@ public class ClientHelloInfo
                 return SslProtocols.Tls12;
             }
 #pragma warning disable 618
+#pragma warning disable SYSLIB0039 // Tls and Tls11 are obsolete
             if (major == 3 && minor == 2)
                 return SslProtocols.Tls11;
 
@@ -145,6 +146,7 @@ public class ClientHelloInfo
 
             if (major == 2 && minor == 0)
                 return SslProtocols.Ssl2;
+#pragma warning restore SYSLIB0039 // Tls and Tls11 are obsolete
 #pragma warning restore 618
 
             return SslProtocols.None;

@@ -266,9 +266,11 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     List of supported Ssl versions.
     /// </summary>
-#pragma warning disable 618
+#pragma warning disable 618 // SslProtocols.Ssl3 is obsolete
+#pragma warning disable SYSLIB0039 // Tls and Tls11 are obsolete
     public SslProtocols SupportedSslProtocols { get; set; } =
         SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+#pragma warning restore SYSLIB0039 // Tls and Tls11 are obsolete
 #pragma warning restore 618
 
     /// <summary>
