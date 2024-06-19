@@ -86,7 +86,7 @@ internal class LimitedStream : Stream
     //    }
     //}
 
-    private async Task GetNextChunkAsync (CancellationToken cancellationToken)
+    private async Task GetNextChunkAsync ( CancellationToken cancellationToken )
     {
         if (readChunkTrail)
         {
@@ -176,7 +176,7 @@ internal class LimitedStream : Stream
         return res;
     }
 
-    public async Task Finish (CancellationToken cancellationToken)
+    public async Task Finish ( CancellationToken cancellationToken )
     {
         if (bytesRemaining != -1)
         {

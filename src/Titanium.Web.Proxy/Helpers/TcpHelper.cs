@@ -168,7 +168,7 @@ internal class TcpHelper
     /// <param name="cancellationTokenSource"></param>
     /// <returns></returns>
     internal static Task SendRaw ( Stream clientStream, Stream serverStream,
-        CancellationTokenSource cancellationTokenSource)
+        CancellationTokenSource cancellationTokenSource )
     {
         // todo: fix APM mode
         return SendRawTap(clientStream, serverStream,

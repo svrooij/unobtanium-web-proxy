@@ -401,7 +401,10 @@ public sealed class CertificateManager : IDisposable
         var certificate = CertEngine.MakeCertificate(certificateName, isRootCertificate ? null : RootCertificate);
 
         if (CertificateEngine == CertificateEngine.DefaultWindows)
-            Task.Run(() => UninstallCertificate(StoreName.My, StoreLocation.CurrentUser, certificate));
+        {
+            await Task.Run(() => UninstallCertificate(StoreName.My, StoreLocation.CurrentUser, certificate), cancellationToken);
+        }
+
 
         return certificate;
     }
@@ -601,6 +604,7 @@ public sealed class CertificateManager : IDisposable
     /// Attempts to create a RootCertificate.
     /// </summary>
     /// <param name="persistToFile">if set to <c>true</c> try to load/save the certificate from rootCert.pfx.</param>
+    /// <param name="cancellationToken"></param>
     /// <returns>
     /// true if succeeded, else false.
     /// </returns>
@@ -681,7 +685,7 @@ public sealed class CertificateManager : IDisposable
     /// Loads root certificate from current executing assembly location with expected name rootCert.pfx.
     /// </summary>
     /// <returns></returns>
-    public async Task<X509Certificate2?> LoadRootCertificate (CancellationToken cancellationToken)
+    public async Task<X509Certificate2?> LoadRootCertificate ( CancellationToken cancellationToken )
     {
         logger.LogTrace("LoadRootCertificate() called");
 
@@ -719,6 +723,7 @@ public sealed class CertificateManager : IDisposable
     /// RootCertificate==null.
     /// </param>
     /// <param name="storageFlag"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns>
     /// true if succeeded, else false.
     /// </returns>
@@ -815,7 +820,7 @@ public sealed class CertificateManager : IDisposable
     /// Ensure certificates are setup (creates root if required).
     /// Also makes root certificate trusted based on initial setup from proxy constructor for user/machine trust.
     /// </summary>
-    public async Task EnsureRootCertificateAsync (CancellationToken cancellationToken = default)
+    public async Task EnsureRootCertificateAsync ( CancellationToken cancellationToken = default )
     {
         logger.LogTrace("EnsureRootCertificate() called");
         if (!CertValidated) await CreateRootCertificate(cancellationToken: cancellationToken);

@@ -513,7 +513,7 @@ public partial class ProxyServer : IDisposable
 
         if (isHttps)
         {
-            CertificateManager.EnsureRootCertificateAsync();
+            CertificateManager.EnsureRootCertificateAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             // If certificate was trusted by the machine
             if (!CertificateManager.CertValidated)
@@ -626,7 +626,7 @@ public partial class ProxyServer : IDisposable
     ///     E.g due to ungracious proxy shutdown before.
     /// </param>
     [Obsolete("Use the asynchronous method StartAsync instead")]
-    public void Start(bool changeSystemProxySettings = true)
+    public void Start ( bool changeSystemProxySettings = true )
     {
         logger.LogWarning("You should call the async version!");
         StartAsync(changeSystemProxySettings).GetAwaiter().GetResult();
@@ -651,7 +651,7 @@ public partial class ProxyServer : IDisposable
         {
             await CertificateManager.EnsureRootCertificateAsync(cancellationToken);
         }
-            
+
 
         if (changeSystemProxySettings && SystemProxySettingsManager != null && RunTime.IsWindows &&
             !RunTime.IsUwpOnWindows)
@@ -741,7 +741,7 @@ public partial class ProxyServer : IDisposable
         {
             endPoint.Listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
         }
-            
+
 
         try
         {

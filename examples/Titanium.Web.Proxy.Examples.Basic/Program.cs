@@ -32,8 +32,9 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 try
                 {
                     await Task.Delay(5000, tokenSource.Token);
-                } catch(TaskCanceledException) { } // Ignore all task cancelled exceptions
-                
+                }
+                catch (TaskCanceledException) { } // Ignore all task cancelled exceptions
+
             }
 
             controller.Dispose();
@@ -45,11 +46,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
             Console.WriteLine("Received CTRL + C, stopping");
             tokenSource.Cancel();
             controller.Stop();
-            
+
             Console.WriteLine("Proxy stopped greasefully");
-            
+
             Environment.Exit(0);
-            
+
         }
     }
 }

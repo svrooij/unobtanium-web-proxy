@@ -979,7 +979,6 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
             {
                 await decompressStream.DisposeAsync();
             }
-            
 
             await limitedStream.Finish(cancellationToken);
             await limitedStream.DisposeAsync();

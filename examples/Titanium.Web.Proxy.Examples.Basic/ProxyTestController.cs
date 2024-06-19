@@ -80,7 +80,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             proxyServer.Dispose();
         }
 
-        public async Task StartProxy (CancellationToken cancellationToken = default)
+        public async Task StartProxy ( CancellationToken cancellationToken = default )
         {
             proxyServer.BeforeRequest += OnRequest;
             proxyServer.BeforeResponse += OnResponse;

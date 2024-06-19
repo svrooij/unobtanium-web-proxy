@@ -12,14 +12,18 @@ namespace Titanium.Web.Proxy.Network;
 /// <summary>
 /// Provides a default disk-based cache implementation for storing certificates.
 /// </summary>
-public sealed class DefaultCertificateDiskCache : ICertificateCache
+internal sealed class DefaultCertificateDiskCache : ICertificateCache
 {
     private const string DefaultCertificateDirectoryName = "crts";
     private const string DefaultCertificateFileExtension = ".pfx";
     private const string DefaultRootCertificateFileName = "rootCert" + DefaultCertificateFileExtension;
-    public readonly ILogger logger;
+    public readonly ILogger? logger;
 
-    public DefaultCertificateDiskCache ( ILogger logger )
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DefaultCertificateDiskCache"/> class.
+    /// </summary>
+    /// <param name="logger"></param>
+    public DefaultCertificateDiskCache ( ILogger? logger = null )
     {
         this.logger = logger;
     }
@@ -33,16 +37,16 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <param name="password">The password for the root certificate.</param>
     /// <param name="storageFlags">The storage flags for the root certificate.</param>
     /// <returns>The loaded root certificate, or null if not found.</returns>
-    public X509Certificate2? LoadRootCertificate ( string pathOrName, string password, X509KeyStorageFlags storageFlags )
+    public X509Certificate2? LoadRootCertificate ( string pathOrName, string? password, X509KeyStorageFlags storageFlags )
     {
-        logger.LogTrace("DefaultCertificateDiskCache->LoadRootCertificate called");
+        logger?.LogTrace("DefaultCertificateDiskCache->LoadRootCertificate called");
         return LoadRootCertificateAsync(pathOrName, password, storageFlags, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     /// <inheritdoc/>
-    public async Task<X509Certificate2?> LoadRootCertificateAsync ( string pathOrName, string password, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
+    public async Task<X509Certificate2?> LoadRootCertificateAsync ( string pathOrName, string? password, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
     {
-        logger.LogTrace("DefaultCertificateDiskCache->LoadRootCertificateAsync(pathOrName:{PathOrName}, password:{Passord}, storageFlags: {StorageFlags}) called", pathOrName, password?.Length, storageFlags);
+        logger?.LogTrace("DefaultCertificateDiskCache->LoadRootCertificateAsync(pathOrName:{PathOrName}, password:{Passord}, storageFlags: {StorageFlags}) called", pathOrName, password?.Length, storageFlags);
 
         var path = GetRootCertificatePath(pathOrName);
         return await LoadCertificateAsync(path, password, storageFlags, cancellationToken);
@@ -56,7 +60,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <param name="certificate">The root certificate to save.</param>
     public void SaveRootCertificate ( string pathOrName, string password, X509Certificate2 certificate )
     {
-        logger.LogTrace("DefaultCertificateDiskCache->SaveRootCertificate called");
+        logger?.LogTrace("DefaultCertificateDiskCache->SaveRootCertificate called");
 
         SaveRootCertificateAsync(pathOrName, password, certificate, CancellationToken.None).GetAwaiter().GetResult();
     }
@@ -64,7 +68,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <inheritdoc/>
     public async Task SaveRootCertificateAsync ( string pathOrName, string password, X509Certificate2 certificate, CancellationToken cancellationToken )
     {
-        logger.LogTrace("DefaultCertificateDiskCache->SaveRootCertificateAsync called");
+        logger?.LogTrace("DefaultCertificateDiskCache->SaveRootCertificateAsync called");
 
         var path = GetRootCertificatePath(pathOrName);
         var exported = certificate.Export(X509ContentType.Pkcs12, password);
@@ -79,7 +83,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <returns>The loaded certificate, or null if not found.</returns>
     public X509Certificate2? LoadCertificate ( string subjectName, X509KeyStorageFlags storageFlags )
     {
-        logger.LogTrace("DefaultCertificateDiskCache->LoadCertificate called");
+        logger?.LogTrace("DefaultCertificateDiskCache->LoadCertificate called");
 
         return LoadCertificateAsync(subjectName, storageFlags, CancellationToken.None).GetAwaiter().GetResult();
     }
@@ -87,7 +91,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <inheritdoc/>
     public async Task<X509Certificate2?> LoadCertificateAsync ( string subjectName, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
     {
-        logger.LogTrace("DefaultCertificateDiskCache->LoadCertificateAsync called");
+        logger?.LogTrace("DefaultCertificateDiskCache->LoadCertificateAsync called");
 
         var filePath = Path.Combine(GetCertificatePath(false), subjectName + DefaultCertificateFileExtension);
         return await LoadCertificateAsync(filePath, string.Empty, storageFlags, cancellationToken);
@@ -100,7 +104,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <param name="certificate">The certificate to save.</param>
     public void SaveCertificate ( string subjectName, X509Certificate2 certificate )
     {
-        logger.LogTrace("DefaultCertificateDiskCache->SaveCertificate called");
+        logger?.LogTrace("DefaultCertificateDiskCache->SaveCertificate called");
 
         SaveCertificateAsync(subjectName, certificate, CancellationToken.None).GetAwaiter().GetResult();
     }
@@ -108,12 +112,12 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <inheritdoc/>
     public async Task SaveCertificateAsync ( string subjectName, X509Certificate2 certificate, CancellationToken cancellationToken )
     {
-        logger.LogTrace("DefaultCertificateDiskCache->SaveCertificateAsync called");
+        logger?.LogTrace("DefaultCertificateDiskCache->SaveCertificateAsync called");
 
         var filePath = Path.Combine(GetCertificatePath(true), subjectName + DefaultCertificateFileExtension);
         var exported = certificate.Export(X509ContentType.Pkcs12);
         await File.WriteAllBytesAsync(filePath, exported, cancellationToken);
-        logger.LogTrace("DefaultCertificateDiskCache->SaveCertificateAsync finished");
+        logger?.LogTrace("DefaultCertificateDiskCache->SaveCertificateAsync finished");
 
     }
 
@@ -122,7 +126,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// </summary>
     public void Clear ()
     {
-        logger.LogTrace("DefaultCertificateDiskCache->Clear called");
+        logger?.LogTrace("DefaultCertificateDiskCache->Clear called");
 
         try
         {
@@ -134,13 +138,15 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
             // do nothing
         }
     }
-
-    private async Task<X509Certificate2?> LoadCertificateAsync ( string path, string password, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    private async Task<X509Certificate2?> LoadCertificateAsync ( string path, string? password, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
-        logger.LogTrace("DefaultCertificateDiskCache->LoadCertificateAsync(path:{PathOrName}, password:{Passord}, storageFlags: {StorageFlags}) called", path, password?.Length, storageFlags);
+        logger?.LogTrace("DefaultCertificateDiskCache->LoadCertificateAsync(path:{PathOrName}, password:{Passord}, storageFlags: {StorageFlags}) called", path, password?.Length, storageFlags);
 
-        if (!File.Exists(path)) {
-            logger.LogInformation("DefaultCertificateDiskCache->LoadCertificateAsync Certificate path {path} does not exists", path);
+        if (!File.Exists(path))
+        {
+            logger?.LogInformation("DefaultCertificateDiskCache->LoadCertificateAsync Certificate path {path} does not exists", path);
             return null;
         }
 
@@ -149,18 +155,18 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
             // TODO: Make LoadCertificateAsync async! see https://github.com/svrooij/titanium-web-proxy/issues/25
             //var exported = await File.ReadAllBytesAsync(path, cancellationToken);
             var exported = File.ReadAllBytes(path);
-            logger.LogTrace("Loaded {NumberOfBytes} from {path}, trying to open cert", exported.Length, path);
+            logger?.LogTrace("Loaded {NumberOfBytes} from {path}, trying to open cert", exported.Length, path);
             return new X509Certificate2(exported, password, storageFlags);
         }
         catch (IOException ex)
         {
-            logger.LogWarning(ex, "Error loading certificate");
+            logger?.LogWarning(ex, "Error loading certificate");
             // file or directory not found
             return null;
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            logger.LogWarning(e, "Failed to load certificate from {path}", path);
+            logger?.LogWarning(e, "Failed to load certificate from {path}", path);
             return null;
         }
     }

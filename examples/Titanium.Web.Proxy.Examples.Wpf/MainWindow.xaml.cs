@@ -93,7 +93,6 @@ namespace Titanium.Web.Proxy.Examples.Wpf
             ////note : load now (if existed)
             //proxyServer.CertificateManager.LoadRootCertificate(@"C:\NameFolder\rootCert.pfx", "PfxPassword");
 
-            
             //proxyServer.UpStreamHttpProxy = new ExternalProxy
             //{
             //    HostName = "158.69.115.45",
@@ -139,13 +138,13 @@ namespace Titanium.Web.Proxy.Examples.Wpf
                 logger.LogError(ex, "Error starting server");
             }
 
-            
-            
+
+
         }
 
         private void MainWindow_Closing ( object sender, System.ComponentModel.CancelEventArgs e )
         {
-            
+
             proxyServer.RestoreOriginalProxySettings();
             proxyServer.Stop();
         }

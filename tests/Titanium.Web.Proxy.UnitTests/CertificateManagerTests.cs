@@ -70,7 +70,7 @@ namespace Titanium.Web.Proxy.UnitTests
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.DefaultWindows };
 
-            mgr.CreateRootCertificate();
+            await mgr.CreateRootCertificate();
             mgr.TrustRootCertificate(true);
             mgr.ClearIdleCertificates();
 

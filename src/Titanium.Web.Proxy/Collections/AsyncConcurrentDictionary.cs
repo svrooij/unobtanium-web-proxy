@@ -67,8 +67,8 @@ internal class AsyncConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TK
     /// Dictionary to store semaphores for each key
     /// </summary>
     private readonly ConcurrentDictionary<TKey, Lazy<SemaphoreSlim>> _dicSemaphoreSlim = new ConcurrentDictionary<TKey, Lazy<SemaphoreSlim>>();
-    
-    ~AsyncConcurrentDictionary()
+
+    ~AsyncConcurrentDictionary ()
     {
         foreach (var semaphore in _dicSemaphoreSlim)
         {
