@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Titanium.Web.Proxy.Examples.Basic.Helpers;
 using Titanium.Web.Proxy.Helpers;
 
@@ -7,21 +9,46 @@ namespace Titanium.Web.Proxy.Examples.Basic
     public class Program
     {
         private static readonly ProxyTestController controller = new ProxyTestController();
+        private static readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
 
-        public static void Main ( string[] args )
+        public static async Task<int> Main ( string[] args )
         {
-            if (RunTime.IsWindows)
-                // fix console hang due to QuickEdit mode
-                ConsoleHelper.DisableQuickEditMode();
+            Console.WriteLine("========================================");
+            Console.WriteLine("=========  Unobtanium Web Proxy ========");
+            Console.WriteLine("========================================");
+
+            //if (RunTime.IsWindows)
+            //    // fix console hang due to QuickEdit mode
+            //    ConsoleHelper.DisableQuickEditMode();
+
+            Console.CancelKeyPress += Console_CancelKeyPress;
 
             // Start proxy controller
             controller.StartProxy();
+            Console.WriteLine("CTRL + C to exit");
 
-            Console.WriteLine("Hit any key to exit..");
-            Console.WriteLine();
-            Console.Read();
+            while (!tokenSource.Token.IsCancellationRequested)
+            {
+                try
+                {
+                    await Task.Delay(5000, tokenSource.Token);
+                } catch(TaskCanceledException) { } // Ignore all task cancelled exceptions
+                
+            }
 
+            controller.Dispose();
+            return 0;
+        }
+
+        private static void Console_CancelKeyPress ( object sender, ConsoleCancelEventArgs e )
+        {
+            Console.WriteLine("Received CTRL + C, stopping");
             controller.Stop();
+            tokenSource.Cancel();
+            Console.WriteLine("Proxy stopped greasefully");
+            
+            Environment.Exit(0);
+            
         }
     }
 }

@@ -28,7 +28,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         public ProxyTestController ()
         {
-            Task.Run(() => ListenToConsole());
+            // Console writer writes messages to console async
+            Task.Run(() => ConsoleWriter());
 
             proxyServer = new ProxyServer();
 
@@ -53,7 +54,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             proxyServer.ReuseSocket = false;
             proxyServer.EnableConnectionPool = false;
             proxyServer.ForwardToUpstreamGateway = true;
-            proxyServer.CertificateManager.SaveFakeCertificates = true;
+            proxyServer.CertificateManager.SaveFakeCertificates = false;
             //proxyServer.ProxyBasicAuthenticateFunc = async (args, userName, password) =>
             //{
             //    return true;
@@ -396,7 +397,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             consoleMessageQueue.Enqueue(new Tuple<ConsoleColor?, string>(consoleColor, message));
         }
 
-        private async Task ListenToConsole ()
+        private async Task ConsoleWriter ()
         {
             while (!CancellationToken.IsCancellationRequested)
             {
