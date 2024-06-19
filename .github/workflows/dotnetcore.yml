@@ -39,7 +39,8 @@ jobs:
         dotnet build tests/Titanium.Web.Proxy.UnitTests/Titanium.Web.Proxy.UnitTests.csproj --configuration Release
         dotnet build tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj --property WarningLevel=0
 
-    - name: 🧪 Test 
+    - name: 🧪 Test
+      id: test
       shell: pwsh
       run: |
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## 🧪 Unit Tests'
@@ -47,7 +48,7 @@ jobs:
         dotnet test tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj -v minimal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
 
     - name: 📝 Code Coverage report
-      if: always()
+      if: success() || steps.test.conclusion == 'failure'
       shell: pwsh
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.*
@@ -59,13 +60,17 @@ jobs:
         REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     - name: 📦 Upload Code Coverage report
-      if: always()
+      if: success() || steps.test.conclusion == 'failure'
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: ${{github.workspace}}\report
         if-no-files-found: ignore
         retention-days: 5
+
+    - name: ❌ Fail on test failure
+      if: steps.test.conclusion == 'failure' || failure()
+      run: exit 1
 
     # - name: Update Documentation
     #   if: github.ref == 'refs/heads/develop'

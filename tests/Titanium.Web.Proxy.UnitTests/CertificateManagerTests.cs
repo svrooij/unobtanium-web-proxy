@@ -26,10 +26,10 @@ namespace Titanium.Web.Proxy.UnitTests
             };
             mgr.ClearIdleCertificates();
             for (var i = 0; i < 5; i++)
-                tasks.AddRange(hostNames.Select(host => Task.Run(() =>
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = mgr.CreateCertificate(host, false);
+                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate);
                 })));
 
@@ -49,10 +49,10 @@ namespace Titanium.Web.Proxy.UnitTests
             };
             mgr.ClearIdleCertificates();
             for (var i = 0; i < 5; i++)
-                tasks.AddRange(hostNames.Select(host => Task.Run(() =>
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = mgr.CreateCertificate(host, false);
+                    var certificate = mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate);
                 })));
 
@@ -75,10 +75,10 @@ namespace Titanium.Web.Proxy.UnitTests
             mgr.ClearIdleCertificates();
 
             for (var i = 0; i < 5; i++)
-                tasks.AddRange(hostNames.Select(host => Task.Run(() =>
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = mgr.CreateCertificate(host, false);
+                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate);
                 })));
 
@@ -98,9 +98,9 @@ namespace Titanium.Web.Proxy.UnitTests
             mgr.SaveFakeCertificates = true;
 
             for (var i = 0; i < 500; i++)
-                tasks.AddRange(hostNames.Select(host => Task.Run(() =>
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
-                    var certificate = mgr.CreateServerCertificate(host);
+                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate);
                 })));
 
@@ -118,9 +118,9 @@ namespace Titanium.Web.Proxy.UnitTests
             mgr.SaveFakeCertificates = true;
 
             for (var i = 0; i < 500; i++)
-                tasks.AddRange(hostNames.Select(host => Task.Run(() =>
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
-                    var certificate = mgr.CreateServerCertificate(host);
+                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate);
                 })));
 
