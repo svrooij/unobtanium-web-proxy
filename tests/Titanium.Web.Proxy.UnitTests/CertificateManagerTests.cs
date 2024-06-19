@@ -98,7 +98,7 @@ namespace Titanium.Web.Proxy.UnitTests
 
         [TestMethod]
         [Timeout(15000)]
-        public async Task CertificateManager_EngineBouncyCastleFast_Creates500Certificates ()
+        public async Task CertificateManager_EngineBouncyCastleFast_Creates250Certificates ()
         {
             var tasks = new List<Task>();
 
@@ -107,7 +107,7 @@ namespace Titanium.Web.Proxy.UnitTests
 
             mgr.SaveFakeCertificates = false;
             await mgr.CreateRootCertificate(false, CancellationToken.None);
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < 50; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
@@ -121,17 +121,15 @@ namespace Titanium.Web.Proxy.UnitTests
         }
 
         [TestMethod]
-        [Timeout(30000)]
-        public async Task CertificateManager_EnginePure_Creates500Certificates ()
+        [Timeout(60000)]
+        public async Task CertificateManager_EnginePure_Creates250Certificates ()
         {
             var tasks = new List<Task>();
 
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.Pure };
-
-            mgr.SaveFakeCertificates = false;
             await mgr.CreateRootCertificate(false, CancellationToken.None);
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < 50; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);

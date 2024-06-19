@@ -75,7 +75,7 @@ public class HttpsTests
         });
 
         var proxy = testSuite.GetProxy();
-        var clientCert = proxy.CertificateManager.CreateCertificate("client.com", false);
+        var clientCert = await proxy.CertificateManager.GetX509Certificate2Async("client.com", false);
 
         proxy.ClientCertificateSelectionCallback += async (sender, e) =>
         {
