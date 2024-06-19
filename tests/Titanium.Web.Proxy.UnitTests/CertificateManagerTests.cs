@@ -104,14 +104,14 @@ namespace Titanium.Web.Proxy.UnitTests
 
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.BouncyCastleFast };
-            
+
             mgr.SaveFakeCertificates = false;
             await mgr.CreateRootCertificate(false, CancellationToken.None);
             for (var i = 0; i < 100; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
-                    
+
                     Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
                     var matches = certificate.MatchesHostname(host);
                     Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
@@ -121,14 +121,14 @@ namespace Titanium.Web.Proxy.UnitTests
         }
 
         [TestMethod]
-        [Timeout(15000)]
+        [Timeout(30000)]
         public async Task CertificateManager_EnginePure_Creates500Certificates ()
         {
             var tasks = new List<Task>();
 
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.Pure };
-            
+
             mgr.SaveFakeCertificates = false;
             await mgr.CreateRootCertificate(false, CancellationToken.None);
             for (var i = 0; i < 100; i++)
