@@ -2,6 +2,8 @@
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
 using Titanium.Web.Proxy.Helpers;
 
 namespace Titanium.Web.Proxy.Network;
@@ -25,8 +27,14 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <returns>The loaded root certificate, or null if not found.</returns>
     public X509Certificate2? LoadRootCertificate ( string pathOrName, string password, X509KeyStorageFlags storageFlags )
     {
+        return LoadRootCertificateAsync(pathOrName, password, storageFlags, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc/>
+    public async Task<X509Certificate2?> LoadRootCertificateAsync ( string pathOrName, string password, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
+    {
         var path = GetRootCertificatePath(pathOrName);
-        return LoadCertificate(path, password, storageFlags);
+        return await LoadCertificateAsync(path, password, storageFlags, cancellationToken);
     }
 
     /// <summary>
@@ -37,9 +45,15 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <param name="certificate">The root certificate to save.</param>
     public void SaveRootCertificate ( string pathOrName, string password, X509Certificate2 certificate )
     {
+        SaveRootCertificateAsync(pathOrName, password, certificate, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc/>
+    public async Task SaveRootCertificateAsync ( string pathOrName, string password, X509Certificate2 certificate, CancellationToken cancellationToken )
+    {
         var path = GetRootCertificatePath(pathOrName);
         var exported = certificate.Export(X509ContentType.Pkcs12, password);
-        File.WriteAllBytes(path, exported);
+        await File.WriteAllBytesAsync(path, exported, cancellationToken);
     }
 
     /// <summary>
@@ -50,8 +64,14 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <returns>The loaded certificate, or null if not found.</returns>
     public X509Certificate2? LoadCertificate ( string subjectName, X509KeyStorageFlags storageFlags )
     {
+        return LoadCertificateAsync(subjectName, storageFlags, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc/>
+    public async Task<X509Certificate2?> LoadCertificateAsync ( string subjectName, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
+    {
         var filePath = Path.Combine(GetCertificatePath(false), subjectName + DefaultCertificateFileExtension);
-        return LoadCertificate(filePath, string.Empty, storageFlags);
+        return await LoadCertificateAsync(filePath, string.Empty, storageFlags, cancellationToken);
     }
 
     /// <summary>
@@ -61,9 +81,15 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
     /// <param name="certificate">The certificate to save.</param>
     public void SaveCertificate ( string subjectName, X509Certificate2 certificate )
     {
+        SaveCertificateAsync(subjectName, certificate, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc/>
+    public async Task SaveCertificateAsync ( string subjectName, X509Certificate2 certificate, CancellationToken cancellationToken )
+    {
         var filePath = Path.Combine(GetCertificatePath(true), subjectName + DefaultCertificateFileExtension);
         var exported = certificate.Export(X509ContentType.Pkcs12);
-        File.WriteAllBytes(filePath, exported);
+        await File.WriteAllBytesAsync(filePath, exported, cancellationToken);
     }
 
     /// <summary>
@@ -82,23 +108,20 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
         }
     }
 
-    private static X509Certificate2? LoadCertificate ( string path, string password, X509KeyStorageFlags storageFlags )
+    private static async Task<X509Certificate2?> LoadCertificateAsync ( string path, string password, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
     {
-        byte[] exported;
-
         if (!File.Exists(path)) return null;
 
         try
         {
-            exported = File.ReadAllBytes(path);
+            var exported = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
+            return new X509Certificate2(exported, password, storageFlags);
         }
         catch (IOException)
         {
             // file or directory not found
             return null;
         }
-
-        return new X509Certificate2(exported, password, storageFlags);
     }
 
     private string GetRootCertificatePath ( string pathOrName )
@@ -150,7 +173,7 @@ public sealed class DefaultCertificateDiskCache : ICertificateCache
 
                 var path = Path.GetDirectoryName(assemblyLocation);
 
-                rootCertificatePath = path ?? throw new NullReferenceException();
+                rootCertificatePath = path ?? throw new InvalidOperationException("Certificate cache path could not be determind");
             }
         }
 
