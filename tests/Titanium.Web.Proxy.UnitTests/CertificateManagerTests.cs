@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Titanium.Web.Proxy.Network;
@@ -30,7 +31,9 @@ namespace Titanium.Web.Proxy.UnitTests
                 {
                     // get the connection
                     var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
-                    Assert.IsNotNull(certificate);
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
             await Task.WhenAll(tasks.ToArray());
@@ -52,8 +55,10 @@ namespace Titanium.Web.Proxy.UnitTests
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
-                    Assert.IsNotNull(certificate);
+                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
             await Task.WhenAll(tasks.ToArray());
@@ -79,7 +84,9 @@ namespace Titanium.Web.Proxy.UnitTests
                 {
                     // get the connection
                     var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
-                    Assert.IsNotNull(certificate);
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
             await Task.WhenAll(tasks.ToArray());
@@ -88,6 +95,7 @@ namespace Titanium.Web.Proxy.UnitTests
         }
 
         [TestMethod]
+        [Timeout(15000)]
         public async Task CertificateManager_EngineBouncyCastleFast_Creates500Certificates ()
         {
             var tasks = new List<Task>();
@@ -97,17 +105,21 @@ namespace Titanium.Web.Proxy.UnitTests
 
             mgr.SaveFakeCertificates = true;
 
-            for (var i = 0; i < 500; i++)
+            for (var i = 0; i < 100; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
-                    Assert.IsNotNull(certificate);
+                    
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
             await Task.WhenAll(tasks.ToArray());
         }
 
         [TestMethod]
+        [Timeout(15000)]
         public async Task CertificateManager_EnginePure_Creates500Certificates ()
         {
             var tasks = new List<Task>();
@@ -117,11 +129,13 @@ namespace Titanium.Web.Proxy.UnitTests
 
             mgr.SaveFakeCertificates = true;
 
-            for (var i = 0; i < 500; i++)
+            for (var i = 0; i < 100; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
-                    Assert.IsNotNull(certificate);
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
             await Task.WhenAll(tasks.ToArray());

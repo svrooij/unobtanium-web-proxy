@@ -45,7 +45,11 @@ jobs:
       run: |
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## 🧪 Unit Tests'
         dotnet test tests/Titanium.Web.Proxy.UnitTests/Titanium.Web.Proxy.UnitTests.csproj --configuration Release -v minimal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
+        $unitExit = $LastExitCode
         dotnet test tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj -v minimal --no-build --logger GitHubActions '/p:CollectCoverage=true;CoverletOutputFormat="json,lcov,cobertura";MergeWith=${{github.workspace}}/coverage.json;CoverletOutput=${{github.workspace}}/coverage' -- RunConfiguration.CollectSourceInformation=true
+        if ($unitExit -ne 0 -or $LastExitCode -ne 0) {
+          exit 1
+        }
 
     - name: 📝 Code Coverage report
       if: success() || steps.test.conclusion == 'failure'
@@ -67,10 +71,6 @@ jobs:
         path: ${{github.workspace}}\report
         if-no-files-found: ignore
         retention-days: 5
-
-    - name: ❌ Fail on test failure
-      if: steps.test.conclusion == 'failure' || failure()
-      run: exit 1
 
     # - name: Update Documentation
     #   if: github.ref == 'refs/heads/develop'
