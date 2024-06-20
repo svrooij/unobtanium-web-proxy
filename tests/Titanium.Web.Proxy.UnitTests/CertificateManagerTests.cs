@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Titanium.Web.Proxy.Network;
+using Titanium.Web.Proxy.Certificates;
 
 namespace Titanium.Web.Proxy.UnitTests
 {
@@ -13,7 +13,7 @@ namespace Titanium.Web.Proxy.UnitTests
     public class CertificateManagerTests
     {
         private static readonly string[] hostNames
-            = { "facebook.com", "youtube.com", "google.com", "bing.com", "yahoo.com" };
+            = ["facebook.com", "youtube.com", "google.com", "bing.com", "yahoo.com"];
 
 
         [TestMethod]
@@ -25,21 +25,21 @@ namespace Titanium.Web.Proxy.UnitTests
             {
                 CertificateEngine = CertificateEngine.BouncyCastle
             };
-            mgr.ClearIdleCertificates();
-            await mgr.CreateRootCertificate(false, CancellationToken.None);
+            mgr.StartClearingCertificates();
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             for (var i = 0; i < 5; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
                     var matches = certificate.MatchesHostname(host);
                     Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
 
-            mgr.StopClearIdleCertificates();
+            mgr.StopClearingCertificates();
         }
 
         [TestMethod]
@@ -51,21 +51,21 @@ namespace Titanium.Web.Proxy.UnitTests
             {
                 CertificateEngine = CertificateEngine.Pure
             };
-            mgr.ClearIdleCertificates();
-            await mgr.CreateRootCertificate(false, CancellationToken.None);
+            mgr.StartClearingCertificates();
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             for (var i = 0; i < 5; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
                     var matches = certificate.MatchesHostname(host);
                     Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
 
-            mgr.StopClearIdleCertificates();
+            mgr.StopClearingCertificates();
         }
 
         // uncomment this to compare WinCert maker performance with BC (BC takes more time for same test above)
@@ -77,23 +77,23 @@ namespace Titanium.Web.Proxy.UnitTests
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.DefaultWindows };
 
-            await mgr.CreateRootCertificate(false, CancellationToken.None);
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             mgr.TrustRootCertificate(true);
-            mgr.ClearIdleCertificates();
+            mgr.StartClearingCertificates();
 
             for (var i = 0; i < 5; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
                     var matches = certificate.MatchesHostname(host);
                     Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
             mgr.RemoveTrustedRootCertificate(true);
-            mgr.StopClearIdleCertificates();
+            mgr.StopClearingCertificates();
         }
 
         [TestMethod]
@@ -106,18 +106,18 @@ namespace Titanium.Web.Proxy.UnitTests
             { CertificateEngine = CertificateEngine.BouncyCastleFast };
 
             mgr.SaveFakeCertificates = false;
-            await mgr.CreateRootCertificate(false, CancellationToken.None);
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             for (var i = 0; i < 50; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
-                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
 
                     Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
                     var matches = certificate.MatchesHostname(host);
                     Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
         }
 
         [TestMethod]
@@ -128,17 +128,17 @@ namespace Titanium.Web.Proxy.UnitTests
 
             using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.Pure };
-            await mgr.CreateRootCertificate(false, CancellationToken.None);
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             for (var i = 0; i < 50; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
-                    var certificate = await mgr.GetX509Certificate2Async(host, false, System.Threading.CancellationToken.None);
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
                     Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
                     var matches = certificate.MatchesHostname(host);
                     Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
         }
     }
 }

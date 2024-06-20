@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
+using Titanium.Web.Proxy.Certificates;
 using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Network;
 
 namespace Titanium.Web.Proxy.IntegrationTests.Setup;
 

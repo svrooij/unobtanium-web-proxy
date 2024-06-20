@@ -8,6 +8,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Titanium.Web.Proxy.Certificates;
 using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Extensions;
 using Titanium.Web.Proxy.Helpers;
@@ -122,7 +123,7 @@ public partial class ProxyServer : IDisposable
         if (RunTime.IsWindows && !RunTime.IsUwpOnWindows) SystemProxySettingsManager = new SystemProxyManager();
 
         CertificateManager = new CertificateManager(rootCertificateName, rootCertificateIssuerName,
-            userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin, this.loggerFactory.CreateLogger<CertificateManager>());
+            userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin, this.loggerFactory);
     }
 
     /// <summary>
@@ -336,7 +337,6 @@ public partial class ProxyServer : IDisposable
         set
         {
             exceptionFunc = value;
-            CertificateManager.ExceptionFunc = value;
         }
     }
 
@@ -689,7 +689,7 @@ public partial class ProxyServer : IDisposable
 
         ProxyRunning = true;
 
-        CertificateManager.ClearIdleCertificates();
+        CertificateManager.StartClearingCertificates();
 
         foreach (var endPoint in ProxyEndPoints)
         {
@@ -723,7 +723,7 @@ public partial class ProxyServer : IDisposable
 
         ProxyEndPoints.Clear();
 
-        CertificateManager?.StopClearIdleCertificates();
+        CertificateManager?.StopClearingCertificates();
         TcpConnectionFactory.Dispose();
 
         ProxyRunning = false;

@@ -180,7 +180,7 @@ public partial class ProxyServer
                         var certName = HttpHelper.GetWildCardDomainName(connectHostname,
                             CertificateManager.DisableWildCardCertificates);
                         certificate = endPoint.GenericCertificate ??
-                                      await CertificateManager.CreateServerCertificate(certName);
+                                      await CertificateManager.GetOrGenerateCertificateAsync(certName);
 
                         // Successfully managed to authenticate the client using the fake certificate
                         var options = new SslServerAuthenticationOptions();
