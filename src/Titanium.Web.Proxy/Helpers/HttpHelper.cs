@@ -21,42 +21,41 @@ internal static class HttpHelper
     /// <returns></returns>
     internal static Encoding GetEncodingFromContentType ( string? contentType )
     {
+        if (string.IsNullOrEmpty(contentType)) return HttpHeader.DefaultEncoding;
+
         try
         {
-            // return default if not specified
-            if (contentType == null) return HttpHeader.DefaultEncoding;
-
-            // extract the encoding by finding the charset
-            foreach (var p in new SemicolonSplitEnumerator(contentType))
+            var charsetPrefix = "charset=";
+            var startIndex = contentType.IndexOf(charsetPrefix, StringComparison.OrdinalIgnoreCase);
+            if (startIndex != -1)
             {
-                var parameter = p.Span;
-                var equalsIndex = parameter.IndexOf('=');
-                if (equalsIndex != -1 &&
-                    KnownHeaders.ContentTypeCharset.Equals(parameter[..equalsIndex].TrimStart()))
+                startIndex += charsetPrefix.Length;
+                var endIndex = contentType.IndexOf(';', startIndex);
+                endIndex = endIndex == -1 ? contentType.Length : endIndex;
+                var charsetValue = contentType[startIndex..endIndex].Trim();
+
+                if (charsetValue.StartsWith('"') && charsetValue.EndsWith('"') && charsetValue.Length > 2)
                 {
-                    var value = parameter[(equalsIndex + 1)..];
-                    if (value.EqualsIgnoreCase("x-user-defined".AsSpan())) continue;
+                    charsetValue = charsetValue[1..^1];
+                }
 
-                    if (value.Length > 2 && value[0] == '"' && value[^1] == '"')
-                        value = value[1..^1];
-
-                    return Encoding.GetEncoding(value.ToString());
+                if (!charsetValue.Equals("x-user-defined", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Encoding.GetEncoding(charsetValue);
                 }
             }
         }
         catch
         {
-            // parsing errors
-            // ignored
+            // Ignored
         }
 
-        // return default if not specified
         return HttpHeader.DefaultEncoding;
     }
 
     internal static ReadOnlyMemory<char> GetBoundaryFromContentType ( string? contentType )
     {
-        if (contentType != null)
+        if (contentType is not null)
             // extract the boundary
             foreach (var parameter in new SemicolonSplitEnumerator(contentType))
             {
@@ -152,7 +151,7 @@ internal static class HttpHelper
     }
 
 
-    private static KnownMethod GetKnownMethod ( ReadOnlySpan<byte> method )
+    internal static KnownMethod GetKnownMethod ( ReadOnlySpan<byte> method )
     {
         if (method.Length < 3) return KnownMethod.Unknown;
 
