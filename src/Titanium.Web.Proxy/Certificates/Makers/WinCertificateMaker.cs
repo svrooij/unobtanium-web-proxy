@@ -16,6 +16,7 @@ namespace Titanium.Web.Proxy.Certificates;
 ///     Certificate Maker - uses MakeCert
 ///     Calls COM objects using reflection
 /// </summary>
+[Obsolete("Use DotnetCertificateMaker instead.")]
 internal class WinCertificateMaker : ICertificateGenerator
 {
     private readonly string sProviderName = "Microsoft Enhanced Cryptographic Provider v1.0";

@@ -25,6 +25,7 @@ namespace Titanium.Web.Proxy.Certificates;
 /// <summary>
 ///     Implements certificate generation operations.
 /// </summary>
+[Obsolete("Use DotnetCertificateMaker instead")]
 internal class BcCertificateMaker : ICertificateGenerator
 {
     private const int CertificateGraceDays = 366;
