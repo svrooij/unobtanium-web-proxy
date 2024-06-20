@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -412,20 +411,6 @@ public sealed class CertificateManager : IDisposable
         return certificate;
     }
 
-    /// <summary>
-    /// Create an SSL certificate
-    /// </summary>
-    /// <param name="certificateName"></param>
-    /// <param name="isRootCertificate"></param>
-    /// <returns></returns>
-    [Obsolete("This method will be removed in future versions. Use GetCertificateFromDiskOrGenerateAsync instead.")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    internal X509Certificate2? CreateCertificate ( string certificateName, bool isRootCertificate )
-    {
-        logger.LogDebug("CreateCertificate({certificateName}, {isRootCertificate}) called", certificateName, isRootCertificate);
-        return GetCertificateFromDiskOrGenerateAsync(certificateName, isRootCertificate).GetAwaiter().GetResult();
-    }
-
     internal async Task<X509Certificate2?> GetCertificateFromDiskOrGenerateAsync ( string certificateName, bool isRootCertificate, CancellationToken cancellationToken = default )
     {
         logger.LogTrace("GetX509Certificate2Async({certificateName}, {isRootCertificate}) called", certificateName, isRootCertificate);
@@ -488,6 +473,7 @@ public sealed class CertificateManager : IDisposable
     /// <param name="certificateName">Name of the certificate, which will be both the subject and the altervative name</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
+    /// <remarks>Tries memory cache, disk cache and lastly generates new certificate</remarks>
     public async Task<X509Certificate2?> GetOrGenerateCertificateAsync ( string certificateName, CancellationToken cancellationToken = default )
     {
         var cachedCert = await cachedCertificates.GetOrAddAsync(certificateName, async ( facCancellation ) =>

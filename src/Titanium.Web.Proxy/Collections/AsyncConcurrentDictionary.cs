@@ -27,19 +27,19 @@ internal class AsyncConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TK
     /// <returns>Value</returns>
     public async Task<TValue> GetOrAddAsync ( TKey key, Func<CancellationToken, Task<TValue>> factory, CancellationToken cancellationToken )
     {
-        // if key exists return it
+        // First attempt to get the value without locking
         if (base.TryGetValue(key, out TValue? value))
         {
             return value;
         }
 
-        // get or create a semaphore for this key
+        // Acquire the semaphore for the key to ensure single execution of the factory
         var semaphoreSlim = GetSemaphoreSlim(key);
         await semaphoreSlim.WaitAsync(cancellationToken);
 
         try
         {
-            // Let's check again if the key exists
+            // Double-check if the key was added while waiting for the semaphore
             if (base.TryGetValue(key, out value))
             {
                 return value;

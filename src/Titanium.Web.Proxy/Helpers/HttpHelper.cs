@@ -118,42 +118,32 @@ internal static class HttpHelper
     /// <summary>
     ///     Gets the HTTP method from the stream.
     /// </summary>
-    public static async ValueTask<KnownMethod> GetMethod ( IPeekStream httpReader, IBufferPool bufferPool,
-        CancellationToken cancellationToken = default )
+    public static async ValueTask<KnownMethod> GetMethod ( IPeekStream httpReader, IBufferPool bufferPool, CancellationToken cancellationToken = default )
     {
         const int lengthToCheck = 20;
         if (bufferPool.BufferSize < lengthToCheck)
             throw new Exception($"Buffer is too small. Minimum size is {lengthToCheck} bytes");
 
+        // TODO: Getting a large buffer for only reading the method seems wrong, need fix!
         var buffer = bufferPool.GetBuffer(bufferPool.BufferSize);
         try
         {
-            var i = 0;
-            while (i < lengthToCheck)
+            // Attempt to read the maximum expected length in one go to reduce await overhead.
+            var peeked = await httpReader.PeekBytesAsync(buffer, 0, 0, lengthToCheck, cancellationToken);
+            if (peeked <= 0)
+                return KnownMethod.Invalid;
+
+            // Find the first space character indicating the end of the HTTP method.
+            int methodLength = Array.IndexOf(buffer, (byte)' ', 0, peeked);
+            if (methodLength > 2) // Minimum length for an HTTP method is 3.
             {
-                var peeked = await httpReader.PeekBytesAsync(buffer, i, i, lengthToCheck - i, cancellationToken);
-                if (peeked <= 0)
-                    return KnownMethod.Invalid;
-
-                peeked += i;
-
-                while (i < peeked)
-                {
-                    int b = buffer[i];
-
-                    if (b == ' ' && i > 2)
-                        return GetKnownMethod(buffer.AsSpan(0, i));
-
-                    var ch = (char)b;
-                    if ((ch < 'A' || ch > 'z' || ch > 'Z' && ch < 'a') && ch != '-') // ASCII letter
-                        return KnownMethod.Invalid;
-
-                    i++;
-                }
+                return GetKnownMethod(buffer.AsSpan(0, methodLength));
             }
-
-            // only letters, but no space (or shorter than 3 characters)
-            return KnownMethod.Invalid;
+            else
+            {
+                // If the method is too short or no space was found in the peeked bytes, it's invalid.
+                return KnownMethod.Invalid;
+            }
         }
         finally
         {
@@ -161,83 +151,33 @@ internal static class HttpHelper
         }
     }
 
+
     private static KnownMethod GetKnownMethod ( ReadOnlySpan<byte> method )
     {
-        // the following methods are supported:
-        // Connect
-        // Delete
-        // Get
-        // Head
-        // Options
-        // Post
-        // Put
-        // Trace
-        // Pri
-
-        // method parameter should have at least 3 bytes
-        var b1 = method[0];
-        var b2 = method[1];
-        var b3 = method[2];
+        if (method.Length < 3) return KnownMethod.Unknown;
 
         switch (method.Length)
         {
             case 3:
-                // Get or Put
-                if (b1 == 'G')
-                    return b2 == 'E' && b3 == 'T' ? KnownMethod.Get : KnownMethod.Unknown;
-
-                if (b1 == 'P')
-                {
-                    if (b2 == 'U')
-                        return b3 == 'T' ? KnownMethod.Put : KnownMethod.Unknown;
-
-                    if (b2 == 'R')
-                        return b3 == 'I' ? KnownMethod.Pri : KnownMethod.Unknown;
-                }
-
+                if (method[0] == 'G' && method[1] == 'E' && method[2] == 'T') return KnownMethod.Get;
+                if (method[0] == 'P' && method[1] == 'U' && method[2] == 'T') return KnownMethod.Put;
+                if (method[0] == 'P' && method[1] == 'R' && method[2] == 'I') return KnownMethod.Pri;
                 break;
             case 4:
-                // Head or Post
-                if (b1 == 'H')
-                    return b2 == 'E' && b3 == 'A' && method[3] == 'D' ? KnownMethod.Head : KnownMethod.Unknown;
-
-                if (b1 == 'P')
-                    return b2 == 'O' && b3 == 'S' && method[3] == 'T' ? KnownMethod.Post : KnownMethod.Unknown;
-
+                if (method[0] == 'H' && method[1] == 'E' && method[2] == 'A' && method[3] == 'D') return KnownMethod.Head;
+                if (method[0] == 'P' && method[1] == 'O' && method[2] == 'S' && method[3] == 'T') return KnownMethod.Post;
                 break;
             case 5:
-                // Trace
-                if (b1 == 'T')
-                    return b2 == 'R' && b3 == 'A' && method[3] == 'C' && method[4] == 'E'
-                        ? KnownMethod.Trace
-                        : KnownMethod.Unknown;
-
+                if (method[0] == 'T' && method[1] == 'R' && method[2] == 'A' && method[3] == 'C' && method[4] == 'E') return KnownMethod.Trace;
                 break;
             case 6:
-                // Delete
-                if (b1 == 'D')
-                    return b2 == 'E' && b3 == 'L' && method[3] == 'E' && method[4] == 'T' && method[5] == 'E'
-                        ? KnownMethod.Delete
-                        : KnownMethod.Unknown;
-
+                if (method[0] == 'D' && method[1] == 'E' && method[2] == 'L' && method[3] == 'E' && method[4] == 'T' && method[5] == 'E') return KnownMethod.Delete;
                 break;
             case 7:
-                // Connect or Options
-                if (b1 == 'C')
-                    return b2 == 'O' && b3 == 'N' && method[3] == 'N' && method[4] == 'E' && method[5] == 'C' &&
-                           method[6] == 'T'
-                        ? KnownMethod.Connect
-                        : KnownMethod.Unknown;
-
-                if (b1 == 'O')
-                    return b2 == 'P' && b3 == 'T' && method[3] == 'I' && method[4] == 'O' && method[5] == 'N' &&
-                           method[6] == 'S'
-                        ? KnownMethod.Options
-                        : KnownMethod.Unknown;
-
+                if (method[0] == 'C' && method[1] == 'O' && method[2] == 'N' && method[3] == 'N' && method[4] == 'E' && method[5] == 'C' && method[6] == 'T') return KnownMethod.Connect;
+                if (method[0] == 'O' && method[1] == 'P' && method[2] == 'T' && method[3] == 'I' && method[4] == 'O' && method[5] == 'N' && method[6] == 'S') return KnownMethod.Options;
                 break;
         }
-
 
         return KnownMethod.Unknown;
     }
