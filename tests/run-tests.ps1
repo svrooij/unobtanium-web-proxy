@@ -9,7 +9,7 @@ $unitTestProject = Join-Path $(Get-Location) "tests" "Titanium.Web.Proxy.UnitTes
 $integrationTestProject = Join-Path $(Get-Location) "tests" "Titanium.Web.Proxy.IntegrationTests" "Titanium.Web.Proxy.IntegrationTests.csproj"
 
 $collectCoverageParam = '/p:CollectCoverage=true;CoverletOutputFormat=json%2clcov%2ccobertura;MergeWith=' + "$outputDir.json;CoverletOutput=$outputDir"
-$skipObsoleteParam = '/p:ExcludeByAttribute=ObsoleteAttribute%2cGeneratedCodeAttribute%2cCompilerGeneratedAttribute'
+$skipObsoleteParam = '/p:ExcludeByAttribute=ObsoleteAttribute' # Exclude obsolete code from coverage %2cGeneratedCodeAttribute%2cCompilerGeneratedAttribute
 
 $unitExit = 0
 
