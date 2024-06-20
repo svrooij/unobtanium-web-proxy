@@ -75,7 +75,7 @@ public partial class ProxyServer
                         var certName = HttpHelper.GetWildCardDomainName(httpsHostName,
                             CertificateManager.DisableWildCardCertificates);
                         certificate = endPoint.GenericCertificate ??
-                                      await CertificateManager.CreateServerCertificate(certName);
+                                      await CertificateManager.GetOrGenerateCertificateAsync(certName, cancellationToken);
 
                         // Successfully managed to authenticate the client using the certificate
                         await sslStream.AuthenticateAsServerAsync(certificate!, false, SslProtocols.Tls12, false);

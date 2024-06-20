@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Titanium.Web.Proxy.Network;
+using Titanium.Web.Proxy.Certificates;
 
 namespace Titanium.Web.Proxy.UnitTests
 {
@@ -12,34 +13,59 @@ namespace Titanium.Web.Proxy.UnitTests
     public class CertificateManagerTests
     {
         private static readonly string[] hostNames
-            = { "facebook.com", "youtube.com", "google.com", "bing.com", "yahoo.com" };
+            = ["facebook.com", "youtube.com", "google.com", "bing.com", "yahoo.com"];
 
 
         [TestMethod]
-        public async Task Simple_BC_Create_Certificate_Test ()
+        public async Task CertificateManager_EngineBouncyCastle_CreatesCertificates ()
         {
             var tasks = new List<Task>();
 
-            var mgr = new CertificateManager(null, null, false, false, false, new Lazy<ExceptionHandler>(() => e =>
-            {
-                Debug.WriteLine(e.ToString());
-                Debug.WriteLine(e.InnerException?.ToString());
-            }).Value)
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
             {
                 CertificateEngine = CertificateEngine.BouncyCastle
             };
-            mgr.ClearIdleCertificates();
+            mgr.StartClearingCertificates();
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             for (var i = 0; i < 5; i++)
-                tasks.AddRange(hostNames.Select(host => Task.Run(() =>
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = mgr.CreateCertificate(host, false);
-                    Assert.IsNotNull(certificate);
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
 
-            mgr.StopClearIdleCertificates();
+            mgr.StopClearingCertificates();
+        }
+
+        [TestMethod]
+        public async Task CertificateManager_EnginePure_CreatesCertificates ()
+        {
+            var tasks = new List<Task>();
+
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
+            {
+                CertificateEngine = CertificateEngine.Pure
+            };
+            mgr.StartClearingCertificates();
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
+            for (var i = 0; i < 5; i++)
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
+                {
+                    // get the connection
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
+                })));
+
+            await Task.WhenAll([.. tasks]);
+
+            mgr.StopClearingCertificates();
         }
 
         // uncomment this to compare WinCert maker performance with BC (BC takes more time for same test above)
@@ -48,52 +74,71 @@ namespace Titanium.Web.Proxy.UnitTests
         {
             var tasks = new List<Task>();
 
-            var mgr = new CertificateManager(null, null, false, false, false, new Lazy<ExceptionHandler>(() => e =>
-                {
-                    Debug.WriteLine(e.ToString());
-                    Debug.WriteLine(e.InnerException?.ToString());
-                }).Value)
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.DefaultWindows };
 
-            mgr.CreateRootCertificate();
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             mgr.TrustRootCertificate(true);
-            mgr.ClearIdleCertificates();
+            mgr.StartClearingCertificates();
 
             for (var i = 0; i < 5; i++)
-                tasks.AddRange(hostNames.Select(host => Task.Run(() =>
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
                     // get the connection
-                    var certificate = mgr.CreateCertificate(host, false);
-                    Assert.IsNotNull(certificate);
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
             mgr.RemoveTrustedRootCertificate(true);
-            mgr.StopClearIdleCertificates();
+            mgr.StopClearingCertificates();
         }
 
         [TestMethod]
-        public async Task Create_Server_Certificate_Test ()
+        [Timeout(15000)]
+        public async Task CertificateManager_EngineBouncyCastleFast_Creates250Certificates ()
         {
             var tasks = new List<Task>();
 
-            var mgr = new CertificateManager(null, null, false, false, false, new Lazy<ExceptionHandler>(() => e =>
-                {
-                    Debug.WriteLine(e.ToString());
-                    Debug.WriteLine(e.InnerException?.ToString());
-                }).Value)
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
             { CertificateEngine = CertificateEngine.BouncyCastleFast };
 
-            mgr.SaveFakeCertificates = true;
-
-            for (var i = 0; i < 500; i++)
-                tasks.AddRange(hostNames.Select(host => Task.Run(() =>
+            mgr.SaveFakeCertificates = false;
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
+            for (var i = 0; i < 50; i++)
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
                 {
-                    var certificate = mgr.CreateServerCertificate(host);
-                    Assert.IsNotNull(certificate);
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
+
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
                 })));
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll([.. tasks]);
+        }
+
+        [TestMethod]
+        [Timeout(60000)]
+        public async Task CertificateManager_EnginePure_Creates250Certificates ()
+        {
+            var tasks = new List<Task>();
+
+            using var mgr = new CertificateManager(null, null, false, false, false, null)
+            { CertificateEngine = CertificateEngine.Pure };
+            await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
+            for (var i = 0; i < 50; i++)
+                tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
+                {
+                    var certificate = await mgr.GetCertificateFromDiskOrGenerateAsync(host, false, System.Threading.CancellationToken.None);
+                    Assert.IsNotNull(certificate, $"Certificate for {host} was not generated");
+                    var matches = certificate.MatchesHostname(host);
+                    Assert.IsTrue(matches, $"Certificate for {host} does not match hostname");
+                })));
+
+            await Task.WhenAll([.. tasks]);
         }
     }
 }

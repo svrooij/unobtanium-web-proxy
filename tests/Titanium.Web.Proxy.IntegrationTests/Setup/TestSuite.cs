@@ -11,7 +11,7 @@ public class TestSuite
     public TestSuite(bool requireMutualTls = false)
     {
         var dummyProxy = new ProxyServer();
-        var serverCertificate = dummyProxy.CertificateManager.CreateServerCertificate("localhost").Result;
+        var serverCertificate = dummyProxy.CertificateManager.GetOrGenerateCertificateAsync("localhost").Result;
         server = new TestServer(serverCertificate, requireMutualTls);
     }
 

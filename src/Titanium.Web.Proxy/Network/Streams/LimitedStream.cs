@@ -86,12 +86,12 @@ internal class LimitedStream : Stream
     //    }
     //}
 
-    private async Task GetNextChunkAsync ()
+    private async Task GetNextChunkAsync ( CancellationToken cancellationToken )
     {
         if (readChunkTrail)
         {
             // read the chunk trail of the previous chunk
-            var s = await baseReader.ReadLineAsync();
+            var s = await baseReader.ReadLineAsync(cancellationToken);
             if (s == null)
             {
                 bytesRemaining = -1;
@@ -101,7 +101,7 @@ internal class LimitedStream : Stream
 
         readChunkTrail = true;
 
-        var chunkHead = await baseReader.ReadLineAsync();
+        var chunkHead = await baseReader.ReadLineAsync(cancellationToken);
         if (chunkHead == null)
         {
             bytesRemaining = -1;
@@ -121,7 +121,7 @@ internal class LimitedStream : Stream
             bytesRemaining = -1;
 
             // chunk trail
-            await baseReader.ReadLineAsync();
+            await baseReader.ReadLineAsync(cancellationToken);
         }
     }
 
@@ -160,7 +160,7 @@ internal class LimitedStream : Stream
         if (bytesRemaining == 0)
         {
             if (isChunked)
-                await GetNextChunkAsync();
+                await GetNextChunkAsync(cancellationToken);
             else
                 bytesRemaining = -1;
         }
@@ -176,15 +176,15 @@ internal class LimitedStream : Stream
         return res;
     }
 
-    public async Task Finish ()
+    public async Task Finish ( CancellationToken cancellationToken )
     {
         if (bytesRemaining != -1)
         {
             var buffer = bufferPool.GetBuffer();
             try
             {
-                var res = await ReadAsync(buffer, 0, buffer.Length);
-                if (res != 0) throw new Exception("Data received after stream end");
+                var res = await ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                if (res != 0) throw new InvalidOperationException("Data received after stream end");
             }
             finally
             {

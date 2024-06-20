@@ -6,7 +6,7 @@ namespace Titanium.Web.Proxy.Exceptions;
 /// </summary>
 public class EventException : Exception
 {
-    internal EventException (Exception? innerException): base("Exception thrown in user event", innerException)
+    internal EventException ( Exception? innerException ) : base("Exception thrown in user event", innerException)
     {
     }
 }

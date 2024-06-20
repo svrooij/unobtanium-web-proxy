@@ -20,12 +20,13 @@ using Titanium.Web.Proxy.Helpers;
 using Titanium.Web.Proxy.Shared;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
 
-namespace Titanium.Web.Proxy.Network.Certificate;
+namespace Titanium.Web.Proxy.Certificates;
 
 /// <summary>
 ///     Implements certificate generation operations.
 /// </summary>
-internal class BcCertificateMakerFast : ICertificateMaker
+[Obsolete("Use DotnetCertificateMaker instead")]
+internal class BcCertificateMakerFast : ICertificateGenerator
 {
     private const int CertificateGraceDays = 366;
 
@@ -49,7 +50,7 @@ internal class BcCertificateMakerFast : ICertificateMaker
     /// <param name="sSubjectCn">The s subject cn.</param>
     /// <param name="signingCert">The signing cert.</param>
     /// <returns>X509Certificate2 instance.</returns>
-    public X509Certificate2 MakeCertificate ( string sSubjectCn, X509Certificate2? signingCert = null )
+    public X509Certificate2 GenerateCertificate ( string sSubjectCn, X509Certificate2? signingCert = null )
     {
         return MakeCertificateInternal(sSubjectCn, signingCert);
     }

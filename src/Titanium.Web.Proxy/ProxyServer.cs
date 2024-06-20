@@ -8,6 +8,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Titanium.Web.Proxy.Certificates;
 using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Extensions;
 using Titanium.Web.Proxy.Helpers;
@@ -122,7 +123,7 @@ public partial class ProxyServer : IDisposable
         if (RunTime.IsWindows && !RunTime.IsUwpOnWindows) SystemProxySettingsManager = new SystemProxyManager();
 
         CertificateManager = new CertificateManager(rootCertificateName, rootCertificateIssuerName,
-            userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin, ExceptionFunc);
+            userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin, this.loggerFactory);
     }
 
     /// <summary>
@@ -336,7 +337,6 @@ public partial class ProxyServer : IDisposable
         set
         {
             exceptionFunc = value;
-            CertificateManager.ExceptionFunc = value;
         }
     }
 
@@ -513,7 +513,7 @@ public partial class ProxyServer : IDisposable
 
         if (isHttps)
         {
-            CertificateManager.EnsureRootCertificate();
+            CertificateManager.EnsureRootCertificateAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             // If certificate was trusted by the machine
             if (!CertificateManager.CertValidated)
@@ -625,14 +625,33 @@ public partial class ProxyServer : IDisposable
     ///     Whether or not clear any system proxy settings which is pointing to our own endpoint (causing a cycle).
     ///     E.g due to ungracious proxy shutdown before.
     /// </param>
+    [Obsolete("Use the asynchronous method StartAsync instead")]
     public void Start ( bool changeSystemProxySettings = true )
     {
+        logger.LogWarning("You should call the async version!");
+        StartAsync(changeSystemProxySettings).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    ///     Start this proxy server instance.
+    /// </summary>
+    /// <param name="changeSystemProxySettings">
+    ///     Whether or not clear any system proxy settings which is pointing to our own endpoint (causing a cycle).
+    ///     E.g due to ungracious proxy shutdown before.
+    /// </param>
+    /// <param name="cancellationToken"></param>
+    public async Task StartAsync ( bool changeSystemProxySettings = true, CancellationToken cancellationToken = default )
+    {
+        logger.LogTrace("StartAsync(changeSystemProxySettings: {ChangeSystemProxySettings}) called", changeSystemProxySettings);
         if (ProxyRunning) throw new InvalidOperationException("Proxy is already running.");
 
         SetThreadPoolMinThread(ThreadPoolWorkerThread);
 
         if (ProxyEndPoints.OfType<ExplicitProxyEndPoint>().Any(x => x.GenericCertificate == null))
-            CertificateManager.EnsureRootCertificate();
+        {
+            await CertificateManager.EnsureRootCertificateAsync(cancellationToken);
+        }
+
 
         if (changeSystemProxySettings && SystemProxySettingsManager != null && RunTime.IsWindows &&
             !RunTime.IsUwpOnWindows)
@@ -655,20 +674,27 @@ public partial class ProxyServer : IDisposable
         {
             systemProxyResolver = new WinHttpWebProxyFinder();
             if (UpstreamProxyConfigurationScript != null)
+            {
                 //Use the provided proxy configuration script
                 systemProxyResolver.UsePacFile(UpstreamProxyConfigurationScript);
+            }
             else
+            {
                 // Use WinHttp to handle PAC/WAPD scripts.
                 systemProxyResolver.LoadFromIe();
+            }
 
             GetCustomUpStreamProxyFunc = GetSystemUpStreamProxy;
         }
 
         ProxyRunning = true;
 
-        CertificateManager.ClearIdleCertificates();
+        CertificateManager.StartClearingCertificates();
 
-        foreach (var endPoint in ProxyEndPoints) Listen(endPoint);
+        foreach (var endPoint in ProxyEndPoints)
+        {
+            Listen(endPoint);
+        }
     }
 
     /// <summary>
@@ -676,7 +702,11 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     public void Stop ()
     {
-        if (!ProxyRunning) throw new InvalidOperationException("Proxy is not running.");
+        logger.LogTrace("Stop() called");
+        if (!ProxyRunning)
+        {
+            throw new InvalidOperationException("Proxy is not running.");
+        }
 
         if (SystemProxySettingsManager != null)
         {
@@ -686,11 +716,14 @@ public partial class ProxyServer : IDisposable
             if (setAsSystemProxy) SystemProxySettingsManager.RestoreOriginalSettings();
         }
 
-        foreach (var endPoint in ProxyEndPoints) QuitListen(endPoint);
+        foreach (var endPoint in ProxyEndPoints)
+        {
+            QuitListen(endPoint);
+        }
 
         ProxyEndPoints.Clear();
 
-        CertificateManager?.StopClearIdleCertificates();
+        CertificateManager?.StopClearingCertificates();
         TcpConnectionFactory.Dispose();
 
         ProxyRunning = false;
@@ -705,7 +738,10 @@ public partial class ProxyServer : IDisposable
         endPoint.Listener = new TcpListener(endPoint.IpAddress, endPoint.Port);
 
         if (ReuseSocket && RunTime.IsSocketReuseAvailable())
+        {
             endPoint.Listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        }
+
 
         try
         {
@@ -735,9 +771,15 @@ public partial class ProxyServer : IDisposable
         ArgumentNullException.ThrowIfNull(endPoint);
 
         if (!ProxyEndPoints.Contains(endPoint))
+        {
             throw new ArgumentException("Cannot set endPoints not added to proxy as system proxy", nameof(endPoint));
+        }
 
-        if (!ProxyRunning) throw new InvalidOperationException("Cannot set system proxy settings before proxy has been started.");
+
+        if (!ProxyRunning)
+        {
+            throw new InvalidOperationException("Cannot set system proxy settings before proxy has been started.");
+        }
     }
 
     /// <summary>

@@ -5,7 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.Network.Certificate;
+namespace Titanium.Web.Proxy.Certificates;
 // TODO FIX these warnings CS8600, CS8601, CS8618
 //#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8601 // Possible null reference assignment.
@@ -16,7 +16,8 @@ namespace Titanium.Web.Proxy.Network.Certificate;
 ///     Certificate Maker - uses MakeCert
 ///     Calls COM objects using reflection
 /// </summary>
-internal class WinCertificateMaker : ICertificateMaker
+[Obsolete("Use DotnetCertificateMaker instead.")]
+internal class WinCertificateMaker : ICertificateGenerator
 {
     private readonly string sProviderName = "Microsoft Enhanced Cryptographic Provider v1.0";
 
@@ -80,7 +81,7 @@ internal class WinCertificateMaker : ICertificateMaker
     /// <summary>
     ///     Make certificate.
     /// </summary>
-    public X509Certificate2 MakeCertificate ( string sSubjectCn, X509Certificate2? signingCert = null )
+    public X509Certificate2 GenerateCertificate ( string sSubjectCn, X509Certificate2? signingCert = null )
     {
         return MakeCertificate(sSubjectCn, true, signingCert);
     }

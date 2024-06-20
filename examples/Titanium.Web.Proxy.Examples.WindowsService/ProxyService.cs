@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.ServiceProcess;
+using System.Threading;
 using Titanium.Web.Proxy;
 using Titanium.Web.Proxy.Exceptions;
 using Titanium.Web.Proxy.Models;
@@ -70,7 +71,7 @@ namespace WindowsServiceExample
             if (Settings.Default.LogErrors)
                 _proxyServerInstance.ExceptionFunc = ProxyException;
 
-            _proxyServerInstance.Start();
+            _proxyServerInstance.StartAsync(cancellationToken: CancellationToken.None).GetAwaiter().GetResult();
 
             ProxyServiceEventLog.WriteEntry($"Service Listening on port {Settings.Default.ListeningPort}",
                 EventLogEntryType.Information);

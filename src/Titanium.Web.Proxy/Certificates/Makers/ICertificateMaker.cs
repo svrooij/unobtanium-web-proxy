@@ -1,11 +1,11 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 
-namespace Titanium.Web.Proxy.Network.Certificate;
+namespace Titanium.Web.Proxy.Certificates;
 
 /// <summary>
-///     Abstract interface for different Certificate Maker Engines
+///     Abstract interface for different Certificate generators
 /// </summary>
-internal interface ICertificateMaker
+internal interface ICertificateGenerator
 {
-    X509Certificate2 MakeCertificate ( string sSubjectCn, X509Certificate2? signingCert );
+    X509Certificate2 GenerateCertificate ( string subjectCn, X509Certificate2? signingCert );
 }

@@ -28,7 +28,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         public ProxyTestController ()
         {
-            Task.Run(() => ListenToConsole());
+            // Console writer writes messages to console async
+            Task.Run(() => ConsoleWriter());
 
             proxyServer = new ProxyServer();
 
@@ -53,7 +54,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             proxyServer.ReuseSocket = false;
             proxyServer.EnableConnectionPool = false;
             proxyServer.ForwardToUpstreamGateway = true;
-            proxyServer.CertificateManager.SaveFakeCertificates = true;
+            proxyServer.CertificateManager.SaveFakeCertificates = false;
             //proxyServer.ProxyBasicAuthenticateFunc = async (args, userName, password) =>
             //{
             //    return true;
@@ -79,7 +80,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             proxyServer.Dispose();
         }
 
-        public void StartProxy ()
+        public async Task StartProxy ( CancellationToken cancellationToken = default )
         {
             proxyServer.BeforeRequest += OnRequest;
             proxyServer.BeforeResponse += OnResponse;
@@ -99,7 +100,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             // An explicit endpoint is where the client knows about the existence of a proxy
             // So client sends request in a proxy friendly manner
             proxyServer.AddEndPoint(explicitEndPoint);
-            proxyServer.Start();
+            await proxyServer.StartAsync(cancellationToken: cancellationToken);
 
             // Transparent endpoint is useful for reverse proxy (client is not aware of the existence of proxy)
             // A transparent endpoint usually requires a network router port forwarding HTTP(S) packets
@@ -396,7 +397,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             consoleMessageQueue.Enqueue(new Tuple<ConsoleColor?, string>(consoleColor, message));
         }
 
-        private async Task ListenToConsole ()
+        private async Task ConsoleWriter ()
         {
             while (!CancellationToken.IsCancellationRequested)
             {

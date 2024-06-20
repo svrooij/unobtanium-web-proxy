@@ -975,10 +975,13 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         }
         finally
         {
-            decompressStream?.Dispose();
+            if (decompressStream != null)
+            {
+                await decompressStream.DisposeAsync();
+            }
 
-            await limitedStream.Finish();
-            limitedStream.Dispose();
+            await limitedStream.Finish(cancellationToken);
+            await limitedStream.DisposeAsync();
         }
     }
 

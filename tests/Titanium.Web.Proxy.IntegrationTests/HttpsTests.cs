@@ -54,7 +54,7 @@ public class HttpsTests
 
         var client = testSuite.GetClient(proxy);
 
-        var response = await client.PostAsync(new Uri($"https://{Guid.NewGuid().ToString()}.com"),
+        var response = await client.PostAsync(new Uri($"https://{Guid.NewGuid()}.com"),
             new StringContent("hello server. I am a client."));
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -75,7 +75,7 @@ public class HttpsTests
         });
 
         var proxy = testSuite.GetProxy();
-        var clientCert = proxy.CertificateManager.CreateCertificate("client.com", false);
+        var clientCert = await proxy.CertificateManager.GetCertificateFromDiskOrGenerateAsync("client.com", false);
 
         proxy.ClientCertificateSelectionCallback += async (sender, e) =>
         {
