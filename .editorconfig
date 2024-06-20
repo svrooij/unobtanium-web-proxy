@@ -144,5 +144,5 @@ dotnet_style_qualification_for_event = false:silent
 dotnet_diagnostic.CA2007.severity = silent
 dotnet_diagnostic.CA2008.severity = suggestion
 
-[*LoggerMessage.g.cs]
+[LoggerMessage.g.cs]
 dotnet_diagnostic.CS8602.severity = none
