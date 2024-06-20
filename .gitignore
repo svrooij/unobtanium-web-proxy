@@ -206,3 +206,5 @@ FakesAssemblies/
 
 # Docfx
 docs/manifest.json
+
+coverage.*
