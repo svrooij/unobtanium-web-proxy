@@ -11,11 +11,11 @@ namespace Titanium.Web.Proxy.UnitTests
         [TestMethod]
         [DataRow(HttpCompression.Gzip, typeof(GZipStream))]
         [DataRow(HttpCompression.Deflate, typeof(DeflateStream))]
-        [DataRow(HttpCompression.Brotli, typeof(BrotliSharpLib.BrotliStream))]
+        [DataRow(HttpCompression.Brotli, typeof(BrotliStream))]
         public void Create_ShouldReturnCorrectStream ( HttpCompression type, System.Type expectedType )
         {
             using var memoryStream = new MemoryStream();
-            var result = DecompressionFactory.Create(type, memoryStream);
+            using var result = DecompressionFactory.Create(type, memoryStream);
 
             Assert.IsInstanceOfType(result, expectedType);
         }

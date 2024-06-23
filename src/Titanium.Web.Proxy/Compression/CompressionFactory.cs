@@ -15,7 +15,7 @@ internal static class CompressionFactory
         {
             HttpCompression.Gzip => new GZipStream(stream, CompressionMode.Compress, leaveOpen),
             HttpCompression.Deflate => new DeflateStream(stream, CompressionMode.Compress, leaveOpen),
-            HttpCompression.Brotli => new BrotliSharpLib.BrotliStream(stream, CompressionMode.Compress, leaveOpen),
+            HttpCompression.Brotli => new BrotliStream(stream, CompressionMode.Compress, leaveOpen),
             _ => throw new InvalidOperationException($"Unsupported compression mode: {type}")
         };
     }

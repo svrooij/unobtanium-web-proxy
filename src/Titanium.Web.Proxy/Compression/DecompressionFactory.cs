@@ -15,7 +15,7 @@ internal class DecompressionFactory
         {
             HttpCompression.Gzip => new GZipStream(stream, CompressionMode.Decompress, leaveOpen),
             HttpCompression.Deflate => new DeflateStream(stream, CompressionMode.Decompress, leaveOpen),
-            HttpCompression.Brotli => new BrotliSharpLib.BrotliStream(stream, CompressionMode.Decompress, leaveOpen),
+            HttpCompression.Brotli => new BrotliStream(stream, CompressionMode.Decompress, leaveOpen),
             _ => throw new InvalidOperationException($"Unsupported decompression mode: {type}")
         };
     }
