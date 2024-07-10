@@ -47,20 +47,6 @@ internal sealed partial class DefaultCertificateDiskCache : ICertificateCache
         }
     }
 
-    /// <summary>
-    /// Loads a certificate from the specified subject name.
-    /// </summary>
-    /// <param name="subjectName">The subject name of the certificate to load.</param>
-    /// <param name="storageFlags">The storage flags for the certificate.</param>
-    /// <returns>The loaded certificate, or null if not found.</returns>
-    [Obsolete("Use LoadCertificateAsync instead")]
-    public X509Certificate2? LoadCertificate ( string subjectName, X509KeyStorageFlags storageFlags )
-    {
-        logger?.LogTrace("LoadCertificate called");
-
-        return LoadCertificateAsync(subjectName, storageFlags, CancellationToken.None).GetAwaiter().GetResult();
-    }
-
     /// <inheritdoc/>
     public async Task<X509Certificate2?> LoadCertificateAsync ( string subjectName, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
     {
@@ -70,39 +56,12 @@ internal sealed partial class DefaultCertificateDiskCache : ICertificateCache
         return await LoadCertificateAsync(filePath, string.Empty, storageFlags, cancellationToken);
     }
 
-    /// <summary>
-    /// Loads the root certificate from the specified path or name.
-    /// </summary>
-    /// <param name="pathOrName">The path or name of the root certificate.</param>
-    /// <param name="password">The password for the root certificate.</param>
-    /// <param name="storageFlags">The storage flags for the root certificate.</param>
-    /// <returns>The loaded root certificate, or null if not found.</returns>
-    [Obsolete("Use LoadRootCertificateAsync instead")]
-    public X509Certificate2? LoadRootCertificate ( string pathOrName, string? password, X509KeyStorageFlags storageFlags )
-    {
-        logger?.LogTrace("LoadRootCertificate called");
-        return LoadRootCertificateAsync(pathOrName, password, storageFlags, CancellationToken.None).GetAwaiter().GetResult();
-    }
-
     /// <inheritdoc/>
     public async Task<X509Certificate2?> LoadRootCertificateAsync ( string pathOrName, string? password, X509KeyStorageFlags storageFlags, CancellationToken cancellationToken )
     {
         Log_LoadRootCertificateAsyncCalled(pathOrName, password?.Length, storageFlags);
         var path = GetRootCertificatePath(pathOrName);
         return await LoadCertificateAsync(path, password, storageFlags, cancellationToken);
-    }
-
-    /// <summary>
-    /// Saves a certificate with the specified subject name.
-    /// </summary>
-    /// <param name="subjectName">The subject name of the certificate to save.</param>
-    /// <param name="certificate">The certificate to save.</param>
-    [Obsolete("Use SaveCertificateAsync instead")]
-    public void SaveCertificate ( string subjectName, X509Certificate2 certificate )
-    {
-        logger?.LogTrace("SaveCertificate called");
-
-        SaveCertificateAsync(subjectName, certificate, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     /// <inheritdoc/>
@@ -114,19 +73,6 @@ internal sealed partial class DefaultCertificateDiskCache : ICertificateCache
         var exported = certificate.Export(X509ContentType.Pkcs12);
         await File.WriteAllBytesAsync(filePath, exported, cancellationToken);
         Log_SaveCertificateAsyncFinished();
-    }
-
-    /// <summary>
-    /// Saves the root certificate to the specified path or name.
-    /// </summary>
-    /// <param name="pathOrName">The path or name where the root certificate will be saved.</param>
-    /// <param name="password">The password for the root certificate.</param>
-    /// <param name="certificate">The root certificate to save.</param>
-    public void SaveRootCertificate ( string pathOrName, string password, X509Certificate2 certificate )
-    {
-        logger?.LogTrace("SaveRootCertificate called");
-
-        SaveRootCertificateAsync(pathOrName, password, certificate, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     /// <inheritdoc/>
