@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy.Http2;
+﻿namespace Unobtanium.Web.Proxy.Http2;
 
 internal enum Http2FrameType : byte
 {

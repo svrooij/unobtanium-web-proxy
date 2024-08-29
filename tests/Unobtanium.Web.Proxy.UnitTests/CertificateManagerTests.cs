@@ -5,9 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Titanium.Web.Proxy.Certificates;
+using Unobtanium.Web.Proxy.Certificates;
 
-namespace Titanium.Web.Proxy.UnitTests
+namespace Unobtanium.Web.Proxy.UnitTests
 {
     [TestClass]
     public class CertificateManagerTests

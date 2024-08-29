@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Helpers.WinHttp;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Helpers.WinHttp;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.UnitTests
+namespace Unobtanium.Web.Proxy.UnitTests
 {
     [TestClass]
     public class SystemProxyTest

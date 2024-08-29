@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Net;
-using Titanium.Web.Proxy.Certificates;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Certificates;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.IntegrationTests.Setup;
+namespace Unobtanium.Web.Proxy.IntegrationTests.Setup;
 
 public class TestProxyServer : IDisposable
 {

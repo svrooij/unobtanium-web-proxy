@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Examples.Basic.Helpers;
-using Titanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Examples.Basic.Helpers;
+using Unobtanium.Web.Proxy.Helpers;
 
-namespace Titanium.Web.Proxy.Examples.Basic
+namespace Unobtanium.Web.Proxy.Examples.Basic
 {
     public class Program
     {

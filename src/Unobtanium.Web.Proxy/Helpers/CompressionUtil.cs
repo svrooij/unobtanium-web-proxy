@@ -1,6 +1,6 @@
-﻿using Titanium.Web.Proxy.Http;
+﻿using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.Compression;
+namespace Unobtanium.Web.Proxy.Compression;
 
 internal static class CompressionUtil
 {

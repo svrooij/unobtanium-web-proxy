@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy.Models;
+﻿namespace Unobtanium.Web.Proxy.Models;
 /// <summary>
 /// The ProxyAuthenticationResult enumeration represents the possible results of a proxy authentication attempt.
 /// It provides values for indicating success, failure due to invalid credentials, and other potential outcomes.

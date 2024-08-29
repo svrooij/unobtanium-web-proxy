@@ -33,7 +33,7 @@ using System.Buffers;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Titanium.Web.Proxy.ProxySocket.Authentication;
+namespace Unobtanium.Web.Proxy.ProxySocket.Authentication;
 
 /// <summary>
 ///     This class implements the 'username/password authentication' scheme.

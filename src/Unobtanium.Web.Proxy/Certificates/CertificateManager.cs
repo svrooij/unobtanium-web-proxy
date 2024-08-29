@@ -9,12 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Titanium.Web.Proxy.Certificates.Cache;
-using Titanium.Web.Proxy.Collections;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Shared;
+using Unobtanium.Web.Proxy.Certificates.Cache;
+using Unobtanium.Web.Proxy.Collections;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Shared;
 
-namespace Titanium.Web.Proxy.Certificates;
+namespace Unobtanium.Web.Proxy.Certificates;
 
 /// <summary>
 /// Certificate Engine option.

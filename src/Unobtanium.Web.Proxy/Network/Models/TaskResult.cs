@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.StreamExtended.Network;
+namespace Unobtanium.Web.Proxy.StreamExtended.Network;
 
 /// <summary>
 /// Mimics a Task but allows setting of AsyncState.

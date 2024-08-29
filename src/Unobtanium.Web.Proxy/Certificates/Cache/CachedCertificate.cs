@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Titanium.Web.Proxy.Certificates.Cache;
+namespace Unobtanium.Web.Proxy.Certificates.Cache;
 
 /// <summary>
 /// An object that holds the cached certificate.

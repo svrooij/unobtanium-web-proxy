@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.Exceptions;
+namespace Unobtanium.Web.Proxy.Exceptions;
 
 /// <summary>
 ///     Proxy authorization exception.

@@ -5,9 +5,9 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.UnitTests
+namespace Unobtanium.Web.Proxy.UnitTests
 {
     [TestClass]
     public class ProxyServerTests

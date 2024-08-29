@@ -3,11 +3,11 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
-using Titanium.Web.Proxy.StreamExtended.Models;
-using Titanium.Web.Proxy.StreamExtended.Network;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.StreamExtended.Models;
+using Unobtanium.Web.Proxy.StreamExtended.Network;
 
-namespace Titanium.Web.Proxy.StreamExtended;
+namespace Unobtanium.Web.Proxy.StreamExtended;
 
 /// <summary>
 ///     Use this class to peek SSL client/server hello information.

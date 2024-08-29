@@ -30,7 +30,7 @@
 
 using System.Net.Sockets;
 
-namespace Titanium.Web.Proxy.ProxySocket.Authentication;
+namespace Unobtanium.Web.Proxy.ProxySocket.Authentication;
 
 /// <summary>
 ///     This class implements the 'No Authentication' scheme.

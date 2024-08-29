@@ -1,9 +1,9 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Runtime.InteropServices;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Network.WinAuth;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Network.WinAuth;
 
-namespace Titanium.Web.Proxy.UnitTests
+namespace Unobtanium.Web.Proxy.UnitTests
 {
     [TestClass]
     public class WinAuthTests

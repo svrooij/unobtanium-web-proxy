@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy.Network.WinAuth.Security;
+namespace Unobtanium.Web.Proxy.Network.WinAuth.Security;
 
 /// <summary>
 ///     Status of authenticated session

@@ -2,10 +2,10 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.IntegrationTests.Helpers;
+namespace Unobtanium.Web.Proxy.IntegrationTests.Helpers;
 
 internal class HttpContinueClient
 {

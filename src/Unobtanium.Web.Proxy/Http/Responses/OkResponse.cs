@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Titanium.Web.Proxy.Http.Responses;
+namespace Unobtanium.Web.Proxy.Http.Responses;
 
 /// <summary>
 ///     The http 200 Ok response.

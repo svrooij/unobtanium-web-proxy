@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace Titanium.Web.Proxy.Extensions;
+namespace Unobtanium.Web.Proxy.Extensions;
 
 internal static class TcpExtensions
 {

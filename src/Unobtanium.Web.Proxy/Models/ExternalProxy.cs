@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace Titanium.Web.Proxy.Models;
+namespace Unobtanium.Web.Proxy.Models;
 
 /// <summary>
 ///     An upstream proxy this proxy uses if any.

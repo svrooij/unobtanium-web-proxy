@@ -2,9 +2,9 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 
-namespace Titanium.Web.Proxy.Extensions;
+namespace Unobtanium.Web.Proxy.Extensions;
 
 /// <summary>
 ///     Extensions used for Stream and CustomBinaryReader objects

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Network.WinAuth.Security;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Network.WinAuth.Security;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 
 /// <summary>
 ///     Handle the response from server.

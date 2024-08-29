@@ -16,11 +16,11 @@ using System;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Shared;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Shared;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
 
-namespace Titanium.Web.Proxy.Certificates;
+namespace Unobtanium.Web.Proxy.Certificates;
 
 /// <summary>
 ///     Implements certificate generation operations.

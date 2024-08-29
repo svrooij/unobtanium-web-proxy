@@ -5,17 +5,17 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Exceptions;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Network;
-using Titanium.Web.Proxy.Network.Tcp;
-using Titanium.Web.Proxy.Shared;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Exceptions;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Network;
+using Unobtanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.Shared;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 
 /// <summary>
 ///     Handle the request

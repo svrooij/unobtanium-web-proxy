@@ -3,12 +3,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Compression;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Compression;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.Http;
+namespace Unobtanium.Web.Proxy.Http;
 
 /// <summary>
 ///     Abstract base class for similar objects shared by both request and response objects.

@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.EventArguments;
 
-namespace Titanium.Web.Proxy.Models;
+namespace Unobtanium.Web.Proxy.Models;
 
 /// <summary>
 /// The TransparentBaseProxyEndPoint class is an abstract base class for endpoints that support transparent proxying.

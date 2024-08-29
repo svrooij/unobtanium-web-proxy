@@ -36,7 +36,7 @@
 using System;
 using System.Text;
 
-namespace Titanium.Web.Proxy.Network.WinAuth.Security;
+namespace Unobtanium.Web.Proxy.Network.WinAuth.Security;
 
 internal class Message
 {

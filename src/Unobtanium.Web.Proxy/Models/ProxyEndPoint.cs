@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Titanium.Web.Proxy.Models;
+namespace Unobtanium.Web.Proxy.Models;
 
 /// <summary>
 ///     An abstract endpoint where the proxy listens

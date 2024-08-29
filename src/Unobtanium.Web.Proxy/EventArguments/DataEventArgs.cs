@@ -1,6 +1,6 @@
 using System;
 
-namespace Titanium.Web.Proxy.StreamExtended.Network;
+namespace Unobtanium.Web.Proxy.StreamExtended.Network;
 
 /// <summary>
 ///     Wraps the data sent/received event argument.

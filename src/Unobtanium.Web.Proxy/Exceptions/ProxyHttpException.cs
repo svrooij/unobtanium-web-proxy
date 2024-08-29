@@ -1,7 +1,7 @@
 ﻿using System;
-using Titanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.EventArguments;
 
-namespace Titanium.Web.Proxy.Exceptions;
+namespace Unobtanium.Web.Proxy.Exceptions;
 
 /// <summary>
 ///     Proxy HTTP exception.

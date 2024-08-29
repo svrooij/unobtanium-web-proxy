@@ -4,10 +4,10 @@ using System;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
-using Titanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Extensions;
 using System.Xml.Linq;
 
-namespace Titanium.Web.Proxy.StreamExtended.Models;
+namespace Unobtanium.Web.Proxy.StreamExtended.Models;
 
 /// <summary>
 ///     The SSL extension information.

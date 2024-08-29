@@ -2,7 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 
-namespace Titanium.Web.Proxy.Compression;
+namespace Unobtanium.Web.Proxy.Compression;
 
 /// <summary>
 ///     A factory to generate the compression methods based on the type of compression

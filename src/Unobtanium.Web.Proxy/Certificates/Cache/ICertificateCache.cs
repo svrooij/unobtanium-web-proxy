@@ -4,7 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.Certificates.Cache;
+namespace Unobtanium.Web.Proxy.Certificates.Cache;
 
 /// <summary>
 /// Interface for certificate cache management.

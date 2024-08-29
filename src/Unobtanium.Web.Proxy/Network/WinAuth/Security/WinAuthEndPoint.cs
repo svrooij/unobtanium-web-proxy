@@ -3,9 +3,9 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using Titanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.Network.WinAuth.Security;
+namespace Unobtanium.Web.Proxy.Network.WinAuth.Security;
 
 using static Common;
 

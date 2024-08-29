@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Helpers;
 
-namespace Titanium.Web.Proxy.UnitTests.Helpers;
+namespace Unobtanium.Web.Proxy.UnitTests.Helpers;
 public partial class HttpHelperTests
 {
     [TestMethod]

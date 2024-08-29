@@ -11,11 +11,11 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.Examples.Wpf
+namespace Unobtanium.Web.Proxy.Examples.Wpf
 {
     /// <summary>
     ///     Interaction logic for MainWindow.xaml

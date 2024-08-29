@@ -2,11 +2,11 @@
 using System.ComponentModel;
 using System.Net;
 using System.Runtime.CompilerServices;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Examples.Wpf.Annotations;
-using Titanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Examples.Wpf.Annotations;
+using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.Examples.Wpf
+namespace Unobtanium.Web.Proxy.Examples.Wpf
 {
     public class SessionListItem : INotifyPropertyChanged
     {

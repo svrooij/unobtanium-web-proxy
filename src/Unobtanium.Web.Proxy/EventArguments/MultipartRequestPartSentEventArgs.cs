@@ -1,6 +1,6 @@
-﻿using Titanium.Web.Proxy.Http;
+﻿using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 /// Class that wraps the multipart sent request arguments.

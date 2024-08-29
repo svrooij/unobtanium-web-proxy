@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy.Exceptions;
+namespace Unobtanium.Web.Proxy.Exceptions;
 
 /// <summary>
 ///     The server connection was closed upon first write with the new connection from pool.

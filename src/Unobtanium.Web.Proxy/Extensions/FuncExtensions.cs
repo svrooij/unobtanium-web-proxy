@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Exceptions;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Exceptions;
 
-namespace Titanium.Web.Proxy.Extensions;
+namespace Unobtanium.Web.Proxy.Extensions;
 
 internal static class FuncExtensions
 {

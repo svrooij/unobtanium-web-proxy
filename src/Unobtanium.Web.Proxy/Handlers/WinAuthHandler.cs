@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Network.WinAuth;
-using Titanium.Web.Proxy.Network.WinAuth.Security;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Network.WinAuth;
+using Unobtanium.Web.Proxy.Network.WinAuth.Security;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 
 public partial class ProxyServer
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 
 /// <summary>
 /// The WebSocketFrame class represents a single frame of data in a WebSocket connection.

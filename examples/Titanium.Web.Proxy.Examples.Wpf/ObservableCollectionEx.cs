@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
-namespace Titanium.Web.Proxy.Examples.Wpf
+namespace Unobtanium.Web.Proxy.Examples.Wpf
 {
     public class ObservableCollectionEx<T> : ObservableCollection<T>
     {

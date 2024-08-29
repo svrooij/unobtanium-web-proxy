@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Titanium.Web.Proxy.Http;
+namespace Unobtanium.Web.Proxy.Http;
 
 internal class InternalDataStore : Dictionary<string, object>
 {

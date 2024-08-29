@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy.Models;
+namespace Unobtanium.Web.Proxy.Models;
 /// <summary>
 /// The ProxyProtocolType enumeration represents the types of protocols that a proxy can support.
 /// It is a flags enumeration, which means multiple values can be combined using bitwise operations.

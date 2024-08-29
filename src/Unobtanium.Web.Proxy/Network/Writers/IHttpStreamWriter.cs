@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.StreamExtended.Network;
+namespace Unobtanium.Web.Proxy.StreamExtended.Network;
 
 /// <summary>
 /// The IHttpStreamWriter interface defines the contract for a writer that can write HTTP data to a stream.

@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace Titanium.Web.Proxy.Examples.Wpf
+namespace Unobtanium.Web.Proxy.Examples.Wpf
 {
     /// <summary>
     ///     Interaction logic for App.xaml

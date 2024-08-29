@@ -5,9 +5,9 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Helpers;
 
-namespace Titanium.Web.Proxy.Certificates.Cache;
+namespace Unobtanium.Web.Proxy.Certificates.Cache;
 
 /// <summary>
 /// Provides a default disk-based cache implementation for storing certificates.

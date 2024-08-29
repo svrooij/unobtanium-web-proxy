@@ -2,11 +2,11 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Network.Tcp;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 
 public partial class ProxyServer
 {

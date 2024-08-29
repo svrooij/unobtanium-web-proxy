@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Titanium.Web.Proxy.IntegrationTests;
+namespace Unobtanium.Web.Proxy.IntegrationTests;
 
 [TestClass]
 public class StressTests

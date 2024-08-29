@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 /// <summary>
 /// The WebSocketDecoder class is responsible for decoding WebSocket frames from a stream of bytes.
 /// It uses a buffer to store incoming data and decodes frames from this buffer as they become available.

@@ -2,11 +2,11 @@
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Network.Tcp;
 
-namespace Titanium.Web.Proxy.Http;
+namespace Unobtanium.Web.Proxy.Http;
 
 /// <summary>
 ///     Used to communicate with the server over HTTP(S)

@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy.Exceptions;
+﻿namespace Unobtanium.Web.Proxy.Exceptions;
 
 /// <summary>
 /// If the request is send to the server, you can no longer access the request body.

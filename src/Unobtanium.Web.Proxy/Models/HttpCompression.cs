@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy.Compression;
+﻿namespace Unobtanium.Web.Proxy.Compression;
 
 /// <summary>
 ///     Supported http compression types

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 
 /// <summary>
 ///     A delegate to catch exceptions occuring in proxy.

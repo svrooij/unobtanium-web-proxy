@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy;
+﻿namespace Unobtanium.Web.Proxy;
 
 /// <summary>
 /// The WebsocketOpCode enumeration represents the operation codes for WebSocket frames.

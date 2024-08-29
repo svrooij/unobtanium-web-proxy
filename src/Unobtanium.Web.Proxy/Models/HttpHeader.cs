@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Net;
 using System.Text;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.Models;
+namespace Unobtanium.Web.Proxy.Models;
 
 /// <summary>
 ///     Http Header object used by proxy

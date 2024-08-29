@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Titanium.Web.Proxy.Examples.Wpf.Properties {
+namespace Unobtanium.Web.Proxy.Examples.Wpf.Properties {
     using System;
     
     

@@ -1,11 +1,11 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Network.Tcp;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 
-namespace Titanium.Web.Proxy.Helpers;
+namespace Unobtanium.Web.Proxy.Helpers;
 
 internal sealed class HttpClientStream : HttpStream
 {

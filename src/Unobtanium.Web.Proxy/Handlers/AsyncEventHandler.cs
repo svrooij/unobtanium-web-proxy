@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 ///     A generic asynchronous event handler used by the proxy.

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Titanium.Web.Proxy.Network.WinAuth.Security;
+namespace Unobtanium.Web.Proxy.Network.WinAuth.Security;
 
 internal class Common
 {
