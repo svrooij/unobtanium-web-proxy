@@ -23,8 +23,7 @@ public class ExpectContinueTests
         };
         server.HandleTcpRequest(continueServer.HandleRequest);
 
-        var proxy = testSuite.GetReverseProxy();
-        proxy.Enable100ContinueBehaviour = true;
+        var proxy = testSuite.GetReverseProxy(proxyServerConfiguration: new ProxyServerConfiguration {  Enable100ContinueBehaviour = true });
         proxy.BeforeRequest += (sender, e) =>
         {
             e.HttpClient.Request.Url = server.ListeningTcpUrl;
@@ -47,8 +46,7 @@ public class ExpectContinueTests
         var continueServer = new HttpContinueServer { ExpectationResponse = HttpStatusCode.ExpectationFailed };
         server.HandleTcpRequest(continueServer.HandleRequest);
 
-        var proxy = testSuite.GetReverseProxy();
-        proxy.Enable100ContinueBehaviour = true;
+        var proxy = testSuite.GetReverseProxy(proxyServerConfiguration: new ProxyServerConfiguration { Enable100ContinueBehaviour = true });
         proxy.BeforeRequest += (sender, e) =>
         {
             e.HttpClient.Request.Url = server.ListeningTcpUrl;
@@ -70,8 +68,7 @@ public class ExpectContinueTests
         var continueServer = new HttpContinueServer { ExpectationResponse = HttpStatusCode.NotFound };
         server.HandleTcpRequest(continueServer.HandleRequest);
 
-        var proxy = testSuite.GetReverseProxy();
-        proxy.Enable100ContinueBehaviour = true;
+        var proxy = testSuite.GetReverseProxy(proxyServerConfiguration: new ProxyServerConfiguration { Enable100ContinueBehaviour = true });
         proxy.BeforeRequest += (sender, e) =>
         {
             e.HttpClient.Request.Url = server.ListeningTcpUrl;
@@ -96,8 +93,7 @@ public class ExpectContinueTests
         var dbzEx = new DivideByZeroException("Undefined");
         var dbzString = $"{dbzEx.GetType()}: {dbzEx.Message}";
 
-        var proxy = testSuite.GetReverseProxy();
-        proxy.Enable100ContinueBehaviour = true;
+        var proxy = testSuite.GetReverseProxy(proxyServerConfiguration: new ProxyServerConfiguration { Enable100ContinueBehaviour = true });
         proxy.BeforeRequest += (sender, e) =>
         {
             try
@@ -124,7 +120,7 @@ public class ExpectContinueTests
         var response = await client.Post("localhost", proxy.ProxyEndPoints[0].Port, "Hello server. I am a client.");
 
         Assert.IsNotNull(response, "No response to 'expect: 100-continue' request");
-        Assert.AreEqual(response.StatusCode, (int)HttpStatusCode.InternalServerError);
-        Assert.AreEqual(response.BodyString, dbzString);
+        Assert.AreEqual((int)HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.AreEqual(dbzString, response.BodyString);
     }
 }

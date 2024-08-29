@@ -72,6 +72,8 @@ public partial class ProxyServer : IDisposable
 
     private readonly ILogger<ProxyServer> logger;
 
+    private readonly ProxyServerConfiguration configuration;
+
     /// <inheritdoc />
     /// <summary>
     ///     Initializes a new instance of ProxyServer class with provided parameters.
@@ -87,6 +89,8 @@ public partial class ProxyServer : IDisposable
     /// </param>
     /// <param name="activitySource"><see cref="ActivitySource"/> to be used for distributed tracing</param>
     /// <param name="loggerFactory"><see cref="ILoggerFactory"/> to be used for all logging, will use <see cref="NullLoggerFactory"/> is not specified</param>
+    /// <remarks>Use this constructor <see cref="ProxyServer(ProxyServerConfiguration?, IBufferPool?, ActivitySource?, ILoggerFactory)"/> instead.</remarks>
+    [Obsolete("Use the constructor that accepts a ProxyServerConfiguration object instead")]
     public ProxyServer ( bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
         bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null ) : this(null, null, userTrustRootCertificate,
         machineTrustRootCertificate, trustRootCertificateAsAdmin, activitySource, loggerFactory)
@@ -109,6 +113,8 @@ public partial class ProxyServer : IDisposable
     /// </param>
     /// <param name="activitySource"><see cref="ActivitySource"/> to be used for distributed tracing</param>
     /// <param name="loggerFactory"><see cref="ILoggerFactory"/> to be used for all logging, will use <see cref="NullLoggerFactory"/> is not specified</param>
+    /// <remarks>Use this constructor <see cref="ProxyServer(ProxyServerConfiguration?, IBufferPool?, ActivitySource?, ILoggerFactory)"/> instead.</remarks>
+    [Obsolete("Use the constructor that accepts a ProxyServerConfiguration object instead")]
     public ProxyServer ( string? rootCertificateName, string? rootCertificateIssuerName,
         bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
         bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null )
@@ -127,6 +133,31 @@ public partial class ProxyServer : IDisposable
     }
 
     /// <summary>
+    /// Constructor for ProxyServer.
+    /// </summary>
+    /// <param name="configuration">Proxy configuration settings</param>
+    /// <param name="bufferPool">BufferPool</param>
+    /// <param name="activitySource">Provide an activity source if you want distributed tracing</param>
+    /// <param name="loggerFactory">Provide a log factory if you want to follow the logs</param>
+    public ProxyServer (ProxyServerConfiguration? configuration = null, IBufferPool? bufferPool = null, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null )
+    {
+        this.activitySource = activitySource;
+        this.loggerFactory = loggerFactory ?? new NullLoggerFactory();
+        logger = this.loggerFactory.CreateLogger<ProxyServer>();
+
+        this.configuration = configuration ?? new ProxyServerConfiguration();
+        BufferPool = bufferPool ?? new DefaultBufferPool();
+        ProxyEndPoints = [];
+        TcpConnectionFactory = new TcpConnectionFactory(this);
+        if (RunTime.IsWindows && !RunTime.IsUwpOnWindows) SystemProxySettingsManager = new SystemProxyManager();
+
+        CertificateManager = new CertificateManager(this.configuration.RootCertificateName, this.configuration.RootCertificateIssuerName,
+            (this.configuration.CertificateTrustMode & ProxyCertificateTrustMode.UserTrust) != 0,
+            (this.configuration.CertificateTrustMode & ProxyCertificateTrustMode.MachineTrust) != 0,
+            (this.configuration.CertificateTrustMode & ProxyCertificateTrustMode.TryWithUac) != 0, this.loggerFactory);
+    }
+
+    /// <summary>
     ///     An factory that creates tcp connection to server.
     /// </summary>
     private TcpConnectionFactory TcpConnectionFactory { get; }
@@ -139,7 +170,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Number of times to retry upon network failures when connection pool is enabled.
     /// </summary>
-    public int NetworkFailureRetryAttempts { get; set; } = 1;
+    public int NetworkFailureRetryAttempts => configuration.NetworkFailureRetryAttempts;
 
     /// <summary>
     ///     Is the proxy currently running?
@@ -150,7 +181,7 @@ public partial class ProxyServer : IDisposable
     ///     Gets or sets a value indicating whether requests will be chained to upstream gateway.
     ///     Defaults to false.
     /// </summary>
-    public bool ForwardToUpstreamGateway { get; set; }
+    public bool ForwardToUpstreamGateway => configuration.ForwardToUpstreamGateway;
 
     /// <summary>
     ///     If set, the upstream proxy will be detected by a script that will be loaded from the provided Uri
@@ -164,7 +195,7 @@ public partial class ProxyServer : IDisposable
     ///     in middle attack with Windows domain authentication is not currently supported.
     ///     Defaults to false.
     /// </summary>
-    public bool EnableWinAuth { get; set; }
+    public bool EnableWinAuth => configuration.EnableWinAuth;
 
     /// <summary>
     ///     Enable disable HTTP/2 support.
@@ -172,20 +203,20 @@ public partial class ProxyServer : IDisposable
     ///     - only enabled when both client and server supports it (no protocol changing in proxy)
     ///     - cannot modify the request/response (e.g header modifications in BeforeRequest/Response events are ignored)
     /// </summary>
-    public bool EnableHttp2 { get; set; } = false;
+    public bool EnableHttp2 => configuration.EnableHttp2;
 
     /// <summary>
     ///     Should we check for certificate revocation during SSL authentication to servers
     ///     Note: If enabled can reduce performance. Defaults to false.
     /// </summary>
-    public X509RevocationMode CheckCertificateRevocation { get; set; }
+    public X509RevocationMode CheckCertificateRevocation => configuration.CheckCertificateRevocation;
 
     /// <summary>
     ///     Does this proxy uses the HTTP protocol 100 continue behaviour strictly?
     ///     Broken 100 continue implementations on server/client may cause problems if enabled.
     ///     Defaults to false.
     /// </summary>
-    public bool Enable100ContinueBehaviour { get; set; }
+    public bool Enable100ContinueBehaviour => configuration.Enable100ContinueBehaviour;
 
     /// <summary>
     ///     Should we enable experimental server connection pool. Defaults to false.
@@ -197,7 +228,7 @@ public partial class ProxyServer : IDisposable
     ///     connections.
     ///     This will help to reduce TCP connection establishment cost, both the wall clock time and CPU cycles.
     /// </summary>
-    public bool EnableConnectionPool { get; set; } = false;
+    public bool EnableConnectionPool => configuration.EnableConnectionPool;
 
     /// <summary>
     ///     Should we enable tcp server connection prefetching?
@@ -209,45 +240,45 @@ public partial class ProxyServer : IDisposable
     ///     connection from cache.
     ///     Defaults to true.
     /// </summary>
-    public bool EnableTcpServerConnectionPrefetch { get; set; } = true;
+    public bool EnableTcpServerConnectionPrefetch => configuration.EnableTcpServerConnectionPrefetch;
 
     /// <summary>
     ///     Gets or sets a Boolean value that specifies whether server and client stream Sockets are using the Nagle algorithm.
     ///     Defaults to true, no nagle algorithm is used.
     /// </summary>
-    public bool NoDelay { get; set; } = true;
+    public bool NoDelay => configuration.NoDelay;
 
     /// <summary>
     ///     Seconds client/server connection are to be kept alive when waiting for read/write to complete.
     ///     This will also determine the pool eviction time when connection pool is enabled.
     ///     Default value is 60 seconds.
     /// </summary>
-    public int ConnectionTimeOutSeconds { get; set; } = 60;
+    public int ConnectionTimeOutSeconds => configuration.ConnectionTimeOutSeconds;
 
     /// <summary>
     ///     Seconds server connection are to wait for connection to be established.
     ///     Default value is 20 seconds.
     /// </summary>
-    public int ConnectTimeOutSeconds { get; set; } = 20;
+    public int ConnectTimeOutSeconds => configuration.ConnectTimeOutSeconds;
 
     /// <summary>
     ///     Maximum number of concurrent connections per remote host in cache.
     ///     Only valid when connection pooling is enabled.
     ///     Default value is 4.
     /// </summary>
-    public int MaxCachedConnections { get; set; } = 4;
+    public int MaxCachedConnections => configuration.MaxCachedConnections;
 
     /// <summary>
     ///     Number of seconds to linger when Tcp connection is in TIME_WAIT state.
     ///     Default value is 30.
     /// </summary>
-    public int TcpTimeWaitSeconds { get; set; } = 30;
+    public int TcpTimeWaitSeconds => configuration.TcpTimeWaitSeconds;
 
     /// <summary>
     ///     Should we reuse client/server tcp sockets.
     ///     Default is true (disabled for linux/macOS due to bug in .Net core).
     /// </summary>
-    public bool ReuseSocket { get; set; } = true;
+    public bool ReuseSocket => configuration.ReuseSocket;
 
     /// <summary>
     ///     Total number of active client connections.
@@ -262,25 +293,20 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Realm used during Proxy Basic Authentication.
     /// </summary>
-    public string ProxyAuthenticationRealm { get; set; } = "TitaniumProxy";
+    public string ProxyAuthenticationRealm => configuration.AuthenticationRealm;
 
     /// <summary>
     ///     List of supported Ssl versions.
     /// </summary>
-#pragma warning disable 618 // SslProtocols.Ssl3 is obsolete
-#pragma warning disable SYSLIB0039 // Tls and Tls11 are obsolete
-    public SslProtocols SupportedSslProtocols { get; set; } =
-        SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
-#pragma warning restore SYSLIB0039 // Tls and Tls11 are obsolete
-#pragma warning restore 618
+
+    public SslProtocols SupportedSslProtocols => configuration.SupportedSslProtocols;
 
     /// <summary>
     ///     List of supported Server Ssl versions.
     ///     Using SslProtocol.None means to require the same SSL protocol as the proxy client.
     /// </summary>
-#pragma warning disable 618
-    public SslProtocols SupportedServerSslProtocols { get; set; } = SslProtocols.None;
-#pragma warning restore 618
+    public SslProtocols SupportedServerSslProtocols => configuration.SupportedServerSslProtocols;
+
 
     /// <summary>
     ///     The buffer pool used throughout this proxy instance.
@@ -288,7 +314,8 @@ public partial class ProxyServer : IDisposable
     ///     By default this uses DefaultBufferPool implementation available in StreamExtended library package.
     ///     Buffer size should be at least 10 bytes.
     /// </summary>
-    public IBufferPool BufferPool { get; set; }
+    /// <remarks>Set through the constructor</remarks>
+    public IBufferPool BufferPool { get; private set; }
 
     /// <summary>
     ///     Manages certificates used by this proxy.
@@ -556,7 +583,7 @@ public partial class ProxyServer : IDisposable
 
         if (protocolType != ProxyProtocolType.None)
         {
-            logger.LogInformation("Set endpoint at Ip {ip} and port: {port} as System {proxyType} Proxy", endPoint.IpAddress,
+            logger.LogInformation("Set endpoint at Ip {Ip} and port: {Port} as System {ProxyType} Proxy", endPoint.IpAddress,
                 endPoint.Port, proxyType);
         }
 
@@ -979,7 +1006,7 @@ public partial class ProxyServer : IDisposable
     private void ThrowNotSupportedException ( [CallerMemberName] string? caller = null )
     {
         var ex = new NotSupportedException(@"Setting system proxy settings are only supported in Windows.");
-        logger.LogWarning(ex, "Setting system proxy settings are only supported in Windows. {caller}", caller);
+        logger.LogWarning(ex, "Setting system proxy settings are only supported in Windows. {Caller}", caller);
         throw ex;
     }
 

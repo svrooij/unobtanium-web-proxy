@@ -8,9 +8,9 @@ public class TestSuite
 {
     private readonly TestServer server;
 
-    public TestSuite(bool requireMutualTls = false)
+    public TestSuite(bool requireMutualTls = false, ProxyServerConfiguration? proxyServerConfiguration = null)
     {
-        var dummyProxy = new ProxyServer();
+        var dummyProxy = new ProxyServer(proxyServerConfiguration);
         var serverCertificate = dummyProxy.CertificateManager.GetOrGenerateCertificateAsync("localhost").Result;
         server = new TestServer(serverCertificate, requireMutualTls);
     }
@@ -20,24 +20,24 @@ public class TestSuite
         return server;
     }
 
-    public ProxyServer GetProxy(ProxyServer upStreamProxy = null)
+    public ProxyServer GetProxy(ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null)
     {
         if (upStreamProxy != null)
         {
-            return new TestProxyServer(false, upStreamProxy).ProxyServer;
+            return new TestProxyServer(false, upStreamProxy, proxyServerConfiguration).ProxyServer;
         }
 
-        return new TestProxyServer(false).ProxyServer;
+        return new TestProxyServer(false, proxyServerConfiguration: proxyServerConfiguration).ProxyServer;
     }
 
-    public ProxyServer GetReverseProxy(ProxyServer upStreamProxy = null)
+    public ProxyServer GetReverseProxy(ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null)
     {
         if (upStreamProxy != null)
         {
-            return new TestProxyServer(true, upStreamProxy).ProxyServer;
+            return new TestProxyServer(true, upStreamProxy, proxyServerConfiguration).ProxyServer;
         }
 
-        return new TestProxyServer(true).ProxyServer;
+        return new TestProxyServer(true, proxyServerConfiguration: proxyServerConfiguration).ProxyServer;
     }
 
     public HttpClient GetClient(ProxyServer proxyServer, bool enableBasicProxyAuthorization = false)

@@ -31,7 +31,14 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
             // Console writer writes messages to console async
             Task.Run(() => ConsoleWriter());
 
-            proxyServer = new ProxyServer();
+            proxyServer = new ProxyServer(configuration: new ProxyServerConfiguration
+            {
+                TcpTimeWaitSeconds = 10,
+                ConnectionTimeOutSeconds = 15,
+                ReuseSocket = false,
+                EnableConnectionPool = false,
+                ForwardToUpstreamGateway = true,
+            });
 
             //proxyServer.EnableHttp2 = true;
 
@@ -49,11 +56,6 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
                     WriteToConsole(exception.Message, ConsoleColor.Red);
             };
 
-            proxyServer.TcpTimeWaitSeconds = 10;
-            proxyServer.ConnectionTimeOutSeconds = 15;
-            proxyServer.ReuseSocket = false;
-            proxyServer.EnableConnectionPool = false;
-            proxyServer.ForwardToUpstreamGateway = true;
             proxyServer.CertificateManager.SaveFakeCertificates = false;
             //proxyServer.ProxyBasicAuthenticateFunc = async (args, userName, password) =>
             //{

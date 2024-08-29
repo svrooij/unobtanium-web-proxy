@@ -109,8 +109,7 @@ public class NestedProxyTests
         //create a level 1 upstream proxy farm that forwards to level 2 farm
         for (var i = 0; i < 10; i++)
         {
-            var proxy1 = testSuite.GetProxy();
-            proxy1.EnableConnectionPool = false;
+            var proxy1 = testSuite.GetProxy(proxyServerConfiguration: new ProxyServerConfiguration { EnableConnectionPool = true });
             var proxy2 = proxies2[rnd.Next() % proxies2.Count];
 
             proxy1.GetCustomUpStreamProxyFunc += async _ =>

@@ -12,7 +12,7 @@ namespace WindowsServiceExample
 {
     internal partial class ProxyService : ServiceBase
     {
-        private static ProxyServer _proxyServerInstance;
+        private ProxyServer _proxyServerInstance;
 
         public ProxyService ()
         {
@@ -24,25 +24,28 @@ namespace WindowsServiceExample
         {
             // we do all this in here so we can reload settings with a simple restart
 
-            _proxyServerInstance = new ProxyServer(false);
+            _proxyServerInstance = new ProxyServer(configuration: new ProxyServerConfiguration
+            {
+                CheckCertificateRevocation = Settings.Default.CheckCertificateRevocation,
+                ConnectionTimeOutSeconds = Settings.Default.ConnectionTimeOutSeconds,
+                Enable100ContinueBehaviour = Settings.Default.Enable100ContinueBehaviour,
+                EnableConnectionPool = Settings.Default.EnableConnectionPool,
+                EnableTcpServerConnectionPrefetch = Settings.Default.EnableTcpServerConnectionPrefetch,
+                EnableWinAuth = Settings.Default.EnableWinAuth,
+                ForwardToUpstreamGateway = Settings.Default.ForwardToUpstreamGateway,
+                MaxCachedConnections = Settings.Default.MaxCachedConnections,
+                ReuseSocket = Settings.Default.ReuseSocket,
+                TcpTimeWaitSeconds = Settings.Default.TcpTimeWaitSeconds,
+                EnableHttp2 = Settings.Default.EnableHttp2,
+                NoDelay = Settings.Default.NoDelay,
+
+            });
 
             if (Settings.Default.ListeningPort <= 0 ||
                 Settings.Default.ListeningPort > 65535)
                 throw new Exception("Invalid listening port");
 
-            _proxyServerInstance.CheckCertificateRevocation = Settings.Default.CheckCertificateRevocation;
-            _proxyServerInstance.ConnectionTimeOutSeconds = Settings.Default.ConnectionTimeOutSeconds;
-            _proxyServerInstance.Enable100ContinueBehaviour = Settings.Default.Enable100ContinueBehaviour;
-            _proxyServerInstance.EnableConnectionPool = Settings.Default.EnableConnectionPool;
-            _proxyServerInstance.EnableTcpServerConnectionPrefetch = Settings.Default.EnableTcpServerConnectionPrefetch;
-            _proxyServerInstance.EnableWinAuth = Settings.Default.EnableWinAuth;
-            _proxyServerInstance.ForwardToUpstreamGateway = Settings.Default.ForwardToUpstreamGateway;
-            _proxyServerInstance.MaxCachedConnections = Settings.Default.MaxCachedConnections;
-            _proxyServerInstance.ReuseSocket = Settings.Default.ReuseSocket;
-            _proxyServerInstance.TcpTimeWaitSeconds = Settings.Default.TcpTimeWaitSeconds;
             _proxyServerInstance.CertificateManager.SaveFakeCertificates = Settings.Default.SaveFakeCertificates;
-            _proxyServerInstance.EnableHttp2 = Settings.Default.EnableHttp2;
-            _proxyServerInstance.NoDelay = Settings.Default.NoDelay;
 
             if (Settings.Default.ThreadPoolWorkerThreads < 0)
                 _proxyServerInstance.ThreadPoolWorkerThread = Environment.ProcessorCount;

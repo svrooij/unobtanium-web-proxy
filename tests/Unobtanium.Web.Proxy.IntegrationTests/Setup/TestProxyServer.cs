@@ -7,9 +7,9 @@ namespace Unobtanium.Web.Proxy.IntegrationTests.Setup;
 
 public class TestProxyServer : IDisposable
 {
-    public TestProxyServer(bool isReverseProxy, ProxyServer upStreamProxy = null)
+    public TestProxyServer(bool isReverseProxy, ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null)
     {
-        ProxyServer = new ProxyServer();
+        ProxyServer = new ProxyServer(proxyServerConfiguration);
 
         var explicitEndPoint = isReverseProxy
             ? (ProxyEndPoint)new TransparentProxyEndPoint(IPAddress.Any, 0)

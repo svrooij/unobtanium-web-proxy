@@ -45,20 +45,20 @@ namespace Unobtanium.Web.Proxy.Examples.Wpf
 
             loggerFactory = LoggerFactory.Create(builder =>
                 builder
-                    .AddFilter("Titanium", LogLevel.Trace)
-                    .AddFilter("Titanium.Web.Proxy.Network.CertificateManager", LogLevel.Trace)
+                    .AddFilter("Unobtaniun", LogLevel.Trace)
+                    .AddFilter("Unobtaniun.Web.Proxy.Network.CertificateManager", LogLevel.Trace)
                     .AddFilter("Microsoft", LogLevel.Warning)
                     .AddDebug()
             );
             logger = loggerFactory.CreateLogger<MainWindow>();
-            proxyServer = new ProxyServer(loggerFactory: loggerFactory)
+            proxyServer = new ProxyServer(configuration: new ProxyServerConfiguration
             {
                 TcpTimeWaitSeconds = 10,
                 ConnectionTimeOutSeconds = 15,
                 ReuseSocket = false,
                 EnableConnectionPool = true,
-                //ForwardToUpstreamGateway = true,
-            };
+
+            }, loggerFactory: loggerFactory);
 
             proxyServer.CertificateManager.SaveFakeCertificates = false;
 

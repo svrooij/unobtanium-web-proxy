@@ -17,7 +17,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         public void GivenOneEndpointIsAlreadyAddedToAddress_WhenAddingNewEndpointToExistingAddress_ThenExceptionIsThrown ()
         {
             // Arrange
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             const int port = 9999;
             var firstIpAddress = IPAddress.Parse("127.0.0.1");
             var secondIpAddress = IPAddress.Parse("127.0.0.1");
@@ -31,7 +31,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         public void GivenOneEndpointIsAlreadyAddedToAddress_WhenAddingNewEndpointToExistingAddress_ThenTwoEndpointsExists ()
         {
             // Arrange
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             const int port = 9999;
             var firstIpAddress = IPAddress.Parse("127.0.0.1");
             var secondIpAddress = IPAddress.Parse("192.168.1.1");
@@ -49,7 +49,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         public void GivenOneEndpointIsAlreadyAddedToPort_WhenAddingNewEndpointToExistingPort_ThenExceptionIsThrown ()
         {
             // Arrange
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             const int port = 9999;
             proxy.AddEndPoint(new ExplicitProxyEndPoint(IPAddress.Loopback, port, false));
 
@@ -61,7 +61,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         public void GivenOneEndpointIsAlreadyAddedToZeroPort_WhenAddingNewEndpointToExistingPort_ThenTwoEndpointsExists ()
         {
             // Arrange
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             const int port = 0;
             proxy.AddEndPoint(new ExplicitProxyEndPoint(IPAddress.Loopback, port, false));
 
@@ -76,7 +76,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         public void GivenOneEndpointIsAdded_WhenRemovingEndpoint_Succeeds ()
         {
             // Arrange
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             const int port = 0;
             var endpoint = new ExplicitProxyEndPoint(IPAddress.Loopback, port, false);
             proxy.AddEndPoint(endpoint);
@@ -93,7 +93,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         public void GivenNoEndpointIsAdded_WhenRemovingEndpoint_ThrowsArgumentException ()
         {
             // Arrange
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             const int port = 0;
             var endpoint = new ExplicitProxyEndPoint(IPAddress.Loopback, port, false);
 
@@ -104,7 +104,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [TestMethod]
         public async Task InvokeClientConnectionCreateEvent_WhenCalled_InvokesEventHandler ()
         {
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             bool isHit = false;
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             proxy.OnClientConnectionCreate += ( sender, args ) =>
@@ -126,7 +126,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [TestMethod]
         public async Task InvokeClientConnectionCreateEvent_WhenCalledWithThrowInHandler_InvokesExceptionFunc ()
         {
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             bool isEventHit = false;
             bool isExceptionHit = false;
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -157,7 +157,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [TestMethod]
         public async Task InvokeServerConnectionCreateEvent_WhenCalled_InvokesEventHandler ()
         {
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             bool isHit = false;
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             proxy.OnServerConnectionCreate += ( sender, args ) =>
@@ -179,7 +179,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [TestMethod]
         public void SetAsSystemProxy_ThrowsOnNonWindows ()
         {
-            var proxyServer = new ProxyServer();
+            var proxyServer = new ProxyServer(configuration: null);
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Assert.ThrowsException<NotSupportedException>(() => proxyServer.SetAsSystemHttpProxy(new ExplicitProxyEndPoint(IPAddress.Loopback, 8080)));
@@ -190,7 +190,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [ExpectedException(typeof(NotSupportedException))]
         public void ThrowNotSupportedException_ThrowsException ()
         {
-            var proxyServer = new ProxyServer();
+            var proxyServer = new ProxyServer(configuration: null);
             var methodInfo = typeof(ProxyServer).GetMethod("ThrowNotSupportedException", BindingFlags.NonPublic | BindingFlags.Instance);
 
             if (methodInfo == null)
@@ -211,7 +211,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [TestMethod]
         public void UpdateClientConnectionCount_WhenCalled_ThenEventIsRaised ()
         {
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             bool isHit = false;
             proxy.ClientConnectionCountChanged += ( sender, args ) =>
             {
@@ -227,7 +227,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [TestMethod]
         public void UpdateClientConnectionCount_WhenCalledWithThrowInHandler_ThenExceptionFunctionIsCalled ()
         {
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             bool isEventHit = false;
             bool isExceptionHit = false;
             var exception = new Exception("Test exception");
@@ -251,7 +251,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [TestMethod]
         public void UpdateClientConnectionCount_WhenCalled_ThenEventHoldsCorrectValue ()
         {
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             int hitCount = 0;
             proxy.ClientConnectionCountChanged += ( sender, args ) =>
             {
@@ -262,14 +262,14 @@ namespace Unobtanium.Web.Proxy.UnitTests
             proxy.UpdateClientConnectionCount(true);
             proxy.UpdateClientConnectionCount(true);
             proxy.UpdateClientConnectionCount(false);
-            Assert.AreEqual(hitCount, 3);
+            Assert.AreEqual(3, hitCount);
             Assert.AreEqual(1, proxy.ClientConnectionCount);
         }
 
         [TestMethod]
         public void UpdateServerConnectionCount_WhenCalled_ThenEventIsRaised ()
         {
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             bool isHit = false;
             proxy.ServerConnectionCountChanged += ( sender, args ) =>
             {
@@ -285,7 +285,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
         [TestMethod]
         public void UpdateServerConnectionCount_WhenCalled_ThenEventHoldsCorrectValue ()
         {
-            var proxy = new ProxyServer();
+            var proxy = new ProxyServer(configuration: null);
             int hitCount = 0;
             proxy.ServerConnectionCountChanged += ( sender, args ) =>
             {
@@ -296,7 +296,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
             proxy.UpdateServerConnectionCount(true);
             proxy.UpdateServerConnectionCount(true);
             proxy.UpdateServerConnectionCount(false);
-            Assert.AreEqual(hitCount, 3);
+            Assert.AreEqual(3, hitCount);
             Assert.AreEqual(1, proxy.ServerConnectionCount);
         }
     }
