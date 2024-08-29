@@ -2,9 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Titanium.Web.Proxy.StreamExtended.Network;
+using Unobtanium.Web.Proxy.StreamExtended.Network;
 
-namespace Titanium.Web.Proxy.UnitTests
+namespace Unobtanium.Web.Proxy.UnitTests
 {
     [TestClass]
     public class TaskResultTests

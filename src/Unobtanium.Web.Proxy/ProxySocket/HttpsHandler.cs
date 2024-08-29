@@ -33,7 +33,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Titanium.Web.Proxy.ProxySocket;
+namespace Unobtanium.Web.Proxy.ProxySocket;
 
 /// <summary>
 ///     Implements the HTTPS (CONNECT) protocol.

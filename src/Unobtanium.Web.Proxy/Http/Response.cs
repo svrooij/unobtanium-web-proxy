@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
-using Titanium.Web.Proxy.Exceptions;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Exceptions;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.Http;
+namespace Unobtanium.Web.Proxy.Http;
 
 /// <summary>
 ///     Http(s) response object

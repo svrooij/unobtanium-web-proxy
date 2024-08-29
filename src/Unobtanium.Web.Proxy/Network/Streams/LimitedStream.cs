@@ -3,11 +3,11 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Exceptions;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
-using Titanium.Web.Proxy.StreamExtended.Network;
+using Unobtanium.Web.Proxy.Exceptions;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.StreamExtended.Network;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 
 internal class LimitedStream : Stream
 {

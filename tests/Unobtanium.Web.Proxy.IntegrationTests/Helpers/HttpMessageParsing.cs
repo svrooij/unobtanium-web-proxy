@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using System.Text;
-using Titanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.IntegrationTests.Helpers;
+namespace Unobtanium.Web.Proxy.IntegrationTests.Helpers;
 
 internal static class HttpMessageParsing
 {

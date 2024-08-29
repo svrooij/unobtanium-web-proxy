@@ -1,11 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Network.Tcp;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 
 public partial class ProxyServer
 {

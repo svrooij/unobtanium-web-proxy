@@ -10,14 +10,14 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.ProxySocket;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.ProxySocket;
 
-namespace Titanium.Web.Proxy.Network.Tcp;
+namespace Unobtanium.Web.Proxy.Network.Tcp;
 
 /// <summary>
 ///     A class that manages Tcp Connection to server used by this proxy server.

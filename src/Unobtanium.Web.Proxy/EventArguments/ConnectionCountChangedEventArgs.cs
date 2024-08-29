@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 /// <summary>
 /// Event arguments for connection count change event.
 /// </summary>

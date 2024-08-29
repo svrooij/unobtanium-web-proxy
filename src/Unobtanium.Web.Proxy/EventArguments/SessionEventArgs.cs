@@ -4,13 +4,13 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Http.Responses;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.StreamExtended.Network;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Http.Responses;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.StreamExtended.Network;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 /// Holds info related to a single proxy session (single request/response sequence).

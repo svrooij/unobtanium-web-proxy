@@ -2,10 +2,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Models;
 
 // Helper classes for setting system proxy settings
-namespace Titanium.Web.Proxy.Helpers;
+namespace Unobtanium.Web.Proxy.Helpers;
 
 internal class HttpSystemProxyValue
 {

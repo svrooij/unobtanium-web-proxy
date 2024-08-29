@@ -1,7 +1,7 @@
 ﻿using System.Threading;
-using Titanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.Network.Tcp;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 ///     This is used in transparent endpoint before authenticating client.

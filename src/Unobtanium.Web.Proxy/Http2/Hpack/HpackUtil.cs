@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Titanium.Web.Proxy.Http2.Hpack;
+namespace Unobtanium.Web.Proxy.Http2.Hpack;
 
 /// <summary>
 ///     HPACK util

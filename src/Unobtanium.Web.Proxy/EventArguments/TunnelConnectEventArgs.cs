@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.StreamExtended.Network;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.StreamExtended.Network;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 ///     A class that wraps the state when a tunnel connect event happen for Explicit endpoints.

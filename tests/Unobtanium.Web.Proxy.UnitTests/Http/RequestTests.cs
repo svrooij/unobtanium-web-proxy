@@ -1,8 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Exceptions;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Exceptions;
 
-namespace Titanium.Web.Proxy.UnitTests;
+namespace Unobtanium.Web.Proxy.UnitTests;
 [TestClass]
 public class RequestTests
 {

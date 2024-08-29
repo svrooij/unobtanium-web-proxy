@@ -8,21 +8,21 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Certificates;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Helpers.WinHttp;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Network;
-using Titanium.Web.Proxy.Network.Tcp;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.Certificates;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Helpers.WinHttp;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Network;
+using Unobtanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Runtime.CompilerServices;
 
-namespace Titanium.Web.Proxy;
+namespace Unobtanium.Web.Proxy;
 
 /// <summary>
 ///     This class is the backbone of proxy. One can create as many instances as needed.

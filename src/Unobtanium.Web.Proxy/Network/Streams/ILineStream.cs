@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.StreamExtended.Network;
+namespace Unobtanium.Web.Proxy.StreamExtended.Network;
 /// <summary>
 /// The ILineStream interface defines the contract for a stream that supports line-by-line reading of data.
 /// It provides methods for filling a buffer asynchronously, reading a byte from the buffer, and reading a line asynchronously.

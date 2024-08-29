@@ -3,7 +3,7 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
 
-namespace Titanium.Web.Proxy.Extensions;
+namespace Unobtanium.Web.Proxy.Extensions;
 
 internal static class StringExtensions
 {

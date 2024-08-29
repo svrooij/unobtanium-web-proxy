@@ -2,10 +2,10 @@
 using System.Buffers;
 using System.IO;
 using System.Text;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Shared;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Shared;
 
-namespace Titanium.Web.Proxy.Http;
+namespace Unobtanium.Web.Proxy.Http;
 
 internal class HeaderBuilder
 {

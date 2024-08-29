@@ -4,10 +4,10 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 
-namespace Titanium.Web.Proxy.Helpers;
+namespace Unobtanium.Web.Proxy.Helpers;
 
 internal class TcpHelper
 {

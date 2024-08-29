@@ -1,9 +1,9 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Extensions;
 
-namespace Titanium.Web.Proxy.UnitTests.Extensions;
+namespace Unobtanium.Web.Proxy.UnitTests.Extensions;
 [TestClass]
 public class HttpHeaderExtensionsTests
 {

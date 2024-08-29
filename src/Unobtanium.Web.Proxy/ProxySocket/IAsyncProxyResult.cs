@@ -31,7 +31,7 @@
 using System;
 using System.Threading;
 
-namespace Titanium.Web.Proxy.ProxySocket;
+namespace Unobtanium.Web.Proxy.ProxySocket;
 
 /// <summary>
 ///     A class that implements the IAsyncResult interface. Objects from this class are returned by the BeginConnect method

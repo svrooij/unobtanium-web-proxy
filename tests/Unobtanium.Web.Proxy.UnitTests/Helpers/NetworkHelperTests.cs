@@ -1,8 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net;
-using Titanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Helpers;
 
-namespace Titanium.Web.Proxy.UnitTests.Helpers
+namespace Unobtanium.Web.Proxy.UnitTests.Helpers
 {
     [TestClass]
     public class NetworkHelperTests

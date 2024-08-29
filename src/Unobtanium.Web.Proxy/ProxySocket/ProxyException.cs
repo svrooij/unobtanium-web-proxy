@@ -30,7 +30,7 @@
 
 using System;
 
-namespace Titanium.Web.Proxy.ProxySocket;
+namespace Unobtanium.Web.Proxy.ProxySocket;
 
 /// <summary>
 ///     The exception that is thrown when a proxy error occurs.

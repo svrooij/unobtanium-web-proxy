@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.Http;
+namespace Unobtanium.Web.Proxy.Http;
 
 /// <summary>
 ///     The http header collection.

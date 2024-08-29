@@ -1,8 +1,8 @@
 ﻿using System;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Network.WinAuth.Security;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Network.WinAuth.Security;
 
-namespace Titanium.Web.Proxy.Network.WinAuth;
+namespace Unobtanium.Web.Proxy.Network.WinAuth;
 
 /// <summary>
 ///     A handler for NTLM/Kerberos windows authentication challenge from server

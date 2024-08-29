@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.Helpers.WinHttp;
+namespace Unobtanium.Web.Proxy.Helpers.WinHttp;
 
 internal sealed class WinHttpWebProxyFinder : IDisposable
 {

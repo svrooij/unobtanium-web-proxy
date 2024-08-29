@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy.StreamExtended.BufferPool;
+namespace Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 
 /// <summary>
 /// The IBufferPool interface defines the contract for a custom buffer pool.

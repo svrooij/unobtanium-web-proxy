@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Titanium.Web.Proxy.StreamExtended.Models;
+namespace Unobtanium.Web.Proxy.StreamExtended.Models;
 
 internal static class SslCiphers
 {

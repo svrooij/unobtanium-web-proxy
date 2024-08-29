@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Titanium.Web.Proxy.Examples.Basic.Helpers
+namespace Unobtanium.Web.Proxy.Examples.Basic.Helpers
 {
     /// <summary>
     ///     Adapted from

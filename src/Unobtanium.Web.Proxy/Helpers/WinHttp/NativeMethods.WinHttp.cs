@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 // Helper classes for setting system proxy settings
-namespace Titanium.Web.Proxy.Helpers.WinHttp;
+namespace Unobtanium.Web.Proxy.Helpers.WinHttp;
 
 internal partial class NativeMethods
 {

@@ -33,9 +33,9 @@ using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Titanium.Web.Proxy.ProxySocket.Authentication;
+using Unobtanium.Web.Proxy.ProxySocket.Authentication;
 
-namespace Titanium.Web.Proxy.ProxySocket;
+namespace Unobtanium.Web.Proxy.ProxySocket;
 
 /// <summary>
 ///     Implements the SOCKS5 protocol.

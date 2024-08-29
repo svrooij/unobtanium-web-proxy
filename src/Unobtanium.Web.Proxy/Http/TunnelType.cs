@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy.Http;
+﻿namespace Unobtanium.Web.Proxy.Http;
 
 /// <summary>
 /// The TunnelType enumeration represents the type of tunnel used in a proxy connection.

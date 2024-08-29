@@ -3,10 +3,10 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.IntegrationTests.Helpers;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.IntegrationTests.Helpers;
 
-namespace Titanium.Web.Proxy.IntegrationTests;
+namespace Unobtanium.Web.Proxy.IntegrationTests;
 
 [TestClass]
 public class ExpectContinueTests

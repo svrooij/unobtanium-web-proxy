@@ -2,9 +2,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Helpers;
 
-namespace Titanium.Web.Proxy.UnitTests;
+namespace Unobtanium.Web.Proxy.UnitTests;
 
 [TestClass]
 public class NullWriterTests

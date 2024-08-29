@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.Http2.Hpack;
+namespace Unobtanium.Web.Proxy.Http2.Hpack;
 
 internal interface IHeaderListener
 {

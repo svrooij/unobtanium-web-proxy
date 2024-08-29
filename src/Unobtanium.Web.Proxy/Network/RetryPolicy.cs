@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.Network.Tcp;
 
-namespace Titanium.Web.Proxy.Network;
+namespace Unobtanium.Web.Proxy.Network;
 
 internal class RetryPolicy<T> where T : Exception
 {

@@ -3,7 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Titanium.Web.Proxy.Certificates;
+namespace Unobtanium.Web.Proxy.Certificates;
 
 /// <summary>
 ///     Implements certificate generation operations, in pure .NET.

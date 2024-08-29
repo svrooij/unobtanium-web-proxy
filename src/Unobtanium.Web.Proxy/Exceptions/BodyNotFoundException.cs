@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy.Exceptions;
+﻿namespace Unobtanium.Web.Proxy.Exceptions;
 
 /// <summary>
 /// Body not found exception, is thrown in case the body is not found

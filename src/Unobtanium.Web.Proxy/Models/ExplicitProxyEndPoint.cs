@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Extensions;
 
-namespace Titanium.Web.Proxy.Models;
+namespace Unobtanium.Web.Proxy.Models;
 
 /// <summary>
 ///     A proxy endpoint that the client is aware of.

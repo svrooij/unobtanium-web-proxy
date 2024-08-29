@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Titanium.Web.Proxy.Examples.Basic
+namespace Unobtanium.Web.Proxy.Examples.Basic
 {
     public class SampleClientState
     {

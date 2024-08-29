@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Titanium.Web.Proxy.Helpers;
+namespace Unobtanium.Web.Proxy.Helpers;
 
 internal partial class NativeMethods
 {

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Text;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.StreamExtended.Models;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.StreamExtended.Models;
 
-namespace Titanium.Web.Proxy.StreamExtended;
+namespace Unobtanium.Web.Proxy.StreamExtended;
 
 /// <summary>
 /// Represents the client SSL hello information.

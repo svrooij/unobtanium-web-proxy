@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net;
-using Titanium.Web.Proxy.StreamExtended;
+using Unobtanium.Web.Proxy.StreamExtended;
 
-namespace Titanium.Web.Proxy.Http;
+namespace Unobtanium.Web.Proxy.Http;
 
 /// <summary>
 /// The tcp tunnel connect response object.

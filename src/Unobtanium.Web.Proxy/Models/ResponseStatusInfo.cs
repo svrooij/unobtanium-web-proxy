@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy.Helpers;
+namespace Unobtanium.Web.Proxy.Helpers;
 
 internal struct ResponseStatusInfo
 {

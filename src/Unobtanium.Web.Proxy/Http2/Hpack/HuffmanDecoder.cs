@@ -18,7 +18,7 @@
 using System;
 using System.IO;
 
-namespace Titanium.Web.Proxy.Http2.Hpack;
+namespace Unobtanium.Web.Proxy.Http2.Hpack;
 /// <summary>
 /// The HuffmanDecoder class is responsible for decoding Huffman encoded data.
 /// It uses a Huffman tree built from predefined Huffman codes and lengths.

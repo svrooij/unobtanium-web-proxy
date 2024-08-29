@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy.Http2;
+namespace Unobtanium.Web.Proxy.Http2;
 
 [Flags]
 internal enum Http2FrameFlag : byte

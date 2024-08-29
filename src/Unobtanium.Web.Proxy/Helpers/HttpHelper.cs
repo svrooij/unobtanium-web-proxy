@@ -3,14 +3,14 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Extensions;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.Shared;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
-using Titanium.Web.Proxy.StreamExtended.Network;
+using Unobtanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Shared;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.StreamExtended.Network;
 
-namespace Titanium.Web.Proxy.Helpers;
+namespace Unobtanium.Web.Proxy.Helpers;
 
 internal static class HttpHelper
 {

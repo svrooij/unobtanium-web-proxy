@@ -29,7 +29,7 @@
 
 using System;
 
-namespace Titanium.Web.Proxy.Network.WinAuth.Security;
+namespace Unobtanium.Web.Proxy.Network.WinAuth.Security;
 
 internal sealed class LittleEndian
 {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.StreamExtended.BufferPool;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 
-namespace Titanium.Web.Proxy.StreamExtended.Network;
+namespace Unobtanium.Web.Proxy.StreamExtended.Network;
 
 /// <summary>
 ///     Copies the source stream to destination stream.

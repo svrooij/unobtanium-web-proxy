@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Net.Security;
-using Titanium.Web.Proxy.StreamExtended;
+using Unobtanium.Web.Proxy.StreamExtended;
 
-namespace Titanium.Web.Proxy.Extensions;
+namespace Unobtanium.Web.Proxy.Extensions;
 
 internal static class SslExtensions
 {

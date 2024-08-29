@@ -1,9 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.UnitTests.Helpers
+namespace Unobtanium.Web.Proxy.UnitTests.Helpers
 {
     [TestClass]
     public partial class HttpHelperTests

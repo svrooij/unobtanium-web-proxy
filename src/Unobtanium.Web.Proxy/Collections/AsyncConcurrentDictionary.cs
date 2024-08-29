@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.Collections;
+namespace Unobtanium.Web.Proxy.Collections;
 
 /// <summary>
 /// A concurrent dictionary that allows async <see cref="GetOrAddAsync"/> operation

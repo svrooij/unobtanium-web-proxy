@@ -1,7 +1,7 @@
 ﻿using System;
-using Titanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.Network.Tcp;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 ///     The base event arguments.

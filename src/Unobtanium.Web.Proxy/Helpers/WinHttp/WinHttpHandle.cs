@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Titanium.Web.Proxy.Helpers.WinHttp;
+namespace Unobtanium.Web.Proxy.Helpers.WinHttp;
 
 internal class WinHttpHandle : SafeHandle
 {

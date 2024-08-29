@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy.Exceptions;
+namespace Unobtanium.Web.Proxy.Exceptions;
 
 /// <summary>
 ///     Base class exception associated with this proxy server.

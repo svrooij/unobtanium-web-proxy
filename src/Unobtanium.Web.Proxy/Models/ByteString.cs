@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text;
-using Titanium.Web.Proxy.Extensions;
+using Unobtanium.Web.Proxy.Extensions;
 
-namespace Titanium.Web.Proxy.Models;
+namespace Unobtanium.Web.Proxy.Models;
 
 internal struct ByteString : IEquatable<ByteString>
 {

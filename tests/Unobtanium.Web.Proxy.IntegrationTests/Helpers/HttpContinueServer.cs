@@ -4,10 +4,10 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.IntegrationTests.Helpers;
+namespace Unobtanium.Web.Proxy.IntegrationTests.Helpers;
 
 internal class HttpContinueServer
 {

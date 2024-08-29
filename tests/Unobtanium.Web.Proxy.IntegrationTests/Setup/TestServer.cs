@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Titanium.Web.Proxy.IntegrationTests.Setup;
+namespace Unobtanium.Web.Proxy.IntegrationTests.Setup;
 
 // set up a kestrel test server
 public class TestServer : IDisposable

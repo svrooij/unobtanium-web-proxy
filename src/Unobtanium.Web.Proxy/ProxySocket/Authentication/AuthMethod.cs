@@ -32,7 +32,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Titanium.Web.Proxy.ProxySocket.Authentication;
+namespace Unobtanium.Web.Proxy.ProxySocket.Authentication;
 
 /// <summary>
 ///     Implements a SOCKS authentication scheme.

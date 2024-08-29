@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 
-namespace Titanium.Web.Proxy.StreamExtended.BufferPool;
+namespace Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 
 /// <summary>
 ///     A concrete IBufferPool implementation using a thread-safe stack.

@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy.Http;
+﻿namespace Unobtanium.Web.Proxy.Http;
 
 /// <summary>
 /// The KnownHeaders class provides static instances of known HTTP headers.

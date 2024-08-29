@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.IntegrationTests;
+namespace Unobtanium.Web.Proxy.IntegrationTests;
 
 [TestClass]
 public class NestedProxyTests

@@ -1,7 +1,7 @@
 ﻿#if DEBUG
 using System;
 
-namespace Titanium.Web.Proxy.EventArguments;
+namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 /// Event arguments for <see cref="BeforeBodyWriteEventArgs"/>.

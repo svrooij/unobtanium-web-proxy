@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 
-namespace Titanium.Web.Proxy.Certificates;
+namespace Unobtanium.Web.Proxy.Certificates;
 
 /// <summary>
 ///     Abstract interface for different Certificate generators

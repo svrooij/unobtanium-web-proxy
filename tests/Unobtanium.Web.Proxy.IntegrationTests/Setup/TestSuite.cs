@@ -1,8 +1,8 @@
 ﻿using System.Net.Http;
-using Titanium.Web.Proxy.IntegrationTests.Helpers;
-using Titanium.Web.Proxy.IntegrationTests.Setup;
+using Unobtanium.Web.Proxy.IntegrationTests.Helpers;
+using Unobtanium.Web.Proxy.IntegrationTests.Setup;
 
-namespace Titanium.Web.Proxy.IntegrationTests;
+namespace Unobtanium.Web.Proxy.IntegrationTests;
 
 public class TestSuite
 {

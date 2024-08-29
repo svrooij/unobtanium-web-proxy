@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Http;
 
-namespace Titanium.Web.Proxy.IntegrationTests.Helpers;
+namespace Unobtanium.Web.Proxy.IntegrationTests.Helpers;
 
 public static class TestHelper
 {

@@ -1,9 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Models; // Adjust the namespace if necessary
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Models; // Adjust the namespace if necessary
 
-namespace Titanium.Web.Proxy.UnitTests.Helpers;
+namespace Unobtanium.Web.Proxy.UnitTests.Helpers;
 
 [TestClass]
 public class ProxyInfoTests

@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Models;
 
-namespace Titanium.Web.Proxy.Network.Tcp;
+namespace Unobtanium.Web.Proxy.Network.Tcp;
 
 /// <summary>
 ///     An object that holds TcpConnection to a particular server and port

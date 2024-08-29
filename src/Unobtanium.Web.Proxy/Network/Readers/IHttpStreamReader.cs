@@ -1,8 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.EventArguments;
 
-namespace Titanium.Web.Proxy.StreamExtended.Network;
+namespace Unobtanium.Web.Proxy.StreamExtended.Network;
 
 /// <summary>
 /// The IHttpStreamReader interface defines the contract for a reader that can read HTTP data from a stream.

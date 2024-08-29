@@ -1,4 +1,4 @@
-﻿namespace Titanium.Web.Proxy.Models;
+﻿namespace Unobtanium.Web.Proxy.Models;
 
 /// <summary>
 /// The IExternalProxy interface defines the contract for an external proxy.

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Titanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Http;
 
-namespace Titanium.Web.Proxy.Shared;
+namespace Unobtanium.Web.Proxy.Shared;
 
 /// <summary>
 ///     Literals shared by Proxy Server

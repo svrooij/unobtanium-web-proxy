@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Titanium.Web.Proxy.Http.Responses;
+namespace Unobtanium.Web.Proxy.Http.Responses;
 
 /// <summary>
 ///     Anything other than a 200 or 302 http response.

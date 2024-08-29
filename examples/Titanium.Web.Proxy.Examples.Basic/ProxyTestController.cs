@@ -6,14 +6,14 @@ using System.Net;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Exceptions;
-using Titanium.Web.Proxy.Helpers;
-using Titanium.Web.Proxy.Http;
-using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.StreamExtended.Network;
+using Unobtanium.Web.Proxy.EventArguments;
+using Unobtanium.Web.Proxy.Exceptions;
+using Unobtanium.Web.Proxy.Helpers;
+using Unobtanium.Web.Proxy.Http;
+using Unobtanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy.StreamExtended.Network;
 
-namespace Titanium.Web.Proxy.Examples.Basic
+namespace Unobtanium.Web.Proxy.Examples.Basic
 {
     public class ProxyTestController : IDisposable
     {
