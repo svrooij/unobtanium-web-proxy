@@ -13,12 +13,12 @@
     <Authors>svrooij,titanium007</Authors>
     <PackageIcon>proxy-logo-128.png</PackageIcon>
     <PackageId>Unobtanium.Web.Proxy</PackageId>
-    <PackageProjectUrl>https://github.com/svrooij/titanium-web-proxy</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/svrooij/unobtanium-web-proxy</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/svrooij/titanium-web-proxy.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/svrooij/unobtanium-web-proxy.git</RepositoryUrl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
     <NoWarn>1701;1702;CA1416</NoWarn>
