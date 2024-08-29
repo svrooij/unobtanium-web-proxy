@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Titanium.Web.Proxy.Certificates.Cache;
+namespace Unobtanium.Web.Proxy.Certificates.Cache;
 
 /// <summary>
 /// Compatibility extension methods for the <see cref="ICertificateCache"/> interface.
