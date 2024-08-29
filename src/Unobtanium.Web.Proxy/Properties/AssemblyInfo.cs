@@ -6,16 +6,16 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("Titanium.Web.Proxy")]
+[assembly: AssemblyTitle("Unobtanium.Web.Proxy")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Titanium.Web.Proxy")]
-[assembly: AssemblyCopyright("Copyright © Titanium 2015-2020")]
+[assembly: AssemblyProduct("Unobtanium.Web.Proxy")]
+[assembly: AssemblyCopyright("Copyright © Titanium 2015-2020 Unobtanium 2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: InternalsVisibleTo("Titanium.Web.Proxy.UnitTests")]
-[assembly: InternalsVisibleTo("Titanium.Web.Proxy.IntegrationTests")]
+[assembly: InternalsVisibleTo("Unobtanium.Web.Proxy.UnitTests")]
+[assembly: InternalsVisibleTo("Unobtanium.Web.Proxy.IntegrationTests")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
