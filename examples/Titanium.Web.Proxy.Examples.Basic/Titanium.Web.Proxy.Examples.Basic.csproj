@@ -8,6 +8,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Titanium.Web.Proxy\Titanium.Web.Proxy.csproj" />
+    <ProjectReference Include="..\..\src\Unobtanium.Web.Proxy\Unobtanium.Web.Proxy.csproj" />
   </ItemGroup>
 </Project>

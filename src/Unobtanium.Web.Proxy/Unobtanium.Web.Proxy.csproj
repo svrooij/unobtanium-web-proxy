@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <RootNamespace>Unobtanium.Web.Proxy</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <Title>Unobtanium Web Proxy (formerly known as Titanium)</Title>
+    <Description>A web inspecting proxy library you can intgrate in your own application. Build in NET8.0 for maximum speed.</Description>
+    <Authors>svrooij,titanium007</Authors>
+    <PackageIcon>proxy-logo-128.png</PackageIcon>
+    <PackageId>Unobtanium.Web.Proxy</PackageId>
+    <PackageProjectUrl>https://github.com/svrooij/unobtanium-web-proxy</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/svrooij/unobtanium-web-proxy.git</RepositoryUrl>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+    <NoWarn>1701;1702;CA1416</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+    <NoWarn>1701;1702;CA1416;CS0618;CS8602</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+	<None Include="..\..\README.md" Pack="true" PackagePath="\README.md" />
+	<None Include="..\..\artwork\proxy-logo-128.png" Pack="true" PackagePath="\proxy-logo-128.png" />
+	<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\LICENSE.txt" />
+  </ItemGroup>
+</Project>

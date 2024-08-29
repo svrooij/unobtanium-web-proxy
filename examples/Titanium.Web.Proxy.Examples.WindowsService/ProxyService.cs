@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Net;
 using System.ServiceProcess;
 using System.Threading;
-using Titanium.Web.Proxy;
-using Titanium.Web.Proxy.Exceptions;
-using Titanium.Web.Proxy.Models;
+using Unobtanium.Web.Proxy;
+using Unobtanium.Web.Proxy.Exceptions;
+using Unobtanium.Web.Proxy.Models;
 using WindowsServiceExample.Properties;
 
 namespace WindowsServiceExample

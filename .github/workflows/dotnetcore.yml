@@ -4,13 +4,11 @@ on:
   push:
     branches:
         - develop
-        - beta
     tags:
         - v* 
   pull_request:
     branches:
         - develop
-        - beta
   workflow_dispatch:
       
 jobs:
@@ -35,9 +33,9 @@ jobs:
 
     - name: 🔨 Build 
       run: |
-        dotnet build src/Titanium.Web.Proxy/Titanium.Web.Proxy.csproj --configuration Release
-        dotnet build tests/Titanium.Web.Proxy.UnitTests/Titanium.Web.Proxy.UnitTests.csproj --configuration Release
-        dotnet build tests/Titanium.Web.Proxy.IntegrationTests/Titanium.Web.Proxy.IntegrationTests.csproj --property WarningLevel=0
+        dotnet build src/Unobtanium.Web.Proxy/Unobtanium.Web.Proxy.csproj --configuration Release
+        dotnet build tests/Unobtanium.Web.Proxy.UnitTests/Unobtanium.Web.Proxy.UnitTests.csproj --configuration Release
+        dotnet build tests/Unobtanium.Web.Proxy.IntegrationTests/Unobtanium.Web.Proxy.IntegrationTests.csproj --property WarningLevel=0
 
     - name: 🧪 Test
       id: test
@@ -52,7 +50,7 @@ jobs:
       shell: pwsh
       run: |
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.*
-        reportgenerator -reports:${{github.workspace}}/coverage.cobertura.xml -targetdir:${{github.workspace}}/report -reporttypes:MarkdownSummaryGithub -filefilters:-*.g.cs "-classfilters:-Titanium.Web.Proxy.Network.WinAuth.*" -verbosity:Warning
+        reportgenerator -reports:${{github.workspace}}/coverage.cobertura.xml -targetdir:${{github.workspace}}/report -reporttypes:MarkdownSummaryGithub -filefilters:-*.g.cs "-classfilters:-Unobtanium.Web.Proxy.Network.WinAuth.*" -verbosity:Warning
         $report = Get-Content ${{github.workspace}}/report/SummaryGithub.md -Raw
         $report = $report.Replace('# Summary', '## 📝 Code Coverage').Replace('## Coverage', '### 📝 Code Coverage details')
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $report
@@ -101,7 +99,7 @@ jobs:
     - name: 📦 Package
       shell: pwsh
       run: |
-        dotnet pack src/Titanium.Web.Proxy/Titanium.Web.Proxy.csproj --configuration Release -p:Version=$("${{ github.ref_name }}".Substring(1))
+        dotnet pack src/Unobtanium.Web.Proxy/Unobtanium.Web.Proxy.csproj --configuration Release -p:Version=$("${{ github.ref_name }}".Substring(1))
 
     - name: 🚀 Publish
       run: |
@@ -114,6 +112,6 @@ jobs:
       run: |
         $version = $("${{ github.ref_name }}".Substring(1));
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## 🚀 Published'
-        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Code [tag ${{ github.ref_name }}](https://github.com/svrooij/titanium-web-proxy/tree/${{ github.ref_name }}) has been published to NuGet."
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Code [tag ${{ github.ref_name }}](https://github.com/svrooij/unobtanium-web-proxy/tree/${{ github.ref_name }}) has been published to NuGet."
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Nuget [$version](https://www.nuget.org/packages/Unobtanium.Web.Proxy/$version) has been published to NuGet."
       

@@ -1,6 +1,6 @@
-﻿using Titanium.Web.Proxy.EventArguments;
+﻿using Unobtanium.Web.Proxy.EventArguments;
 
-namespace Titanium.Web.Proxy.Examples.Basic
+namespace Unobtanium.Web.Proxy.Examples.Basic
 {
     public static class ProxyEventArgsBaseExtensions
     {

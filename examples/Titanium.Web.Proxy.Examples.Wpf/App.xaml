@@ -1,4 +1,4 @@
-﻿<Application x:Class="Titanium.Web.Proxy.Examples.Wpf.App"
+﻿<Application x:Class="Unobtanium.Web.Proxy.Examples.Wpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
