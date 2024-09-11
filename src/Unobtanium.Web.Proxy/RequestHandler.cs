@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
@@ -53,6 +55,8 @@ public partial class ProxyServer
             {
                 if (clientStream.IsClosed) return;
 
+                using var requestActivity = activitySource?.StartActivity("Request", ActivityKind.Server,Guid.NewGuid().ToString());
+
                 // read the request line
                 var requestLine = await clientStream.ReadRequestLine(cancellationToken);
                 if (requestLine.IsEmpty()) return;
@@ -88,7 +92,7 @@ public partial class ProxyServer
                         request.SetOriginalHeaders();
 
                         // If user requested interception do it
-                        await OnBeforeRequest(args);
+                        await OnBeforeRequest(args, requestActivity, cancellationToken);
 
                         if (!args.IsTransparent && !args.IsSocks)
                         {
@@ -361,12 +365,36 @@ public partial class ProxyServer
     ///     Invoke before request handler if it is set.
     /// </summary>
     /// <param name="args">The session event arguments.</param>
+    /// <param name="requestActivity">Activity where this requests belongs to.</param>
+    /// <param name="cancellationToken">Cancellation token for this request</param>
     /// <returns></returns>
-    private async Task OnBeforeRequest ( SessionEventArgs args )
+    private async Task OnBeforeRequest ( SessionEventArgs args, Activity? requestActivity = null, CancellationToken cancellationToken = default)
     {
         args.TimeLine["Request Received"] = DateTime.UtcNow;
 
         if (BeforeRequest != null) await BeforeRequest.InvokeAsync(this, args, ExceptionFunc);
+
+        if (configuration.Events.HasOnRequest) {
+            
+            using var activity = activitySource?.StartActivity(nameof(OnBeforeRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
+            var httpRequest = new HttpRequestMessage(Native.HttpMethodParser.ParseMethodFromString(args.HttpClient.Request.Method!), args.HttpClient.Request.Url);
+            requestActivity?.SetTag("requestUri", args.HttpClient.Request.Url);
+            requestActivity?.SetTag("requestMethod", httpRequest.Method);
+            if (args.HttpClient.Request.BodyAvailable)
+            {
+                httpRequest.Content = new ByteArrayContent(await args.GetRequestBody(cancellationToken));
+            }
+            foreach(var header in args.HttpClient.Request.Headers.GetAllHeaders())
+            {
+                httpRequest.Headers.TryAddWithoutValidation(header.Name, header.Value);
+            }
+            
+            var requestArguments = new Events.RequestEventArguments(
+                httpRequest,
+                activity
+            );
+            await configuration.Events.InvokeOnRequest(this, requestArguments, cancellationToken, logger);
+        }
     }
 
     /// <summary>

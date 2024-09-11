@@ -103,9 +103,10 @@ public sealed class CertificateManager : IDisposable
     /// Should we attempt to trust certificates with elevated permissions by
     /// prompting for UAC if required?
     /// </param>
+    /// <param name="certificateRootFolder">Want to save the certificates in another folder then the default?</param>
     /// <param name="loggerFactory">Set <see cref="ILoggerProvider"/>, to get log messages from the certmanager, and child processes</param>
     internal CertificateManager ( string? rootCertificateName, string? rootCertificateIssuerName,
-        bool userTrustRootCertificate, bool machineTrustRootCertificate, bool trustRootCertificateAsAdmin,
+        bool userTrustRootCertificate, bool machineTrustRootCertificate, bool trustRootCertificateAsAdmin, string? certificateRootFolder = null,
          ILoggerFactory? loggerFactory = null )
     {
         UserTrustRoot = userTrustRootCertificate || machineTrustRootCertificate;
@@ -123,7 +124,7 @@ public sealed class CertificateManager : IDisposable
 
         this.logger = this.loggerFactory.CreateLogger<CertificateManager>();
         this.logger.LogTrace("Constructor called ({RootCertificateName}, {RootCertificateIssuerName}, {UserTrustRootCertificate}, {MachineTrustRootCertificate}, {TrustRootCertificateAsAdmin})", rootCertificateName, rootCertificateIssuerName, userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin);
-        this.certificateCache = new DefaultCertificateDiskCache(this.loggerFactory.CreateLogger<DefaultCertificateDiskCache>());
+        this.certificateCache = new DefaultCertificateDiskCache(certificateRootFolder, this.loggerFactory.CreateLogger<DefaultCertificateDiskCache>());
     }
 
     private ICertificateGenerator CertEngine
@@ -260,11 +261,7 @@ public sealed class CertificateManager : IDisposable
     /// directory).
     /// Implement ICertificateCache interface and assign concrete class here to customize.
     /// </summary>
-    public ICertificateCache CertificateStorage
-    {
-        get => certificateCache;
-        set => certificateCache = value ?? new DefaultCertificateDiskCache(loggerFactory.CreateLogger<DefaultCertificateDiskCache>());
-    }
+    public ICertificateCache CertificateStorage => certificateCache;
 
     /// <summary>
     /// Overwrite Root certificate file.

@@ -23,8 +23,7 @@ namespace WindowsServiceExample
         protected override void OnStart ( string[] args )
         {
             // we do all this in here so we can reload settings with a simple restart
-
-            _proxyServerInstance = new ProxyServer(configuration: new ProxyServerConfiguration
+            var config = new ProxyServerConfiguration
             {
                 CheckCertificateRevocation = Settings.Default.CheckCertificateRevocation,
                 ConnectionTimeOutSeconds = Settings.Default.ConnectionTimeOutSeconds,
@@ -39,7 +38,15 @@ namespace WindowsServiceExample
                 EnableHttp2 = Settings.Default.EnableHttp2,
                 NoDelay = Settings.Default.NoDelay,
 
-            });
+            };
+            config.EndPoints = [
+                new ExplicitProxyEndPoint(IPAddress.Any, Settings.Default.ListeningPort,
+                Settings.Default.DecryptSsl),
+            ];
+
+            config.Events.OnRequest += HandleRequestEvent;
+
+            _proxyServerInstance = new ProxyServer(configuration: config);
 
             if (Settings.Default.ListeningPort <= 0 ||
                 Settings.Default.ListeningPort > 65535)
@@ -58,10 +65,7 @@ namespace WindowsServiceExample
                     $"processor count of {Environment.ProcessorCount}. This may be on purpose.",
                     EventLogEntryType.Warning);
 
-            var explicitEndPointV4 = new ExplicitProxyEndPoint(IPAddress.Any, Settings.Default.ListeningPort,
-                Settings.Default.DecryptSsl);
-
-            _proxyServerInstance.AddEndPoint(explicitEndPointV4);
+            
 
             if (Settings.Default.EnableIpV6)
             {
@@ -80,6 +84,12 @@ namespace WindowsServiceExample
                 EventLogEntryType.Information);
         }
 
+        private System.Threading.Tasks.Task HandleRequestEvent ( object sender, Unobtanium.Web.Proxy.Events.RequestEventArguments e, CancellationToken cancellationToken )
+        {
+            // handle request here
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
+
         protected override void OnStop ()
         {
             _proxyServerInstance.Stop();
@@ -87,7 +97,7 @@ namespace WindowsServiceExample
             // clean up here since we make a new instance when starting
             _proxyServerInstance.Dispose();
         }
-
+        
         private void ProxyException ( Exception exception )
         {
             string message;

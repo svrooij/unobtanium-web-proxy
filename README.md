@@ -55,6 +55,22 @@ Supports
 
 As stated [above](#project-reboot), this project is a reboot of the original project. Expect things to change, everything marked as `obsolete` in the original project will be removed in this project. And until this is `v1.0.0`, expect [breaking changes](#reboot-focus).
 
+## Usage
+
+```csharp
+using Unobtanium.Web.Proxy;
+using Microsoft.Extensions.DependencyInjection;
+
+// Use dependency injection to create the proxy server (this will be the preferred way to create the proxy server in the future)
+// ActivitySource (for tracing) and ILogger are optional, but recommended
+// Since the ProxyServer has to be a singleton, you have to register the configuration as a singleton as well
+services.AddSingleton<ProxyServerConfiguration>(...);
+services.AddSingleton<ProxyServer>();
+
+// Get the proxy server from the service provider
+var proxyServer = provider.GetRequiredService<ProxyServer>();
+```
+
 ## Collaborators
 
 The owner of this project, [justcoding121](https://github.com/justcoding121), is considered to be inactive from this project due to his busy work schedule. See [project reboot](#project-reboot) for more information.
@@ -74,7 +90,7 @@ You contributions are more then welcome! Let's make this project great again!
 
 Since this is a `dotnet` project I would suggest to use `Visual Studio 2022` or `Visual Studio Code` as your development environment. The project is set up to use the `dotnet` CLI, so you can also use that to build and run the project.
 
-## Usage
+## Usage (pre reboot of the project)
 
 Refer the `Unobtanium.Web.Proxy` in your project and check one of the [example projects](https://github.com/svrooij/titanium-web-proxy/tree/develop/examples).
 
@@ -87,10 +103,6 @@ var proxyServer = new ProxyServer();
 
 // locally trust root certificate used by this proxy 
 proxyServer.CertificateManager.TrustRootCertificate(true);
-
-// optionally set the Certificate Engine
-// Under Mono only BouncyCastle will be supported
-//proxyServer.CertificateManager.CertificateEngine = Network.CertificateEngine.BouncyCastle;
 
 proxyServer.BeforeRequest += OnRequest;
 proxyServer.BeforeResponse += OnResponse;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Authentication;
 using System.Text;
@@ -12,6 +13,11 @@ namespace Unobtanium.Web.Proxy;
 /// </summary>
 public static class ProxyServerDefaults
 {
+    /// <summary>
+    /// Activity source name, used for distributed tracing.
+    /// </summary>
+    public const string ActivitySourceName = "Unobtanium.Web.Proxy";
+
     /// <summary>
     /// Default authentication realm
     /// </summary>

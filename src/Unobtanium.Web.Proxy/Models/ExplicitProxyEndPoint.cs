@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.EventArguments;
@@ -34,6 +36,8 @@ public class ExplicitProxyEndPoint : ProxyEndPoint
     ///     Set the <see cref="TunnelConnectSessionEventArgs.DecryptSsl" /> property to false if this HTTP connect request
     ///     shouldn't be decrypted and instead be relayed.
     /// </summary>
+    [Obsolete("This event will be removed in future versions. Use ShouldProxyRequest on ProxyServerConfiguration instead.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public event AsyncEventHandler<TunnelConnectSessionEventArgs>? BeforeTunnelConnectRequest;
 
     /// <summary>

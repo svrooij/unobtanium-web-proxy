@@ -30,15 +30,17 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
         {
             // Console writer writes messages to console async
             Task.Run(() => ConsoleWriter());
-
-            proxyServer = new ProxyServer(configuration: new ProxyServerConfiguration
+            var config = new ProxyServerConfiguration
             {
                 TcpTimeWaitSeconds = 10,
                 ConnectionTimeOutSeconds = 15,
                 ReuseSocket = false,
                 EnableConnectionPool = false,
                 ForwardToUpstreamGateway = true,
-            });
+                CertificateTrustMode = ProxyCertificateTrustMode.UserTrust
+            };
+            config.Events.OnRequest += OnRequestReceived;
+            proxyServer = new ProxyServer(configuration: config);
 
             //proxyServer.EnableHttp2 = true;
 
@@ -74,6 +76,23 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
             //proxyServer.CertificateManager.RootCertificate = new X509Certificate2("myCert.pfx", string.Empty, X509KeyStorageFlags.Exportable);
         }
 
+        private Task OnRequestReceived ( object sender, Events.RequestEventArguments e, CancellationToken cancellationToken )
+        {
+            //e.GetState().PipelineInfo.AppendLine(nameof(OnRequest) + ":" + e.HttpClient.Request.RequestUri);
+
+            //var clientLocalIp = e.ClientLocalEndPoint.Address;
+            //if (!clientLocalIp.Equals(IPAddress.Loopback) && !clientLocalIp.Equals(IPAddress.IPv6Loopback))
+            //    e.HttpClient.UpStreamEndPoint = new IPEndPoint(clientLocalIp, 0);
+
+            //if (e.HttpClient.Request.Url.Contains("yahoo.com"))
+            //    e.CustomUpStreamProxy = new ExternalProxy("localhost", 8888);
+
+            WriteToConsole("Active Client Connections:" + ((ProxyServer)sender).ClientConnectionCount);
+            WriteToConsole(nameof(OnRequestReceived) + ": " + e.Request.RequestUri?.ToString() ?? "");
+
+            return Task.CompletedTask;
+        }
+
         private CancellationToken CancellationToken => cancellationTokenSource.Token;
 
         public void Dispose ()
@@ -84,7 +103,7 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
 
         public async Task StartProxy ( CancellationToken cancellationToken = default )
         {
-            proxyServer.BeforeRequest += OnRequest;
+            //proxyServer.BeforeRequest += OnRequest;
             proxyServer.BeforeResponse += OnResponse;
             proxyServer.AfterResponse += OnAfterResponse;
 
@@ -96,7 +115,7 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
             explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000);
 
             // Fired when a CONNECT request is received
-            explicitEndPoint.BeforeTunnelConnectRequest += OnBeforeTunnelConnectRequest;
+            //explicitEndPoint.BeforeTunnelConnectRequest += OnBeforeTunnelConnectRequest;
             explicitEndPoint.BeforeTunnelConnectResponse += OnBeforeTunnelConnectResponse;
 
             // An explicit endpoint is where the client knows about the existence of a proxy

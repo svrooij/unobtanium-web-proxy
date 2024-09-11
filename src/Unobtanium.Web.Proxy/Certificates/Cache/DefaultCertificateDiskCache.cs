@@ -23,10 +23,12 @@ internal sealed partial class DefaultCertificateDiskCache : ICertificateCache
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultCertificateDiskCache"/> class.
     /// </summary>
+    /// <param name="certificateStorageFolder">Use a different folder to store the certificates</param>
     /// <param name="logger">You want logs right?</param>
-    public DefaultCertificateDiskCache ( ILogger? logger = null )
+    public DefaultCertificateDiskCache (string? certificateStorageFolder = null, ILogger? logger = null )
     {
         this.logger = logger;
+        rootCertificatePath = certificateStorageFolder;
     }
 
     /// <summary>
@@ -125,7 +127,7 @@ internal sealed partial class DefaultCertificateDiskCache : ICertificateCache
     {
         if (rootCertificatePath == null)
         {
-            if (RunTime.IsUwpOnWindows)
+            if (RunTime.IsUwpOnWindows || RunTime.IsWindows)
             {
                 rootCertificatePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             }

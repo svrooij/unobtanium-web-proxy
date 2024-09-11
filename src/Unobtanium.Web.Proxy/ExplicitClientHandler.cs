@@ -327,7 +327,7 @@ sslStream.NegotiatedApplicationProtocol;
                             {
                                 UserData = connectArgs?.UserData
                             },
-                            async args => { await OnBeforeRequest(args); },
+                            async args => { await OnBeforeRequest(args, cancellationToken: cancellationToken); },
                             async args => { await OnBeforeResponse(args); },
                             connectArgs.CancellationTokenSource, clientStream.Connection.Id, ExceptionFunc);
                     }

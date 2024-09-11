@@ -64,6 +64,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Unobtanium.Web.Proxy.Events\Unobtanium.Web.Proxy.Events.csproj" />
     <ProjectReference Include="..\..\src\Unobtanium.Web.Proxy\Unobtanium.Web.Proxy.csproj" />
   </ItemGroup>
   <ItemGroup>

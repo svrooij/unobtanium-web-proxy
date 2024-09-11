@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Unobtanium.Web.Proxy.Examples.WorkerTemplate-f0764a12-3b1d-4949-8c66-48ef78558636</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.8.1" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.8.1" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.8.1" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Unobtanium.Web.Proxy\Unobtanium.Web.Proxy.csproj" />
+  </ItemGroup>
+</Project>

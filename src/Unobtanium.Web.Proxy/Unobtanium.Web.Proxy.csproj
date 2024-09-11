@@ -36,4 +36,7 @@
 	<None Include="..\..\artwork\proxy-logo-128.png" Pack="true" PackagePath="\proxy-logo-128.png" />
 	<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\LICENSE.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Unobtanium.Web.Proxy.Events\Unobtanium.Web.Proxy.Events.csproj" />
+  </ItemGroup>
 </Project>

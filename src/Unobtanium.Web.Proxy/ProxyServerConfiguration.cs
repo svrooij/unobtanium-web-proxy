@@ -4,7 +4,9 @@ using System.Linq;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Unobtanium.Web.Proxy.Models;
 
 namespace Unobtanium.Web.Proxy;
 
@@ -18,6 +20,12 @@ public class ProxyServerConfiguration
     ///     Realm used during Basic Authentication.
     /// </summary>
     public string AuthenticationRealm { get; set; } = ProxyServerDefaults.AuthenticationRealm;
+
+    /// <summary>
+    ///    Path to the folder where the root certificate and server certificates are stored.
+    /// </summary>
+    public string? CertificateCacheFolder { get; set; }
+
     /// <summary>
     /// Set this if you want to auto trust the root certificate
     /// </summary>
@@ -89,6 +97,17 @@ public class ProxyServerConfiguration
     ///     Defaults to false.
     /// </summary>
     public bool EnableWinAuth { get; set; }
+
+    /// <summary>
+    /// All configureable events on the proxy server.
+    /// </summary>
+    public Events.ProxyServerEvents Events { get; init; } = new Events.ProxyServerEvents();
+
+    /// <summary>
+    /// Configure the endpoints the proxy should listen to.
+    /// </summary>
+    public List<ProxyEndPoint>? EndPoints { get; set; }
+
     /// <summary>
     ///     Gets or sets a value indicating whether requests will be chained to upstream gateway.
     ///     Defaults to false.
@@ -128,6 +147,13 @@ public class ProxyServerConfiguration
     public string RootCertificateName { get; set; } = ProxyServerDefaults.RootCertificateName;
 
     /// <summary>
+    /// You can set this funtion if you want to decide whether to proxy a request or not based on the request Uri.
+    /// If you return false, the request will not be decrypted and will be sent as is to the server.
+    /// </summary>
+    /// <remarks>Usefull if you're having issues with certificate pinning or unsupported http versions.</remarks>
+    public Func<Uri,CancellationToken,Task<bool>>? ShouldProxyRequest { get; set; }
+
+    /// <summary>
     ///     List of supported Server Ssl versions.
     ///     Using SslProtocol.None means to require the same SSL protocol as the proxy client.
     /// </summary>
@@ -143,6 +169,11 @@ public class ProxyServerConfiguration
     ///     Default value is 30.
     /// </summary>
     public int TcpTimeWaitSeconds { get; set; } = 30;
+
+    /// <summary>
+    ///     If set, the upstream proxy will be detected by a script that will be loaded from the provided Uri
+    /// </summary>
+    public Uri? UpstreamProxyConfigurationScript { get; set; }
 }
 
 /// <summary>
