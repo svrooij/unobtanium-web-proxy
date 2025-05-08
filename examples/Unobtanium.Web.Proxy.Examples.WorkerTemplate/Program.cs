@@ -14,14 +14,18 @@ var config = new ProxyServerConfiguration()
     ForwardToUpstreamGateway = true,
     CertificateTrustMode = ProxyCertificateTrustMode.UserTrust,
     ShouldProxyRequest = async ( uri, cancellationToken ) => {
-        return !uri.Host.Contains("localhost");
+        return uri.Host.Contains("graph.microsoft.com");
+        //return !uri.Host.Contains("localhost");
     }
 };
-config.Events.OnRequest += (s, e, cancellationToken) =>
+config.Events.OnRequest += async (s, e, cancellationToken) =>
 {
     Console.WriteLine($"Request to: {e.Request.RequestUri}");
-    
-    return Task.CompletedTask;
+    if (e.Request.Content is not null)
+    {
+        var body = await e.Request.Content!.ReadAsStringAsync(cancellationToken);
+        Console.WriteLine(body);
+    }
 };
 config.EndPoints = [new ExplicitProxyEndPoint(System.Net.IPAddress.Any, 8000)];
 builder.Services.AddSingleton(config);

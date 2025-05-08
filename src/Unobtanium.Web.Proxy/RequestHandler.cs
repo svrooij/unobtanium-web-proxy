@@ -380,15 +380,15 @@ public partial class ProxyServer
             var httpRequest = new HttpRequestMessage(Native.HttpMethodParser.ParseMethodFromString(args.HttpClient.Request.Method!), args.HttpClient.Request.Url);
             requestActivity?.SetTag("requestUri", args.HttpClient.Request.Url);
             requestActivity?.SetTag("requestMethod", httpRequest.Method);
-            if (args.HttpClient.Request.BodyAvailable)
-            {
-                httpRequest.Content = new ByteArrayContent(await args.GetRequestBody(cancellationToken));
-            }
             foreach(var header in args.HttpClient.Request.Headers.GetAllHeaders())
             {
                 httpRequest.Headers.TryAddWithoutValidation(header.Name, header.Value);
             }
-            
+
+            if (httpRequest.Method == HttpMethod.Post || args.HttpClient.Request.HasBody)//==  args.HttpClient.Request.BodyAvailable)
+            {
+                httpRequest.Content = new ByteArrayContent(await args.GetRequestBody(cancellationToken));
+            }
             var requestArguments = new Events.RequestEventArguments(
                 httpRequest,
                 activity
