@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.Extensions;
 using Unobtanium.Web.Proxy.Models;
 using Unobtanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.Services;
 
 namespace Unobtanium.Web.Proxy.Http;
 
@@ -69,9 +71,19 @@ public class HttpWebClient
     public Request Request { get; }
 
     /// <summary>
+    ///     Native HttpRequestMessage for improved interoperability.
+    /// </summary>
+    public HttpRequestMessage? HttpRequestMessage { get; internal set; }
+
+    /// <summary>
     ///     Web Response.
     /// </summary>
     public Response Response { get; internal set; }
+
+    /// <summary>
+    ///     Native HttpResponseMessage for improved interoperability.
+    /// </summary>
+    public HttpResponseMessage? HttpResponseMessage { get; internal set; }
 
     /// <summary>
     ///     PID of the process that is created the current session when client is running in this machine
@@ -95,7 +107,96 @@ public class HttpWebClient
     }
 
     /// <summary>
-    ///     Prepare and send the http(s) request
+    ///     Create HttpRequestMessage from the custom Request object
+    /// </summary>
+    /// <returns>HttpRequestMessage instance</returns>
+    internal HttpRequestMessage CreateHttpRequestMessage()
+    {
+        var method = Native.HttpMethodParser.ParseMethodFromString(Request.Method!);
+        var httpRequest = new HttpRequestMessage(method, Request.Url);
+        
+        // Copy headers from custom Request to HttpRequestMessage
+        foreach(var header in Request.Headers.GetAllHeaders())
+        {
+            // Skip compression-related headers to prevent compressed responses
+            if (header.Name.Equals("Accept-Encoding", StringComparison.OrdinalIgnoreCase))
+            {
+                continue; // Skip this header completely
+            }
+
+            if (!httpRequest.Headers.TryAddWithoutValidation(header.Name, header.Value))
+            {
+                // If adding to Headers failed, try adding to Content.Headers
+                if (httpRequest.Content != null)
+                {
+                    httpRequest.Content.Headers.TryAddWithoutValidation(header.Name, header.Value);
+                }
+            }
+        }
+
+        // Add request body if available
+        if (Request.HasBody && Request.IsBodyRead)
+        {
+            httpRequest.Content = new ByteArrayContent(Request.Body);
+        }
+
+        HttpRequestMessage = httpRequest;
+        return httpRequest;
+    }
+
+    /// <summary>
+    ///     Send request using HttpClient and update Response
+    /// </summary>
+    /// <param name="httpClientService">The HttpClient service to use</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns></returns>
+    internal async Task SendRequestWithHttpClient(HttpClientService httpClientService, CancellationToken cancellationToken)
+    {
+        if (HttpRequestMessage == null)
+        {
+            CreateHttpRequestMessage();
+        }
+
+        HttpResponseMessage = await httpClientService.SendAsync(HttpRequestMessage!, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        
+        // Update the Response object with data from HttpResponseMessage
+        await UpdateResponseFromHttpResponseMessage();
+    }
+
+    /// <summary>
+    ///     Update the custom Response object from HttpResponseMessage
+    /// </summary>
+    private async Task UpdateResponseFromHttpResponseMessage()
+    {
+        if (HttpResponseMessage == null) return;
+
+        Response.StatusCode = (int)HttpResponseMessage.StatusCode;
+        Response.StatusDescription = HttpResponseMessage.ReasonPhrase ?? string.Empty;
+        Response.HttpVersion = HttpResponseMessage.Version;
+
+        // Copy headers
+        Response.Headers.Clear();
+        foreach (var header in HttpResponseMessage.Headers)
+        {
+            Response.Headers.AddHeader(new HttpHeader(header.Key, string.Join(", ", header.Value)));
+        }
+
+        if (HttpResponseMessage.Content != null)
+        {
+            foreach (var header in HttpResponseMessage.Content.Headers)
+            {
+                Response.Headers.AddHeader(new HttpHeader(header.Key, string.Join(", ", header.Value)));
+            }
+
+            // Read the response body
+            var responseBody = await HttpResponseMessage.Content.ReadAsByteArrayAsync();
+            Response.Body = responseBody;
+            Response.IsBodyRead = true;
+        }
+    }
+
+    /// <summary>
+    ///     Prepare and send the http(s) request (legacy method for compatibility)
     /// </summary>
     /// <returns></returns>
     internal async Task SendRequest ( bool enable100ContinueBehaviour, bool isTransparent,
@@ -158,7 +259,7 @@ public class HttpWebClient
     }
 
     /// <summary>
-    ///     Receive and parse the http response from server
+    ///     Receive and parse the http response from server (legacy method for compatibility)
     /// </summary>
     /// <returns></returns>
     internal async Task ReceiveResponse ( CancellationToken cancellationToken )
@@ -187,6 +288,12 @@ public class HttpWebClient
         ConnectRequest?.FinishSession();
         Request?.FinishSession();
         Response?.FinishSession();
+        
+        HttpRequestMessage?.Dispose();
+        HttpResponseMessage?.Dispose();
+        
+        HttpRequestMessage = null;
+        HttpResponseMessage = null;
 
         Data.Clear();
         UserData = null;

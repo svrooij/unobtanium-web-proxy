@@ -336,27 +336,23 @@ public partial class ProxyServer
     }
 
     /// <summary>
-    ///     Prepare the request headers so that we can avoid encodings not parseable by this proxy
+    ///     Prepare the request headers so that we can avoid encodings not parseable by this proxy.
+    ///     This method removes the Accept-Encoding header completely to prevent compressed responses,
+    ///     making it easier for the proxy to inspect, modify, and process the response content.
     /// </summary>
+    /// <param name="requestHeaders">The request headers collection to modify</param>
+    /// <remarks>
+    ///     Removing Accept-Encoding ensures that:
+    ///     - Responses are received uncompressed and are human-readable
+    ///     - The proxy can easily inspect and modify response content
+    ///     - No decompression/recompression is needed when modifying responses
+    ///     - Better compatibility with response modification scenarios
+    /// </remarks>
     private void PrepareRequestHeaders ( HeaderCollection requestHeaders )
     {
-        var acceptEncoding = requestHeaders.GetHeaderValueOrNull(KnownHeaders.AcceptEncoding);
-
-        if (acceptEncoding != null)
-        {
-            var supportedAcceptEncoding = new List<string>();
-
-            // only allow proxy supported compressions
-            supportedAcceptEncoding.AddRange(acceptEncoding.Split(',')
-                .Select(x => x.Trim())
-                .Where(x => ProxyConstants.ProxySupportedCompressions.Contains(x)));
-
-            // uncompressed is always supported by proxy
-            supportedAcceptEncoding.Add("identity");
-
-            requestHeaders.SetOrAddHeaderValue(KnownHeaders.AcceptEncoding,
-                string.Join(", ", supportedAcceptEncoding));
-        }
+        // Remove Accept-Encoding header completely to prevent compression
+        // This ensures the proxy receives uncompressed responses that are easier to process and modify
+        requestHeaders.RemoveHeader(KnownHeaders.AcceptEncoding);
 
         requestHeaders.FixProxyHeaders();
     }
@@ -377,23 +373,42 @@ public partial class ProxyServer
         if (configuration.Events.HasOnRequest) {
             
             using var activity = activitySource?.StartActivity(nameof(OnBeforeRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
-            var httpRequest = new HttpRequestMessage(Native.HttpMethodParser.ParseMethodFromString(args.HttpClient.Request.Method!), args.HttpClient.Request.Url);
+            
+            // Create HttpRequestMessage from the custom Request
+            var httpRequest = args.HttpClient.CreateHttpRequestMessage();
+            
             requestActivity?.SetTag("requestUri", args.HttpClient.Request.Url);
             requestActivity?.SetTag("requestMethod", httpRequest.Method);
-            foreach(var header in args.HttpClient.Request.Headers.GetAllHeaders())
+
+            // If the request has a body and it's been read, add it to the HttpRequestMessage
+            if (args.HttpClient.Request.HasBody && args.HttpClient.Request.IsBodyRead)
             {
-                httpRequest.Headers.TryAddWithoutValidation(header.Name, header.Value);
+                httpRequest.Content = new ByteArrayContent(args.HttpClient.Request.Body);
+                
+                // Set the content type if available
+                if (!string.IsNullOrEmpty(args.HttpClient.Request.ContentType))
+                {
+                    httpRequest.Content.Headers.TryAddWithoutValidation("Content-Type", args.HttpClient.Request.ContentType);
+                }
+            }
+            else if (args.HttpClient.Request.HasBody)
+            {
+                // If body hasn't been read yet, read it now
+                var body = await args.GetRequestBody(cancellationToken);
+                httpRequest.Content = new ByteArrayContent(body);
+                
+                // Set the content type if available
+                if (!string.IsNullOrEmpty(args.HttpClient.Request.ContentType))
+                {
+                    httpRequest.Content.Headers.TryAddWithoutValidation("Content-Type", args.HttpClient.Request.ContentType);
+                }
             }
 
-            if (httpRequest.Method == HttpMethod.Post || args.HttpClient.Request.HasBody)//==  args.HttpClient.Request.BodyAvailable)
-            {
-                httpRequest.Content = new ByteArrayContent(await args.GetRequestBody(cancellationToken));
-            }
             var requestArguments = new Events.RequestEventArguments(
                 httpRequest,
                 activity
             );
-            await configuration.Events.InvokeOnRequest(this, requestArguments, cancellationToken, logger);
+            await configuration.Events.InvokeOnRequest(this, requestArguments, logger, cancellationToken);
         }
     }
 

@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Runtime.CompilerServices;
 using System.Net.Http;
+using System.ComponentModel;
 
 namespace Unobtanium.Web.Proxy;
 
@@ -74,6 +75,8 @@ public partial class ProxyServer : IDisposable
     private readonly ILogger<ProxyServer> logger;
 
     private readonly ProxyServerConfiguration configuration;
+
+    private readonly IProxyServerHttpClientFactory httpClientFactory;
 
     ///// <inheritdoc />
     ///// <summary>
@@ -139,13 +142,14 @@ public partial class ProxyServer : IDisposable
     /// <param name="configuration">Proxy configuration settings</param>
     /// <param name="bufferPool">BufferPool</param>
     /// <param name="loggerFactory">Provide a log factory if you want to follow the logs</param>
-    public ProxyServer (ProxyServerConfiguration configuration, IBufferPool? bufferPool = null, ILoggerFactory? loggerFactory = null )
+    public ProxyServer (ProxyServerConfiguration configuration, IBufferPool? bufferPool = null, ILoggerFactory? loggerFactory = null, IProxyServerHttpClientFactory? proxyServerHttpClientFactory = null )
     {
         this.activitySource = new ActivitySource(ProxyServerDefaults.ActivitySourceName);
         this.loggerFactory = loggerFactory ?? new NullLoggerFactory();
         logger = this.loggerFactory.CreateLogger<ProxyServer>();
 
         this.configuration = configuration ?? new ProxyServerConfiguration();
+        this.httpClientFactory = proxyServerHttpClientFactory ?? new DefaultProxyServerHttpClientFactory();
         BufferPool = bufferPool ?? new DefaultBufferPool();
         ProxyEndPoints = [];
         TcpConnectionFactory = new TcpConnectionFactory(this);
@@ -426,6 +430,9 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Intercept request event to server.
     /// </summary>
+    /// <remarks>This event will be removed in favor of the <see cref="Events.ProxyServerEvents.OnRequest"/> in the <see cref="ProxyServerConfiguration"/></remarks>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("Use OnRequest in ProxyServerConfiguration.Events")]
     public event AsyncEventHandler<SessionEventArgs>? BeforeRequest;
 
 #if DEBUG
@@ -437,6 +444,8 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Intercept response event from server.
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("Will be removed and not replaced")]
     public event AsyncEventHandler<SessionEventArgs>? BeforeResponse;
 
 #if DEBUG
@@ -448,6 +457,9 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Intercept after response event from server.
     /// </summary>
+    /// <remarks>This event will be removed in favor of the <see cref="Events.ProxyServerEvents.OnResponse"/> in the <see cref="ProxyServerConfiguration"/></remarks>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("Use OnResponse in ProxyServerConfiguration.Events")]
     public event AsyncEventHandler<SessionEventArgs>? AfterResponse;
 
     /// <summary>

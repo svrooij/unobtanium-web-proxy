@@ -20,14 +20,26 @@ public class TestSuite
         return server;
     }
 
-    public ProxyServer GetProxy(ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null)
+    public ProxyServer GetProxy(ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null, IProxyServerHttpClientFactory? proxyServerHttpClientFactory = null)
     {
         if (upStreamProxy != null)
         {
-            return new TestProxyServer(false, upStreamProxy, proxyServerConfiguration).ProxyServer;
+            return new TestProxyServer(false, upStreamProxy, proxyServerConfiguration, proxyServerHttpClientFactory).ProxyServer;
         }
 
-        return new TestProxyServer(false, proxyServerConfiguration: proxyServerConfiguration).ProxyServer;
+        return new TestProxyServer(false, proxyServerConfiguration: proxyServerConfiguration, proxyServerHttpClientFactory: proxyServerHttpClientFactory).ProxyServer;
+    }
+
+    public ProxyServer GetProxyWithHandler(ProxyServer upStreamProxy = null, Events.AsyncEventHandler<Events.RequestEventArguments, Events.RequestEventResponse>? OnRequest = null)
+    {
+        var config = new ProxyServerConfiguration();
+        config.Events.OnRequest += OnRequest;
+        if (upStreamProxy != null)
+        {
+            return new TestProxyServer(false, upStreamProxy, config).ProxyServer;
+        }
+
+        return new TestProxyServer(false, proxyServerConfiguration: config).ProxyServer;
     }
 
     public ProxyServer GetReverseProxy(ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null)

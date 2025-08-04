@@ -12,8 +12,8 @@ public class RequestEventArguments: IDisposable
         Request = request;
         RequestActivity = requestActivity;
     }
-    public HttpRequestMessage Request { get; private set; }
-    public Activity? RequestActivity { get; private set; }
+    public HttpRequestMessage Request { get; internal set; }
+    public Activity? RequestActivity { get; internal set; }
     
     public void Dispose ()
     {

@@ -7,9 +7,9 @@ namespace Unobtanium.Web.Proxy.IntegrationTests.Setup;
 
 public class TestProxyServer : IDisposable
 {
-    public TestProxyServer(bool isReverseProxy, ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null)
+    public TestProxyServer(bool isReverseProxy, ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null, IProxyServerHttpClientFactory? proxyServerHttpClientFactory = null)
     {
-        ProxyServer = new ProxyServer(proxyServerConfiguration);
+        ProxyServer = new ProxyServer(proxyServerConfiguration, proxyServerHttpClientFactory: proxyServerHttpClientFactory);
 
         var explicitEndPoint = isReverseProxy
             ? (ProxyEndPoint)new TransparentProxyEndPoint(IPAddress.Any, 0)
@@ -23,7 +23,8 @@ public class TestProxyServer : IDisposable
             ProxyServer.UpStreamHttpsProxy = new ExternalProxy("localhost", upStreamProxy.ProxyEndPoints[0].Port);
         }
 
-        ProxyServer.Start();
+        //ProxyServer.Start();
+        ProxyServer.StartAsync().GetAwaiter().GetResult();
     }
 
     public ProxyServer ProxyServer { get; }

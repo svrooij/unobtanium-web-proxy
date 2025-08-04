@@ -24,21 +24,24 @@ public class InterceptionTests
             return context.Response.WriteAsync("I am server. I received your greetings.");
         });
 
-        var proxy = testSuite.GetProxy();
-        proxy.BeforeRequest += async (sender, e) =>
+        var proxy = testSuite.GetProxyWithHandler(OnRequest: async (s, e, cancellationToken) =>
         {
-            if (e.HttpClient.Request.Url.Contains("localhost"))
+            if (e.Request.RequestUri.ToString().StartsWith("https://localhost"))
             {
-                e.Ok("<html><body>TitaniumWebProxy-Stopped!!</body></html>");
-                return;
-            }
+                var content = "<html><body>TitaniumWebProxy-Stopped!!</body></html>";
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(content, System.Text.Encoding.UTF8, "text/html")
+                };
 
-            await Task.FromResult(0);
-        };
+                return Unobtanium.Web.Proxy.Events.RequestEventResponse.EarlyResponse(response);
+            }
+            return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
+        });
 
         var client = testSuite.GetClient(proxy);
 
-        var response = await client.GetAsync(new Uri(server.ListeningHttpUrl));
+        var response = await client.GetAsync(new Uri(server.ListeningHttpsUrl));
 
         Assert.IsFalse(serverCalled, "Server should not be called.");
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -58,21 +61,24 @@ public class InterceptionTests
             return context.Response.WriteAsync("I am server. I received your greetings.");
         });
 
-        var proxy = testSuite.GetProxy();
-        proxy.BeforeRequest += async (sender, e) =>
+        var proxy = testSuite.GetProxyWithHandler(OnRequest: async (s, e, cancellationToken) =>
         {
-            if (e.HttpClient.Request.Url.Contains("localhost"))
+            if (e.Request.RequestUri.ToString().StartsWith("https://localhost"))
             {
-                e.Ok("<html><body>TitaniumWebProxy-Stopped!!</body></html>");
-                return;
-            }
+                var content = "<html><body>TitaniumWebProxy-Stopped!!</body></html>";
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(content, System.Text.Encoding.UTF8, "text/html")
+                };
 
-            await Task.FromResult(0);
-        };
+                return Unobtanium.Web.Proxy.Events.RequestEventResponse.EarlyResponse(response);
+            }
+            return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
+        });
 
         var client = testSuite.GetClient(proxy);
 
-        var response = await client.PostAsync(new Uri(server.ListeningHttpUrl),
+        var response = await client.PostAsync(new Uri(server.ListeningHttpsUrl),
             new StringContent("hello server. I am a client."));
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -92,21 +98,24 @@ public class InterceptionTests
             return context.Response.WriteAsync("I am server. I received your greetings.");
         });
 
-        var proxy = testSuite.GetProxy();
-        proxy.BeforeRequest += async (sender, e) =>
+        var proxy = testSuite.GetProxyWithHandler(OnRequest: async (s, e, cancellationToken) =>
         {
-            if (e.HttpClient.Request.Url.Contains("localhost"))
+            if (e.Request.RequestUri.ToString().StartsWith("https://localhost"))
             {
-                e.Ok("<html><body>TitaniumWebProxy-Stopped!!</body></html>");
-                return;
-            }
+                var content = "<html><body>TitaniumWebProxy-Stopped!!</body></html>";
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(content, System.Text.Encoding.UTF8, "text/html")
+                };
 
-            await Task.FromResult(0);
-        };
+                return Unobtanium.Web.Proxy.Events.RequestEventResponse.EarlyResponse(response);
+            }
+            return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
+        });
 
         var client = testSuite.GetClient(proxy);
 
-        var response = await client.PutAsync(new Uri(server.ListeningHttpUrl),
+        var response = await client.PutAsync(new Uri(server.ListeningHttpsUrl),
             new StringContent("hello server. I am a client."));
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -127,21 +136,24 @@ public class InterceptionTests
             return context.Response.WriteAsync("I am server. I received your greetings.");
         });
 
-        var proxy = testSuite.GetProxy();
-        proxy.BeforeRequest += async (sender, e) =>
+        var proxy = testSuite.GetProxyWithHandler(OnRequest: async (s, e, cancellationToken) =>
         {
-            if (e.HttpClient.Request.Url.Contains("localhost"))
+            if (e.Request.RequestUri.ToString().StartsWith("https://localhost"))
             {
-                e.Ok("<html><body>TitaniumWebProxy-Stopped!!</body></html>");
-                return;
-            }
+                var content = "<html><body>TitaniumWebProxy-Stopped!!</body></html>";
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(content, System.Text.Encoding.UTF8, "text/html")
+                };
 
-            await Task.FromResult(0);
-        };
+                return Unobtanium.Web.Proxy.Events.RequestEventResponse.EarlyResponse(response);
+            }
+            return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
+        });
 
         var client = testSuite.GetClient(proxy);
 
-        var response = await client.PatchAsync(new Uri(server.ListeningHttpUrl),
+        var response = await client.PatchAsync(new Uri(server.ListeningHttpsUrl),
             new StringContent("hello server. I am a client."));
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -160,22 +172,25 @@ public class InterceptionTests
         {
             return context.Response.WriteAsync("I am server. I received your greetings.");
         });
-
-        var proxy = testSuite.GetProxy();
-        proxy.BeforeRequest += async (sender, e) =>
+        
+        var proxy = testSuite.GetProxyWithHandler(OnRequest: async (s, e, cancellationToken) =>
         {
-            if (e.HttpClient.Request.Url.Contains("localhost"))
+            if (e.Request.RequestUri.ToString().StartsWith("https://localhost"))
             {
-                e.Ok("<html><body>TitaniumWebProxy-Stopped!!</body></html>");
-                return;
-            }
+                var content = "<html><body>TitaniumWebProxy-Stopped!!</body></html>";
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(content, System.Text.Encoding.UTF8, "text/html")
+                };
 
-            await Task.FromResult(0);
-        };
+                return Unobtanium.Web.Proxy.Events.RequestEventResponse.EarlyResponse(response);
+            }
+            return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
+        });
 
         var client = testSuite.GetClient(proxy);
 
-        var response = await client.DeleteAsync(new Uri(server.ListeningHttpUrl));
+        var response = await client.DeleteAsync(new Uri(server.ListeningHttpsUrl));
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 

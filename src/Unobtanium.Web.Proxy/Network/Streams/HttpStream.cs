@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -1157,6 +1158,22 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         {
             await WriteBodyAsync(body, requestResponse.IsChunked, cancellationToken);
             requestResponse.IsBodySent = true;
+        }
+    }
+
+    internal async ValueTask WriteAsync( HttpResponseMessage httpResponse, byte[]? content = null, CancellationToken cancellationToken = default )
+    {
+        var headerBuilder = new HeaderBuilder();
+        // Write back response status to client
+        headerBuilder.WriteResponseLine(httpResponse.Version, (int)httpResponse.StatusCode, httpResponse.ReasonPhrase ?? string.Empty);
+        // Write headers
+        headerBuilder.WriteHeaders(httpResponse.Headers, httpResponse.Content?.Headers);
+        await WriteHeadersAsync(headerBuilder, cancellationToken);
+
+        if (httpResponse.Content != null)
+        {
+            var body = await httpResponse.Content.ReadAsByteArrayAsync(cancellationToken);
+            await WriteBodyAsync(body, false, cancellationToken);
         }
     }
 

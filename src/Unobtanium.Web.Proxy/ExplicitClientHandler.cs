@@ -1,8 +1,13 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Reflection.Metadata;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -15,6 +20,7 @@ using Unobtanium.Web.Proxy.Http;
 using Unobtanium.Web.Proxy.Http2;
 using Unobtanium.Web.Proxy.Models;
 using Unobtanium.Web.Proxy.Network.Tcp;
+using Unobtanium.Web.Proxy.Services;
 using Unobtanium.Web.Proxy.StreamExtended;
 using SslExtensions = Unobtanium.Web.Proxy.Extensions.SslExtensions;
 
@@ -22,6 +28,195 @@ namespace Unobtanium.Web.Proxy;
 
 public partial class ProxyServer
 {
+    /// <summary>
+    ///     Parse incoming HTTP request stream directly to HttpRequestMessage
+    /// </summary>
+    /// <param name="clientStream">The client stream to read from</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>HttpRequestMessage or null if invalid</returns>
+    private async Task<HttpRequestMessage?> ParseHttpRequestMessage ( HttpClientStream clientStream, CancellationToken cancellationToken )
+    {
+        try
+        {
+            // Read the request line
+            var requestLine = await clientStream.ReadRequestLine(cancellationToken);
+            if (requestLine.IsEmpty()) return null;
+
+            // Parse method
+            var httpMethod = Native.HttpMethodParser.ParseMethodFromString(requestLine.Method);
+
+            // Create the request URI
+            var requestUri = requestLine.RequestUri.GetString();
+
+            // If it's not a full URI, we'll need to construct it later with Host header
+            Uri? uri = null;
+            if (Uri.IsWellFormedUriString(requestUri, UriKind.Absolute))
+            {
+                uri = new Uri(requestUri);
+            }
+
+            // Create HttpRequestMessage
+            var httpRequest = new HttpRequestMessage(httpMethod, uri?.ToString() ?? requestUri);
+            httpRequest.Version = requestLine.Version;
+
+            // Read headers
+            var headers = new HeaderCollection();
+            await HeaderParser.ReadHeaders(clientStream, headers, cancellationToken);
+
+            // Set headers on HttpRequestMessage
+            var contentHeadersKey = new HttpRequestOptionsKey<HeaderCollection>("ContentHeaders");
+            foreach (var header in headers.GetAllHeaders())
+            {
+                try
+                {
+                    // Skip compression-related headers to prevent compressed responses
+                    // This ensures the proxy can easily process and modify response content
+                    if (header.Name.Equals("Accept-Encoding", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue; // Skip this header completely
+                    }
+
+                    // Try to add to request headers first
+                    if (!httpRequest.Headers.TryAddWithoutValidation(header.Name, header.Value))
+                    {
+                        // If it fails, it might be a content header, we'll handle it when we create content
+                        // For now, store it in Options for later processing
+                        if (!httpRequest.Options.TryGetValue(contentHeadersKey, out _))
+                        {
+                            httpRequest.Options.Set(contentHeadersKey, new HeaderCollection());
+                        }
+
+                        if (httpRequest.Options.TryGetValue(contentHeadersKey, out var contentHeaders))
+                        {
+                            contentHeaders?.AddHeader(header);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Some headers might not be valid, skip them
+                }
+            }
+
+            // Construct full URI if we only have a relative path
+            if (uri == null)
+            {
+                var hostHeader = headers.GetHeaderValueOrNull(KnownHeaders.Host);
+                if (hostHeader != null)
+                {
+                    var scheme = "http"; // Will be updated to https if needed
+                    var fullUri = $"{scheme}://{hostHeader}{requestUri}";
+                    if (Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
+                    {
+                        httpRequest.RequestUri = new Uri(fullUri);
+                    }
+                }
+            }
+
+            // Handle request body
+            var contentLengthHeader = headers.GetHeaderValueOrNull(KnownHeaders.ContentLength);
+            var transferEncodingHeader = headers.GetHeaderValueOrNull(KnownHeaders.TransferEncoding);
+            var isChunked = transferEncodingHeader?.Contains("chunked", StringComparison.OrdinalIgnoreCase) == true;
+
+            long contentLength = 0;
+            var hasContentLength = contentLengthHeader != null && long.TryParse(contentLengthHeader, out contentLength);
+
+            if ((hasContentLength && contentLength > 0) || isChunked)
+            {
+                // Read the body
+                using var bodyStream = new MemoryStream();
+
+                if (isChunked)
+                {
+                    // Handle chunked encoding
+                    await ReadChunkedBody(clientStream, bodyStream, cancellationToken);
+                }
+                else if (contentLength > 0)
+                {
+                    // Handle content-length body
+                    await ReadBodyWithContentLength(clientStream, bodyStream, contentLength, cancellationToken);
+                }
+
+                if (bodyStream.Length > 0)
+                {
+                    var bodyBytes = bodyStream.ToArray();
+                    httpRequest.Content = new ByteArrayContent(bodyBytes);
+
+                    // Apply content headers that were stored earlier
+                    if (httpRequest.Options.TryGetValue(contentHeadersKey, out var contentHeaders) && contentHeaders != null)
+                    {
+                        foreach (var contentHeader in contentHeaders.GetAllHeaders())
+                        {
+                            httpRequest.Content.Headers.TryAddWithoutValidation(contentHeader.Name, contentHeader.Value);
+                        }
+                    }
+                }
+            }
+
+            return httpRequest;
+        }
+        catch (Exception)
+        {
+            // If parsing fails, return null
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     Read request body with content-length
+    /// </summary>
+    private async Task ReadBodyWithContentLength ( HttpClientStream clientStream, MemoryStream bodyStream, long contentLength, CancellationToken cancellationToken )
+    {
+        var buffer = new byte[4096];
+        long totalRead = 0;
+
+        while (totalRead < contentLength)
+        {
+            var toRead = (int)Math.Min(buffer.Length, contentLength - totalRead);
+            var read = await clientStream.ReadAsync(buffer, 0, toRead, cancellationToken);
+            if (read == 0) break;
+
+            await bodyStream.WriteAsync(buffer, 0, read, cancellationToken);
+            totalRead += read;
+        }
+    }
+
+    /// <summary>
+    ///     Read chunked request body
+    /// </summary>
+    private async Task ReadChunkedBody ( HttpClientStream clientStream, MemoryStream bodyStream, CancellationToken cancellationToken )
+    {
+        while (true)
+        {
+            // Read chunk size line
+            var chunkSizeLine = await clientStream.ReadLineAsync(cancellationToken);
+            if (string.IsNullOrEmpty(chunkSizeLine)) break;
+
+            // Parse chunk size (hex)
+            var chunkSize = Convert.ToInt32(chunkSizeLine.Split(';')[0], 16);
+            if (chunkSize == 0) break; // End of chunks
+
+            // Read chunk data
+            var buffer = new byte[chunkSize];
+            var totalRead = 0;
+            while (totalRead < chunkSize)
+            {
+                var read = await clientStream.ReadAsync(buffer, totalRead, chunkSize - totalRead, cancellationToken);
+                if (read == 0) break;
+                totalRead += read;
+            }
+
+            await bodyStream.WriteAsync(buffer, 0, totalRead, cancellationToken);
+
+            // Read trailing CRLF after chunk data
+            await clientStream.ReadLineAsync(cancellationToken);
+        }
+
+        // Read trailing headers (if any)
+        var trailerHeaders = new HeaderCollection();
+        await HeaderParser.ReadHeaders(clientStream, trailerHeaders, cancellationToken);
+    }
+
     /// <summary>
     ///     This is called when client is aware of proxy
     ///     So for HTTPS requests client would send CONNECT header to negotiate a secure tcp tunnel via proxy
@@ -338,10 +533,104 @@ sslStream.NegotiatedApplicationProtocol;
                 }
             }
 
+            // NEW: Handle regular HTTP requests using HttpRequestMessage
+            if (method != KnownMethod.Connect && method != KnownMethod.Pri && method != KnownMethod.Invalid)
+            {
+                // Parse the incoming request into HttpRequestMessage
+                var httpRequestMessage = await ParseHttpRequestMessage(clientStream, cancellationToken);
+                if (httpRequestMessage != null)
+                {
+                    try
+                    {
+                        // Update the request URI to be HTTPS if this is a decrypted SSL connection
+                        if (connectArgs?.HttpClient.ConnectRequest?.IsHttps == true && httpRequestMessage.RequestUri != null)
+                        {
+                            var builder = new UriBuilder(httpRequestMessage.RequestUri)
+                            {
+                                Scheme = "https",
+                                Port = httpRequestMessage.RequestUri.IsDefaultPort? 443 : httpRequestMessage.RequestUri.Port
+                                //Port = -1 // Use default port for HTTPS
+                            };
+                            httpRequestMessage.RequestUri = builder.Uri;
+                        }
+
+                        HttpResponseMessage? httpResponseMessage = null;
+
+                        // Fire the new event system with HttpRequestMessage
+
+                        using (var requestActivity = activitySource?.StartActivity("HttpRequest", ActivityKind.Server))
+                        {
+                            var requestArguments = new Events.RequestEventArguments(httpRequestMessage, requestActivity);
+                            var handlerResponse = await configuration.Events.InvokeOnRequest(this, requestArguments, logger, cancellationToken);
+                            if (handlerResponse.Response is not null)
+                            {
+                                httpResponseMessage = handlerResponse.Response;
+                            }
+                            else if (handlerResponse.ModifiedRequest is not null)
+                            {
+                                httpRequestMessage = handlerResponse.ModifiedRequest;
+                            }
+                        }
+
+                        if (httpResponseMessage is null)
+                        {
+                            using (var httpClient = this.httpClientFactory.CreateHttpClient())
+                            {
+                                httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
+                            }
+
+
+                            using (var responseActivity = activitySource?.StartActivity("HttpResponse", ActivityKind.Server))
+                            {
+                                var responseArguments = new Events.ResponseEventArguments(httpRequestMessage, httpResponseMessage, responseActivity);
+                                var eventResponse = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, cancellationToken);
+                                if (eventResponse.ModifiedResponse is not null)
+                                {
+                                    httpResponseMessage = eventResponse.ModifiedResponse;
+                                }
+                            }
+
+                            var response = await ConvertHttpResponseMessage(httpResponseMessage); // Convert to custom Response object
+                            await clientStream.WriteResponseAsync(response);
+                            return;
+                        }
+
+
+
+                        //var response = await ConvertHttpResponseMessage(httpResponseMessage);
+                        //await clientStream.WriteResponseAsync(response, cancellationToken);
+
+                        // No freaking idea why I need to call this, but otherwise it won't work
+                        // Maybe this calculates the Content-Length?
+                        if (httpResponseMessage.Content is not null)
+                        {
+                            var content = await httpResponseMessage.Content.ReadAsByteArrayAsync(cancellationToken);
+                            await clientStream.WriteAsync(httpResponseMessage, content, cancellationToken);
+                        }
+                        else
+                        {
+                            await clientStream.WriteAsync(httpResponseMessage, null, cancellationToken);
+                        }
+
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Error sending request using HttpClient");
+                        // Fall back to original method
+                    }
+                    finally
+                    {
+                        httpRequestMessage.Dispose();
+
+                    }
+                }
+            }
+
             var prefetchTask = prefetchConnectionTask;
             prefetchConnectionTask = null;
 
-            // Now create the request
+            // Now create the request using original method (fallback)
             await HandleHttpSessionRequest(endPoint, clientStream, cancellationTokenSource, connectArgs, prefetchTask);
         }
         catch (ProxyException e)
@@ -374,4 +663,40 @@ sslStream.NegotiatedApplicationProtocol;
             connectArgs?.Dispose();
         }
     }
+
+    /// <summary>
+    ///     Convert HttpResponseMessage to custom Response object
+    /// </summary>
+    private async Task<Response> ConvertHttpResponseMessage ( HttpResponseMessage httpResponseMessage )
+    {
+        var response = new Response
+        {
+            StatusCode = (int)httpResponseMessage.StatusCode,
+            StatusDescription = httpResponseMessage.ReasonPhrase ?? string.Empty,
+            HttpVersion = httpResponseMessage.Version
+        };
+
+        // Copy headers
+        foreach (var header in httpResponseMessage.Headers)
+        {
+            response.Headers.AddHeader(new HttpHeader(header.Key, string.Join(", ", header.Value)));
+        }
+
+        if (httpResponseMessage.Content != null)
+        {
+            // Copy content headers
+            foreach (var header in httpResponseMessage.Content.Headers)
+            {
+                response.Headers.AddHeader(new HttpHeader(header.Key, string.Join(", ", header.Value)));
+            }
+
+            // Read and set body
+            var responseBody = await httpResponseMessage.Content.ReadAsByteArrayAsync();
+            response.Body = responseBody;
+            response.IsBodyRead = true;
+        }
+
+        return response;
+    }
+
 }

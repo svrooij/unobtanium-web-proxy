@@ -11,7 +11,7 @@ public static class TestHelper
     {
         var proxy = new TestProxy($"http://localhost:{localProxyPort}", enableBasicProxyAuthorization);
 
-        var handler = new HttpClientHandler { Proxy = proxy, UseProxy = true };
+        var handler = new HttpClientHandler { Proxy = proxy, UseProxy = true, ServerCertificateCustomValidationCallback = (_,_,_,_) => true };
 
         return new HttpClient(handler);
     }

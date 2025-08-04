@@ -4,6 +4,7 @@ using System.Net;
 using System.ServiceProcess;
 using System.Threading;
 using Unobtanium.Web.Proxy;
+using Unobtanium.Web.Proxy.Events;
 using Unobtanium.Web.Proxy.Exceptions;
 using Unobtanium.Web.Proxy.Models;
 using WindowsServiceExample.Properties;
@@ -84,10 +85,10 @@ namespace WindowsServiceExample
                 EventLogEntryType.Information);
         }
 
-        private System.Threading.Tasks.Task HandleRequestEvent ( object sender, Unobtanium.Web.Proxy.Events.RequestEventArguments e, CancellationToken cancellationToken )
+        private System.Threading.Tasks.Task<RequestEventResponse> HandleRequestEvent ( object sender, Unobtanium.Web.Proxy.Events.RequestEventArguments e, CancellationToken cancellationToken )
         {
             // handle request here
-            return System.Threading.Tasks.Task.CompletedTask;
+            return System.Threading.Tasks.Task.FromResult(RequestEventResponse.ContinueResponse());
         }
 
         protected override void OnStop ()

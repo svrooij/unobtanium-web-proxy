@@ -10,7 +10,7 @@ namespace Unobtanium.Web.Proxy.IntegrationTests;
 [TestClass]
 public class StressTests
 {
-    [TestMethod, Timeout(30000)]
+    [TestMethod, Timeout(30_000)]
     public async Task Stress_Test_With_One_Server_And_Many_Clients()
     {
         var testSuite = new TestSuite();

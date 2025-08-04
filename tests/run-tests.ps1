@@ -8,14 +8,14 @@ Write-Output "Coverage output directory: $outputDir"
 $unitTestProject = Join-Path $(Get-Location) "tests" "Unobtanium.Web.Proxy.UnitTests" "Unobtanium.Web.Proxy.UnitTests.csproj"
 $integrationTestProject = Join-Path $(Get-Location) "tests" "Unobtanium.Web.Proxy.IntegrationTests" "Unobtanium.Web.Proxy.IntegrationTests.csproj"
 
-$collectCoverageParam = '/p:CollectCoverage=true;CoverletOutputFormat=json%2clcov%2ccobertura;MergeWith=' + "$outputDir.json;CoverletOutput=$outputDir"
+$collectCoverageParam = '/p:CollectCoverage=true;CoverletOutputFormat=json%2clcov%2ccobertura;MergeWith=' + "$outputDir.net8.0.json;CoverletOutput=$outputDir"
 $skipObsoleteParam = '/p:ExcludeByAttribute=ObsoleteAttribute' # Exclude obsolete code from coverage %2cGeneratedCodeAttribute%2cCompilerGeneratedAttribute
 
 $unitExit = 0
 
-dotnet test $unitTestProject --configuration Release -v minimal --no-build --logger GitHubActions $collectCoverageParam $skipObsoleteParam -- RunConfiguration.CollectSourceInformation=true
+dotnet test $unitTestProject --configuration Release -v minimal --no-build --logger GitHubActions $collectCoverageParam $skipObsoleteParam -f net8.0 -- RunConfiguration.CollectSourceInformation=true
 $unitExit = $LastExitCode
-dotnet test $integrationTestProject -v minimal --no-build --logger GitHubActions $collectCoverageParam $skipObsoleteParam -- RunConfiguration.CollectSourceInformation=true
+dotnet test $integrationTestProject -v minimal --no-build --logger GitHubActions $collectCoverageParam $skipObsoleteParam -f net8.0 -- RunConfiguration.CollectSourceInformation=true
 
 if ($unitExit -ne 0 -or $LastExitCode -ne 0) {
     exit 1

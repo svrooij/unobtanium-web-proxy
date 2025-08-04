@@ -76,7 +76,7 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
             //proxyServer.CertificateManager.RootCertificate = new X509Certificate2("myCert.pfx", string.Empty, X509KeyStorageFlags.Exportable);
         }
 
-        private Task OnRequestReceived ( object sender, Events.RequestEventArguments e, CancellationToken cancellationToken )
+        private Task<Events.RequestEventResponse> OnRequestReceived ( object sender, Events.RequestEventArguments e, CancellationToken cancellationToken )
         {
             //e.GetState().PipelineInfo.AppendLine(nameof(OnRequest) + ":" + e.HttpClient.Request.RequestUri);
 
@@ -90,7 +90,7 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
             WriteToConsole("Active Client Connections:" + ((ProxyServer)sender).ClientConnectionCount);
             WriteToConsole(nameof(OnRequestReceived) + ": " + e.Request.RequestUri?.ToString() ?? "");
 
-            return Task.CompletedTask;
+            return Task.FromResult(Events.RequestEventResponse.ContinueResponse());
         }
 
         private CancellationToken CancellationToken => cancellationTokenSource.Token;
