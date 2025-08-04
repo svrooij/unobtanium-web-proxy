@@ -147,8 +147,8 @@ public class ProxyServerConfiguration
     public string RootCertificateName { get; set; } = ProxyServerDefaults.RootCertificateName;
 
     /// <summary>
-    /// You can set this funtion if you want to decide whether to proxy a request or not based on the request Uri.
-    /// If you return false, the request will not be decrypted and will be sent as is to the server.
+    /// Should the proxy decrypt this request? Or forward to server as is.
+    /// Returning <see langword="false"/> results in the request left untouched and forwarded to the server.
     /// </summary>
     /// <remarks>Usefull if you're having issues with certificate pinning or unsupported http versions.</remarks>
     public Func<Uri,CancellationToken,Task<bool>>? ShouldProxyRequest { get; set; }
