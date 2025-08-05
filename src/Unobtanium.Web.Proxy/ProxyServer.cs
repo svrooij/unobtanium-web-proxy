@@ -78,64 +78,6 @@ public partial class ProxyServer : IDisposable
 
     private readonly IProxyServerHttpClientFactory httpClientFactory;
 
-    ///// <inheritdoc />
-    ///// <summary>
-    /////     Initializes a new instance of ProxyServer class with provided parameters.
-    ///// </summary>
-    ///// <param name="userTrustRootCertificate">
-    /////     Should fake HTTPS certificate be trusted by this machine's user certificate
-    /////     store?
-    ///// </param>
-    ///// <param name="machineTrustRootCertificate">Should fake HTTPS certificate be trusted by this machine's certificate store?</param>
-    ///// <param name="trustRootCertificateAsAdmin">
-    /////     Should we attempt to trust certificates with elevated permissions by
-    /////     prompting for UAC if required?
-    ///// </param>
-    ///// <param name="activitySource"><see cref="ActivitySource"/> to be used for distributed tracing</param>
-    ///// <param name="loggerFactory"><see cref="ILoggerFactory"/> to be used for all logging, will use <see cref="NullLoggerFactory"/> is not specified</param>
-    ///// <remarks>Use this constructor <see cref="ProxyServer(ProxyServerConfiguration?, IBufferPool?, ActivitySource?, ILoggerFactory)"/> instead.</remarks>
-    //[Obsolete("Use the constructor that accepts a ProxyServerConfiguration object instead")]
-    //public ProxyServer ( bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
-    //    bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null ) : this(null, null, userTrustRootCertificate,
-    //    machineTrustRootCertificate, trustRootCertificateAsAdmin, activitySource, loggerFactory)
-    //{
-    //}
-
-    ///// <summary>
-    /////     Initializes a new instance of ProxyServer class with provided parameters.
-    ///// </summary>
-    ///// <param name="rootCertificateName">Name of the root certificate.</param>
-    ///// <param name="rootCertificateIssuerName">Name of the root certificate issuer.</param>
-    ///// <param name="userTrustRootCertificate">
-    /////     Should fake HTTPS certificate be trusted by this machine's user certificate
-    /////     store?
-    ///// </param>
-    ///// <param name="machineTrustRootCertificate">Should fake HTTPS certificate be trusted by this machine's certificate store?</param>
-    ///// <param name="trustRootCertificateAsAdmin">
-    /////     Should we attempt to trust certificates with elevated permissions by
-    /////     prompting for UAC if required?
-    ///// </param>
-    ///// <param name="activitySource"><see cref="ActivitySource"/> to be used for distributed tracing</param>
-    ///// <param name="loggerFactory"><see cref="ILoggerFactory"/> to be used for all logging, will use <see cref="NullLoggerFactory"/> is not specified</param>
-    ///// <remarks>Use this constructor <see cref="ProxyServer(ProxyServerConfiguration?, IBufferPool?, ActivitySource?, ILoggerFactory)"/> instead.</remarks>
-    //[Obsolete("Use the constructor that accepts a ProxyServerConfiguration object instead")]
-    //public ProxyServer ( string? rootCertificateName, string? rootCertificateIssuerName,
-    //    bool userTrustRootCertificate = true, bool machineTrustRootCertificate = false,
-    //    bool trustRootCertificateAsAdmin = false, ActivitySource? activitySource = null, ILoggerFactory? loggerFactory = null )
-    //{
-    //    this.activitySource = activitySource;
-    //    this.loggerFactory = loggerFactory ?? new NullLoggerFactory();
-    //    logger = this.loggerFactory.CreateLogger<ProxyServer>();
-
-    //    BufferPool = new DefaultBufferPool();
-    //    ProxyEndPoints = [];
-    //    TcpConnectionFactory = new TcpConnectionFactory(this);
-    //    if (RunTime.IsWindows && !RunTime.IsUwpOnWindows) SystemProxySettingsManager = new SystemProxyManager();
-
-    //    CertificateManager = new CertificateManager(rootCertificateName, rootCertificateIssuerName,
-    //        userTrustRootCertificate, machineTrustRootCertificate, trustRootCertificateAsAdmin, loggerFactory: this.loggerFactory);
-    //}
-
     /// <summary>
     /// Constructor for ProxyServer.
     /// </summary>
@@ -926,12 +868,29 @@ public partial class ProxyServer : IDisposable
 
         await InvokeClientConnectionCreateEvent(tcpClientSocket);
 
+        // Create a root activity for the entire client connection lifetime
+        using var clientConnectionActivity = activitySource?.StartActivity("ClientConnection", ActivityKind.Server);
+        clientConnectionActivity?.SetTag("client.endpoint", tcpClientSocket.RemoteEndPoint?.ToString());
+        clientConnectionActivity?.SetTag("proxy.endpoint", endPoint.ToString());
+        clientConnectionActivity?.SetTag("connection.type", endPoint.GetType().Name);
+
         using var clientConnection = new TcpClientConnection(this, tcpClientSocket);
-        if (endPoint is ExplicitProxyEndPoint eep)
-            await HandleClient(eep, clientConnection);
-        else if (endPoint is TransparentProxyEndPoint tep)
-            await HandleClient(tep, clientConnection);
-        else if (endPoint is SocksProxyEndPoint sep) await HandleClient(sep, clientConnection);
+        
+        try
+        {
+            if (endPoint is ExplicitProxyEndPoint eep)
+                await HandleClient(eep, clientConnection);
+            else if (endPoint is TransparentProxyEndPoint tep)
+                await HandleClient(tep, clientConnection);
+            else if (endPoint is SocksProxyEndPoint sep) 
+                await HandleClient(sep, clientConnection);
+        }
+        catch (Exception ex)
+        {
+            clientConnectionActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            clientConnectionActivity?.RecordException(ex);
+            throw;
+        }
     }
 
     /// <summary>

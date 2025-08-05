@@ -55,7 +55,9 @@ public partial class ProxyServer
             {
                 if (clientStream.IsClosed) return;
 
-                using var requestActivity = activitySource?.StartActivity("Request", ActivityKind.Server,Guid.NewGuid().ToString());
+                // Create request activity as child of current activity (which should be the ClientConnection activity)
+                using var requestActivity = activitySource?.StartActivity("HttpRequest", ActivityKind.Server);
+                requestActivity?.SetTag("proxy.server", "Unobtanium.Web.Proxy");
 
                 // read the request line
                 var requestLine = await clientStream.ReadRequestLine(cancellationToken);
@@ -88,6 +90,16 @@ public partial class ProxyServer
                         request.Method = requestLine.Method;
                         request.HttpVersion = requestLine.Version;
 
+                        // Set activity tags with request information
+                        requestActivity?.SetTag("http.method", request.Method);
+                        requestActivity?.SetTag("http.url", request.Url);
+                        requestActivity?.SetTag("http.scheme", request.IsHttps ? "https" : "http");
+                        requestActivity?.SetTag("http.target", request.RequestUri.PathAndQuery);
+                        if (request.RequestUri.Host != null)
+                        {
+                            requestActivity?.SetTag("http.host", request.RequestUri.Host);
+                        }
+
                         // we need this to syphon out data from connection if API user changes them.
                         request.SetOriginalHeaders();
 
@@ -109,6 +121,9 @@ public partial class ProxyServer
                             PrepareRequestHeaders(request.Headers);
                             request.Host = request.RequestUri.Authority;
                         }
+
+                        // Add distributed tracing headers if they don't exist and we have an active activity
+                        AddDistributedTracingHeaders(request.Headers, requestActivity);
 
                         // if win auth is enabled
                         // we need a cache of request body
@@ -355,6 +370,51 @@ public partial class ProxyServer
         requestHeaders.RemoveHeader(KnownHeaders.AcceptEncoding);
 
         requestHeaders.FixProxyHeaders();
+    }
+
+    /// <summary>
+    ///     Add distributed tracing headers to the outgoing request if they don't already exist.
+    ///     This ensures that trace context is propagated even if the original client request 
+    ///     didn't include tracing headers.
+    /// </summary>
+    /// <param name="requestHeaders">The request headers collection to modify</param>
+    /// <param name="activity">The current activity context</param>
+    private void AddDistributedTracingHeaders(HeaderCollection requestHeaders, Activity? activity)
+    {
+        if (activity == null) return;
+
+        // Check if traceparent header already exists from the client
+        var existingTraceparent = requestHeaders.GetHeaderValueOrNull("traceparent");
+        var existingTracestate = requestHeaders.GetHeaderValueOrNull("tracestate");
+
+        // If no existing trace headers, add them from current activity
+        if (string.IsNullOrEmpty(existingTraceparent))
+        {
+            var traceparent = activity.Id;
+            if (!string.IsNullOrEmpty(traceparent))
+            {
+                requestHeaders.AddHeader("traceparent", traceparent);
+                activity.SetTag("http.traceparent_injected", "true");
+            }
+        }
+        else
+        {
+            activity.SetTag("http.traceparent_preserved", "true");
+        }
+
+        // Add tracestate if it exists in the activity and wasn't already present
+        if (string.IsNullOrEmpty(existingTracestate) && !string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            requestHeaders.AddHeader("tracestate", activity.TraceStateString);
+            activity.SetTag("http.tracestate_injected", "true");
+        }
+        else if (!string.IsNullOrEmpty(existingTracestate))
+        {
+            activity.SetTag("http.tracestate_preserved", "true");
+        }
+
+        // Add correlation ID for easier debugging
+        requestHeaders.AddHeader("X-Correlation-ID", activity.RootId ?? activity.Id ?? Guid.NewGuid().ToString());
     }
 
     /// <summary>

@@ -560,6 +560,19 @@ sslStream.NegotiatedApplicationProtocol;
 
                         using (var requestActivity = activitySource?.StartActivity("HttpRequest", ActivityKind.Server))
                         {
+                            // Set activity tags for better telemetry
+                            requestActivity?.SetTag("http.method", httpRequestMessage.Method.Method);
+                            requestActivity?.SetTag("http.url", httpRequestMessage.RequestUri?.ToString());
+                            requestActivity?.SetTag("http.scheme", httpRequestMessage.RequestUri?.Scheme);
+                            requestActivity?.SetTag("http.target", httpRequestMessage.RequestUri?.PathAndQuery);
+                            if (httpRequestMessage.RequestUri?.Host != null)
+                            {
+                                requestActivity?.SetTag("http.host", httpRequestMessage.RequestUri.Host);
+                            }
+
+                            // Add distributed tracing headers to the outgoing request
+                            AddDistributedTracingHeadersToHttpRequestMessage(httpRequestMessage, requestActivity);
+
                             var requestArguments = new Events.RequestEventArguments(httpRequestMessage, requestActivity);
                             var handlerResponse = await configuration.Events.InvokeOnRequest(this, requestArguments, logger, cancellationToken);
                             if (handlerResponse.Response is not null)
@@ -699,4 +712,48 @@ sslStream.NegotiatedApplicationProtocol;
         return response;
     }
 
+    /// <summary>
+    ///     Add distributed tracing headers to HttpRequestMessage if they don't already exist.
+    ///     This ensures that trace context is propagated even if the original client request 
+    ///     didn't include tracing headers.
+    /// </summary>
+    /// <param name="httpRequestMessage">The HttpRequestMessage to modify</param>
+    /// <param name="activity">The current activity context</param>
+    private void AddDistributedTracingHeadersToHttpRequestMessage(HttpRequestMessage httpRequestMessage, Activity? activity)
+    {
+        if (activity == null) return;
+
+        // Check if traceparent header already exists from the client
+        var existingTraceparent = httpRequestMessage.Headers.Contains("traceparent");
+        var existingTracestate = httpRequestMessage.Headers.Contains("tracestate");
+
+        // If no existing trace headers, add them from current activity
+        if (!existingTraceparent)
+        {
+            var traceparent = activity.Id;
+            if (!string.IsNullOrEmpty(traceparent))
+            {
+                httpRequestMessage.Headers.TryAddWithoutValidation("traceparent", traceparent);
+                activity.SetTag("http.traceparent_injected", "true");
+            }
+        }
+        else
+        {
+            activity.SetTag("http.traceparent_preserved", "true");
+        }
+
+        // Add tracestate if it exists in the activity and wasn't already present
+        if (!existingTracestate && !string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            httpRequestMessage.Headers.TryAddWithoutValidation("tracestate", activity.TraceStateString);
+            activity.SetTag("http.tracestate_injected", "true");
+        }
+        else if (existingTracestate)
+        {
+            activity.SetTag("http.tracestate_preserved", "true");
+        }
+
+        // Add correlation ID for easier debugging
+        httpRequestMessage.Headers.TryAddWithoutValidation("X-Correlation-ID", activity.RootId ?? activity.Id ?? Guid.NewGuid().ToString());
+    }
 }
