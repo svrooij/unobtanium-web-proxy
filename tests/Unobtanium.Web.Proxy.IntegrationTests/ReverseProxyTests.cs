@@ -81,12 +81,14 @@ public class ReverseProxyTests
             return context.Response.WriteAsync("I am server. I received your greetings.");
         });
 
-        var proxy = testSuite.GetReverseProxy();
-        proxy.BeforeRequest += async (sender, e) =>
+        var proxy = testSuite.GetReverseProxy(onRequest: (s, e, cancellationToken) =>
         {
-            e.HttpClient.Request.Url = server.ListeningHttpsUrl;
-            await Task.FromResult(0);
-        };
+            var newReq = new HttpRequestMessage(e.Request.Method, server.ListeningHttpsUrl)
+            {
+                Content = e.Request.Content
+            };
+            return Task.FromResult(Events.RequestEventResponse.ModifyRequest(newReq));
+        });
 
         var client = testSuite.GetReverseProxyClient();
 
@@ -110,12 +112,11 @@ public class ReverseProxyTests
             return context.Response.WriteAsync("I am server. I received your greetings.");
         });
 
-        var proxy = testSuite.GetReverseProxy();
-        proxy.BeforeRequest += async (sender, e) =>
+        var proxy = testSuite.GetReverseProxy(onRequest: (s, e, cancellationToken) =>
         {
-            e.HttpClient.Request.Url = server.ListeningHttpsUrl;
-            await Task.FromResult(0);
-        };
+            var newReq = new HttpRequestMessage(e.Request.Method, server.ListeningHttpsUrl);
+            return Task.FromResult(Events.RequestEventResponse.ModifyRequest(newReq));
+        });
 
         var client = testSuite.GetReverseProxyClient();
 
@@ -139,7 +140,12 @@ public class ReverseProxyTests
             return context.Response.WriteAsync("I am server. I received your greetings.");
         });
 
-        var proxy = testSuite.GetReverseProxy();
+        var proxy = testSuite.GetReverseProxy(onRequest: (s, e, cancellationToken) =>
+        {
+            var newReq = new HttpRequestMessage(e.Request.Method, server.ListeningHttpsUrl);
+            return Task.FromResult(Events.RequestEventResponse.ModifyRequest(newReq));
+        });
+
         var endpoint =
             proxy.ProxyEndPoints.Where(x => x is TransparentProxyEndPoint).First() as TransparentProxyEndPoint;
 

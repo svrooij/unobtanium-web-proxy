@@ -42,14 +42,19 @@ public class TestSuite
         return new TestProxyServer(false, proxyServerConfiguration: config).ProxyServer;
     }
 
-    public ProxyServer GetReverseProxy(ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null)
+    public ProxyServer GetReverseProxy(ProxyServer upStreamProxy = null, ProxyServerConfiguration? proxyServerConfiguration = null, Events.AsyncEventHandler<Events.RequestEventArguments, Events.RequestEventResponse> ? onRequest = null)
     {
+        var config = proxyServerConfiguration ?? new ProxyServerConfiguration();
+        if (onRequest != null)
+        {
+            config.Events.OnRequest += onRequest;
+        }
         if (upStreamProxy != null)
         {
-            return new TestProxyServer(true, upStreamProxy, proxyServerConfiguration).ProxyServer;
+            return new TestProxyServer(true, upStreamProxy, config).ProxyServer;
         }
 
-        return new TestProxyServer(true, proxyServerConfiguration: proxyServerConfiguration).ProxyServer;
+        return new TestProxyServer(true, proxyServerConfiguration: config).ProxyServer;
     }
 
     public HttpClient GetClient(ProxyServer proxyServer, bool enableBasicProxyAuthorization = false)

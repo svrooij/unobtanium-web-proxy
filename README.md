@@ -27,9 +27,89 @@ This project is a reboot of the original [Titanium-Web-Proxy](https://github.com
 * Using the latest .NET features like `Span<T>` and `Memory<T>` to improve performance
 * Update dependencies to the latest versions
 * `TLS 1.2` and `TLS 1.3` only support
-* Event-handlers with `HttpRequestMessage` and `HttpResponseMessage`, to greatly improve the portability of the library [See #6](https://github.com/svrooij/titanium-web-proxy/issues/6)
+* **Modern Event System:** Event-handlers with `HttpRequestMessage` and `HttpResponseMessage`, to greatly improve the portability of the library [See #6](https://github.com/svrooij/titanium-web-proxy/issues/6)
 * `HttpClient` as the default client, and using the IHttpClientFactory to handle pooling of the clients
 * Testing, testing, testing!
+
+## Modern Event System
+
+This proxy server uses a modern, clean event system based on standard `HttpRequestMessage` and `HttpResponseMessage` objects, making it easier to integrate with existing .NET HTTP libraries and patterns.
+
+### Request Interception
+
+```csharp
+var config = new ProxyServerConfiguration();
+config.Events.OnRequest += async (sender, e, cancellationToken) =>
+{
+    Console.WriteLine($"Request: {e.Request.Method} {e.Request.RequestUri}");
+    
+    // Block specific domains
+    if (e.Request.RequestUri?.Host.Contains("blocked.com") == true)
+    {
+        var blockedResponse = new HttpResponseMessage(HttpStatusCode.Forbidden)
+        {
+            Content = new StringContent("Access Denied")
+        };
+        return RequestEventResponse.EarlyResponse(blockedResponse);
+    }
+    
+    // Modify request headers
+    e.Request.Headers.Add("X-Proxy-Agent", "Unobtanium");
+    
+    // Redirect requests
+    if (e.Request.RequestUri?.Host.Contains("example.com") == true)
+    {
+        var redirectedRequest = new HttpRequestMessage(e.Request.Method, "https://microsoft.com")
+        {
+            Content = e.Request.Content,
+            Version = e.Request.Version
+        };
+        
+        // Copy headers
+        foreach (var header in e.Request.Headers)
+        {
+            redirectedRequest.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        }
+        
+        return RequestEventResponse.ModifyRequest(redirectedRequest);
+    }
+    
+    return RequestEventResponse.ContinueResponse();
+};
+```
+
+### Response Interception
+
+```csharp
+config.Events.OnResponse += async (sender, e, cancellationToken) =>
+{
+    Console.WriteLine($"Response: {e.Response.StatusCode} from {e.Request.RequestUri}");
+    
+    // Modify responses
+    if (e.Response.Content != null)
+    {
+        var content = await e.Response.Content.ReadAsStringAsync(cancellationToken);
+        if (content.Contains("error"))
+        {
+            var modifiedResponse = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(content.Replace("error", "success")),
+                Version = e.Response.Version
+            };
+            
+            // Copy headers
+            foreach (var header in e.Response.Headers)
+            {
+                modifiedResponse.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+            
+            return ResponseEventResponse.ModifyResponse(modifiedResponse);
+        }
+    }
+    
+    return ResponseEventResponse.ContinueResponse();
+};
+```
 
 ## Features
 
@@ -37,6 +117,7 @@ This project is a reboot of the original [Titanium-Web-Proxy](https://github.com
 * ~~[Wiki & Contribution guidelines](https://github.com/justcoding121/Titanium-Web-Proxy/wiki)~~
 * Multithreaded and asynchronous proxy employing server connection pooling, certificate cache, and buffer pooling
 * View, modify, redirect and block requests or responses
+* Modern event system based on `HttpRequestMessage` and `HttpResponseMessage`
 * Supports mutual SSL authentication, proxy authentication & automatic upstream proxy detection
 * Supports kerberos, NTLM authentication over HTTP protocols on windows domain controlled networks
 * SOCKS4/5 Proxy support
@@ -71,6 +152,57 @@ services.AddSingleton<ProxyServer>();
 var proxyServer = provider.GetRequiredService<ProxyServer>();
 ```
 
+### Complete Example
+
+```csharp
+var config = new ProxyServerConfiguration();
+
+// Handle requests with HttpRequestMessage
+config.Events.OnRequest += async (sender, e, cancellationToken) =>
+{
+    Console.WriteLine($"Request: {e.Request.Method} {e.Request.RequestUri}");
+    
+    // Block specific domains
+    if (e.Request.RequestUri?.Host.Contains("blocked.com") == true)
+    {
+        var blockedResponse = new HttpResponseMessage(HttpStatusCode.Forbidden)
+        {
+            Content = new StringContent("Access Denied")
+        };
+        return RequestEventResponse.EarlyResponse(blockedResponse);
+    }
+    
+    // Modify request headers
+    e.Request.Headers.Add("X-Proxy-Agent", "Unobtanium");
+    
+    return RequestEventResponse.ContinueResponse();
+};
+
+// Handle responses with HttpResponseMessage  
+config.Events.OnResponse += async (sender, e, cancellationToken) =>
+{
+    Console.WriteLine($"Response: {e.Response.StatusCode} from {e.Request.RequestUri}");
+    return ResponseEventResponse.ContinueResponse();
+};
+
+var proxyServer = new ProxyServer(config);
+
+// Add endpoints
+var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000, true);
+proxyServer.AddEndPoint(explicitEndPoint);
+
+// Start the proxy
+await proxyServer.StartAsync();
+
+Console.WriteLine($"Proxy listening on {explicitEndPoint.IpAddress}:{explicitEndPoint.Port}");
+
+// Set as system proxy
+proxyServer.SetAsSystemProxy(explicitEndPoint, ProxyProtocolType.AllHttp);
+
+// Stop when done
+proxyServer.Stop();
+```
+
 ## Collaborators
 
 The owner of this project, [justcoding121](https://github.com/justcoding121), is considered to be inactive from this project due to his busy work schedule. See [project reboot](#project-reboot) for more information.
@@ -89,184 +221,6 @@ You contributions are more then welcome! Let's make this project great again!
 ## Development environment
 
 Since this is a `dotnet` project I would suggest to use `Visual Studio 2022` or `Visual Studio Code` as your development environment. The project is set up to use the `dotnet` CLI, so you can also use that to build and run the project.
-
-## Usage (pre reboot of the project)
-
-Refer the `Unobtanium.Web.Proxy` in your project and check one of the [example projects](https://github.com/svrooij/titanium-web-proxy/tree/develop/examples).
-
-Setup HTTP proxy:
-
-```csharp
-using Titanium.Web.Proxy;
-...
-var proxyServer = new ProxyServer();
-
-// locally trust root certificate used by this proxy 
-proxyServer.CertificateManager.TrustRootCertificate(true);
-
-proxyServer.BeforeRequest += OnRequest;
-proxyServer.BeforeResponse += OnResponse;
-proxyServer.ServerCertificateValidationCallback += OnCertificateValidation;
-proxyServer.ClientCertificateSelectionCallback += OnCertificateSelection;
-
-
-var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000, true)
-{
-    // Use self-issued generic certificate on all https requests
-    // Optimizes performance by not creating a certificate for each https-enabled domain
-    // Useful when certificate trust is not required by proxy clients
-   //GenericCertificate = new X509Certificate2(Path.Combine(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "genericcert.pfx"), "password")
-};
-
-// Fired when a CONNECT request is received
-explicitEndPoint.BeforeTunnelConnectRequest += OnBeforeTunnelConnectRequest;
-
-// An explicit endpoint is where the client knows about the existence of a proxy
-// So client sends request in a proxy friendly manner
-proxyServer.AddEndPoint(explicitEndPoint);
-proxyServer.Start();
-
-// Transparent endpoint is useful for reverse proxy (client is not aware of the existence of proxy)
-// A transparent endpoint usually requires a network router port forwarding HTTP(S) packets or DNS
-// to send data to this endPoint
-var transparentEndPoint = new TransparentProxyEndPoint(IPAddress.Any, 8001, true)
-{
-    // Generic Certificate hostname to use
-    // when SNI is disabled by client
-    GenericCertificateName = "google.com"
-};
-
-proxyServer.AddEndPoint(transparentEndPoint);
-
-//proxyServer.UpStreamHttpProxy = new ExternalProxy() { HostName = "localhost", Port = 8888 };
-//proxyServer.UpStreamHttpsProxy = new ExternalProxy() { HostName = "localhost", Port = 8888 };
-
-foreach (var endPoint in proxyServer.ProxyEndPoints)
-Console.WriteLine("Listening on '{0}' endpoint at Ip {1} and port: {2} ",
-    endPoint.GetType().Name, endPoint.IpAddress, endPoint.Port);
-
-// Only explicit proxies can be set as system proxy!
-proxyServer.SetAsSystemHttpProxy(explicitEndPoint);
-proxyServer.SetAsSystemHttpsProxy(explicitEndPoint);
-
-// wait here (You can use something else as a wait function, I am using this as a demo)
-Console.Read();
-
-// Unsubscribe & Quit
-explicitEndPoint.BeforeTunnelConnectRequest -= OnBeforeTunnelConnectRequest;
-proxyServer.BeforeRequest -= OnRequest;
-proxyServer.BeforeResponse -= OnResponse;
-proxyServer.ServerCertificateValidationCallback -= OnCertificateValidation;
-proxyServer.ClientCertificateSelectionCallback -= OnCertificateSelection;
-
-proxyServer.Stop();
-```
-
-Sample request and response event handlers
-
-```csharp
-private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
-{
-    string hostname = e.HttpClient.Request.RequestUri.Host;
-
-    if (hostname.Contains("dropbox.com"))
-    {
-         // Exclude Https addresses you don't want to proxy
-         // Useful for clients that use certificate pinning
-         // for example dropbox.com
-         e.DecryptSsl = false;
-    }
-}
-
-public async Task OnRequest(object sender, SessionEventArgs e)
-{
-    Console.WriteLine(e.HttpClient.Request.Url);
-
-    // read request headers
-    var requestHeaders = e.HttpClient.Request.Headers;
-
-    var method = e.HttpClient.Request.Method.ToUpper();
-    if ((method == "POST" || method == "PUT" || method == "PATCH"))
-    {
-        // Get/Set request body bytes
-        byte[] bodyBytes = await e.GetRequestBody();
-        e.SetRequestBody(bodyBytes);
-
-        // Get/Set request body as string
-        string bodyString = await e.GetRequestBodyAsString();
-        e.SetRequestBodyString(bodyString);
-    
-        // store request 
-        // so that you can find it from response handler 
-        e.UserData = e.HttpClient.Request;
-    }
-
-    // To cancel a request with a custom HTML content
-    // Filter URL
-    if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("google.com"))
-    {
-        e.Ok("<!DOCTYPE html>" +
-            "<html><body><h1>" +
-            "Website Blocked" +
-            "</h1>" +
-            "<p>Blocked by titanium web proxy.</p>" +
-            "</body>" +
-            "</html>");
-    }
-
-    // Redirect example
-    if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("wikipedia.org"))
-    {
-        e.Redirect("https://www.paypal.com");
-    }
-}
-
-// Modify response
-public async Task OnResponse(object sender, SessionEventArgs e)
-{
-    // read response headers
-    var responseHeaders = e.HttpClient.Response.Headers;
-
-    //if (!e.ProxySession.Request.Host.Equals("medeczane.sgk.gov.tr")) return;
-    if (e.HttpClient.Request.Method == "GET" || e.HttpClient.Request.Method == "POST")
-    {
-        if (e.HttpClient.Response.StatusCode == 200)
-        {
-            if (e.HttpClient.Response.ContentType != null && e.HttpClient.Response.ContentType.Trim().ToLower().Contains("text/html"))
-            {
-                byte[] bodyBytes = await e.GetResponseBody();
-                e.SetResponseBody(bodyBytes);
-
-                string body = await e.GetResponseBodyAsString();
-                e.SetResponseBodyString(body);
-            }
-        }
-    }
-    
-    if (e.UserData != null)
-    {
-        // access request from UserData property where we stored it in RequestHandler
-        var request = (Request)e.UserData;
-    }
-}
-
-// Allows overriding default certificate validation logic
-public Task OnCertificateValidation(object sender, CertificateValidationEventArgs e)
-{
-    // set IsValid to true/false based on Certificate Errors
-    if (e.SslPolicyErrors == System.Net.Security.SslPolicyErrors.None)
-        e.IsValid = true;
-
-    return Task.CompletedTask;
-}
-
-// Allows overriding default client certificate selection logic during mutual authentication
-public Task OnCertificateSelection(object sender, CertificateSelectionEventArgs e)
-{
-    // set e.clientCertificate to override
-    return Task.CompletedTask;
-}
-```
 
 ### Console example application screenshot
 

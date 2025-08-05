@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -112,16 +113,19 @@ public partial class ProxyServer
                         if (available > 0)
                         {
                             // send the buffered data
-                            var data = BufferPool.GetBuffer();
+                            //var data = BufferPool.GetBuffer();
                             try
                             {
+                                Memory<byte> memory = new Memory<byte>();
+                                await clientStream.ReadAsync(memory, cancellationToken);
+                                await connection.Stream.WriteAsync(memory, cancellationToken);
                                 // clientStream.Available should be at most BufferSize because it is using the same buffer size
-                                await clientStream.ReadAsync(data, 0, available, cancellationToken);
-                                await connection.Stream.WriteAsync(data, 0, available, true, cancellationToken);
+                                //await clientStream.ReadAsync(data, 0, available, cancellationToken);
+                                //await connection.Stream.WriteAsync(data, 0, available, true, cancellationToken);
                             }
                             finally
                             {
-                                BufferPool.ReturnBuffer(data);
+                                //BufferPool.ReturnBuffer(data);
                             }
                         }
 
@@ -141,21 +145,9 @@ public partial class ProxyServer
             // Now create the request
             await HandleHttpSessionRequest(endPoint, clientStream, cancellationTokenSource, isHttps: isHttps);
         }
-        catch (ProxyException e)
-        {
-            OnException(clientStream, e);
-        }
-        catch (IOException e)
-        {
-            OnException(clientStream, new Exception("Connection was aborted", e));
-        }
-        catch (SocketException e)
-        {
-            OnException(clientStream, new Exception("Could not connect", e));
-        }
         catch (Exception e)
         {
-            OnException(clientStream, new Exception("Error occured in whilst handling the client", e));
+            logger.LogError(e, "Error occurred while handling the client connection.");
         }
         finally
         {

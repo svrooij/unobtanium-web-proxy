@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.EventArguments;
 using Unobtanium.Web.Proxy.Extensions;
 using Unobtanium.Web.Proxy.Network.WinAuth.Security;
+using System.Collections.Generic;
+using Unobtanium.Web.Proxy.Http;
+using System.Diagnostics;
 
 namespace Unobtanium.Web.Proxy;
 
@@ -121,18 +125,97 @@ public partial class ProxyServer
     /// <returns></returns>
     private async Task OnBeforeResponse ( SessionEventArgs args )
     {
-        if (BeforeResponse != null) await BeforeResponse.InvokeAsync(this, args, ExceptionFunc);
+        // Support legacy BeforeResponse event for backward compatibility (DEPRECATED)
+        #pragma warning disable CS0618 // Type or member is obsolete
+        if (BeforeResponse != null) 
+            await BeforeResponse.InvokeAsync(this, args, ExceptionFunc);
+        #pragma warning restore CS0618
+
+        // Use the new response event system (PREFERRED)
+        if (configuration.Events.HasOnResponse)
+        {
+            using var activity = activitySource?.StartActivity(nameof(OnBeforeResponse), ActivityKind.Internal);
+            
+            // Create HttpRequestMessage and HttpResponseMessage from the session
+            var httpRequest = CreateHttpRequestMessageFromCustomRequest(args.HttpClient.Request);
+            var httpResponse = await ConvertCustomResponseToHttpResponseMessage(args.HttpClient.Response);
+            
+            var responseArguments = new Events.ResponseEventArguments(httpRequest, httpResponse, activity);
+            
+            try
+            {
+                var response = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, args.CancellationTokenSource.Token);
+                
+                // Handle the response from the new event system
+                if (response.ModifiedResponse != null)
+                {
+                    // Modified response - convert back to custom Response object
+                    var customResponse = await ConvertHttpResponseMessageToCustomResponse(response.ModifiedResponse);
+                    args.HttpClient.Response = customResponse;
+                }
+                // For ContinueResponse, no action needed - processing continues normally
+            }
+            finally
+            {
+                responseArguments.Dispose();
+            }
+        }
     }
 
     /// <summary>
-    ///     Invoke after response if it is set.
+    /// Convert custom Response to HttpResponseMessage for new event system
+    /// </summary>
+    private async Task<HttpResponseMessage> ConvertCustomResponseToHttpResponseMessage(Response customResponse)
+    {
+        var httpResponse = new HttpResponseMessage((HttpStatusCode)customResponse.StatusCode)
+        {
+            ReasonPhrase = customResponse.StatusDescription,
+            Version = customResponse.HttpVersion
+        };
+
+        // Copy headers (excluding content headers which will be set with content)
+        var contentHeaders = new List<Models.HttpHeader>();
+        foreach (var header in customResponse.Headers.GetAllHeaders())
+        {
+            if (IsContentHeader(header.Name))
+            {
+                contentHeaders.Add(header);
+            }
+            else
+            {
+                httpResponse.Headers.TryAddWithoutValidation(header.Name, header.Value);
+            }
+        }
+
+        // Handle body if present
+        if (customResponse.HasBody && customResponse.IsBodyRead)
+        {
+            httpResponse.Content = new ByteArrayContent(customResponse.Body);
+            
+            // Add content headers
+            foreach (var header in contentHeaders)
+            {
+                httpResponse.Content.Headers.TryAddWithoutValidation(header.Name, header.Value);
+            }
+        }
+
+        return httpResponse;
+    }
+
+    /// <summary>
+    ///     Invoke after response if it is set (legacy support).
     /// </summary>
     /// <param name="args"></param>
     /// <returns></returns>
     private async Task OnAfterResponse ( SessionEventArgs args )
     {
-        if (AfterResponse != null) await AfterResponse.InvokeAsync(this, args, ExceptionFunc);
+        // Support legacy AfterResponse event for backward compatibility (DEPRECATED)
+        #pragma warning disable CS0618 // Type or member is obsolete
+        if (AfterResponse != null) 
+            await AfterResponse.InvokeAsync(this, args, ExceptionFunc);
+        #pragma warning restore CS0618
     }
+
 #if DEBUG
     internal bool ShouldCallBeforeResponseBodyWrite ()
     {

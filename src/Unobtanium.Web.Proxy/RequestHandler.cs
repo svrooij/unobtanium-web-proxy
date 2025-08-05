@@ -368,17 +368,22 @@ public partial class ProxyServer
     {
         args.TimeLine["Request Received"] = DateTime.UtcNow;
 
-        if (BeforeRequest != null) await BeforeRequest.InvokeAsync(this, args, ExceptionFunc);
+        // Support legacy BeforeRequest event for backward compatibility (DEPRECATED)
+        #pragma warning disable CS0618 // Type or member is obsolete
+        if (BeforeRequest != null) 
+            await BeforeRequest.InvokeAsync(this, args, ExceptionFunc);
+        #pragma warning restore CS0618
 
-        if (configuration.Events.HasOnRequest) {
-            
+        // Use the new event system for request handling (PREFERRED)
+        if (configuration.Events.HasOnRequest) 
+        {
             using var activity = activitySource?.StartActivity(nameof(OnBeforeRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
             
             // Create HttpRequestMessage from the custom Request
-            var httpRequest = args.HttpClient.CreateHttpRequestMessage();
+            var httpRequest = CreateHttpRequestMessageFromCustomRequest(args.HttpClient.Request);
             
             requestActivity?.SetTag("requestUri", args.HttpClient.Request.Url);
-            requestActivity?.SetTag("requestMethod", httpRequest.Method);
+            requestActivity?.SetTag("requestMethod", httpRequest.Method.ToString());
 
             // If the request has a body and it's been read, add it to the HttpRequestMessage
             if (args.HttpClient.Request.HasBody && args.HttpClient.Request.IsBodyRead)
@@ -408,7 +413,157 @@ public partial class ProxyServer
                 httpRequest,
                 activity
             );
-            await configuration.Events.InvokeOnRequest(this, requestArguments, logger, cancellationToken);
+            
+            try
+            {
+                var response = await configuration.Events.InvokeOnRequest(this, requestArguments, logger, cancellationToken);
+                
+                // Handle the response from the new event system
+                if (response.Response != null)
+                {
+                    // Early response - convert HttpResponseMessage back to custom Response
+                    var customResponse = await ConvertHttpResponseMessageToCustomResponse(response.Response);
+                    args.HttpClient.Response = customResponse;
+                    args.HttpClient.Response.Locked = true; // Mark as custom response
+                }
+                else if (response.ModifiedRequest != null)
+                {
+                    // Modified request - update the custom Request object
+                    await UpdateCustomRequestFromHttpRequestMessage(args.HttpClient.Request, response.ModifiedRequest);
+                }
+                // For ContinueResponse, no action needed - processing continues normally
+            }
+            finally
+            {
+                requestArguments.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Create HttpRequestMessage from custom Request object
+    /// </summary>
+    private HttpRequestMessage CreateHttpRequestMessageFromCustomRequest(Request customRequest)
+    {
+        var httpMethod = new HttpMethod(customRequest.Method);
+        var httpRequest = new HttpRequestMessage(httpMethod, customRequest.RequestUri)
+        {
+            Version = customRequest.HttpVersion
+        };
+
+        // Copy headers from custom Request to HttpRequestMessage
+        // We need to separate content headers from request headers
+        var contentHeaders = new List<HttpHeader>();
+        foreach (var header in customRequest.Headers.GetAllHeaders())
+        {
+            if (IsContentHeader(header.Name))
+            {
+                contentHeaders.Add(header);
+            }
+            else
+            {
+                httpRequest.Headers.TryAddWithoutValidation(header.Name, header.Value);
+            }
+        }
+
+        // Handle body if present
+        if (customRequest.HasBody && customRequest.IsBodyRead)
+        {
+            httpRequest.Content = new ByteArrayContent(customRequest.Body);
+            
+            // Add content headers
+            foreach (var header in contentHeaders)
+            {
+                httpRequest.Content.Headers.TryAddWithoutValidation(header.Name, header.Value);
+            }
+        }
+
+        return httpRequest;
+    }
+
+    /// <summary>
+    /// Determines if a header is a content header
+    /// </summary>
+    private static bool IsContentHeader(string headerName)
+    {
+        return headerName.Equals("Content-Type", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Encoding", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Range", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Disposition", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Language", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Location", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-MD5", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Expires", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Last-Modified", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Convert HttpResponseMessage to custom Response object for backward compatibility
+    /// </summary>
+    private async Task<Response> ConvertHttpResponseMessageToCustomResponse(HttpResponseMessage httpResponse)
+    {
+        var response = new Response
+        {
+            StatusCode = (int)httpResponse.StatusCode,
+            StatusDescription = httpResponse.ReasonPhrase ?? string.Empty,
+            HttpVersion = httpResponse.Version
+        };
+
+        // Copy headers from HttpResponseMessage to custom Response
+        foreach (var header in httpResponse.Headers)
+        {
+            response.Headers.AddHeader(new HttpHeader(header.Key, string.Join(", ", header.Value)));
+        }
+
+        // Handle content if present
+        if (httpResponse.Content != null)
+        {
+            // Copy content headers
+            foreach (var header in httpResponse.Content.Headers)
+            {
+                response.Headers.AddHeader(new HttpHeader(header.Key, string.Join(", ", header.Value)));
+            }
+
+            // Read and set body
+            var responseBody = await httpResponse.Content.ReadAsByteArrayAsync();
+            response.Body = responseBody;
+            response.IsBodyRead = true;
+        }
+
+        return response;
+    }
+
+    /// <summary>
+    /// Update custom Request object from HttpRequestMessage for backward compatibility
+    /// </summary>
+    private async Task UpdateCustomRequestFromHttpRequestMessage(Request customRequest, HttpRequestMessage httpRequest)
+    {
+        // Update basic properties
+        customRequest.Method = httpRequest.Method.Method;
+        customRequest.Url = httpRequest.RequestUri?.ToString() ?? customRequest.Url;
+        customRequest.HttpVersion = httpRequest.Version;
+
+        // Clear existing headers and copy from HttpRequestMessage
+        customRequest.Headers.Clear();
+        foreach (var header in httpRequest.Headers)
+        {
+            customRequest.Headers.AddHeader(new HttpHeader(header.Key, string.Join(", ", header.Value)));
+        }
+
+        // Handle content if present
+        if (httpRequest.Content != null)
+        {
+            // Copy content headers
+            foreach (var header in httpRequest.Content.Headers)
+            {
+                customRequest.Headers.AddHeader(new HttpHeader(header.Key, string.Join(", ", header.Value)));
+            }
+
+            // Read and set body
+            var requestBody = await httpRequest.Content.ReadAsByteArrayAsync();
+            customRequest.Body = requestBody;
+            customRequest.IsBodyRead = true;
         }
     }
 
