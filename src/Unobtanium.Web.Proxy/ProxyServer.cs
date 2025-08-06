@@ -21,8 +21,9 @@ using Unobtanium.Web.Proxy.StreamExtended.BufferPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Runtime.CompilerServices;
-using System.Net.Http;
 using System.ComponentModel;
+using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace Unobtanium.Web.Proxy;
 
@@ -71,6 +72,16 @@ public partial class ProxyServer : IDisposable
     private readonly IProxyServerHttpClientFactory httpClientFactory;
 
     /// <summary>
+    ///     Cancellation token source for controlling listener tasks
+    /// </summary>
+    private CancellationTokenSource? listenerCancellationTokenSource;
+
+    /// <summary>
+    ///     Collection to track all active listener tasks
+    /// </summary>
+    private readonly ConcurrentBag<Task> listenerTasks = new();
+
+    /// <summary>
     /// Constructor for ProxyServer.
     /// </summary>
     /// <param name="configuration">Proxy configuration settings</param>
@@ -95,6 +106,10 @@ public partial class ProxyServer : IDisposable
             (this.configuration.CertificateTrustMode & ProxyCertificateTrustMode.TryWithUac) != 0,
             certificateRootFolder: this.configuration.CertificateCacheFolder,
             loggerFactory: this.loggerFactory);
+
+        // Initialize thread pool for high-performance scenarios
+        // It seems to be slightly faster to use a separate method for this.
+        OptimizeThreadPoolForProxy();
 
         if (this.configuration.EndPoints?.Any() == true)
         {
@@ -622,8 +637,7 @@ public partial class ProxyServer : IDisposable
     [Obsolete("Use the asynchronous method StartAsync instead")]
     public void Start ( bool changeSystemProxySettings = true )
     {
-        logger.LogWarning("You should call the async version!");
-        StartAsync(changeSystemProxySettings).GetAwaiter().GetResult();
+        throw new NotSupportedException("Use the asynchronous method StartAsync instead. This method will be removed in a future version.");
     }
 
     /// <summary>
@@ -639,8 +653,6 @@ public partial class ProxyServer : IDisposable
         //using var activity = activitySource?.StartActivity("StartAsync", ActivityKind.Server);
         logger.LogTrace("StartAsync(changeSystemProxySettings: {ChangeSystemProxySettings}) called", changeSystemProxySettings);
         if (ProxyRunning) throw new InvalidOperationException("Proxy is already running.");
-
-        SetThreadPoolMinThread(ThreadPoolWorkerThread);
 
         if (ProxyEndPoints.OfType<ExplicitProxyEndPoint>().Any(x => x.GenericCertificate == null))
         {
@@ -682,6 +694,9 @@ public partial class ProxyServer : IDisposable
             GetCustomUpStreamProxyFunc = GetSystemUpStreamProxy;
         }
 
+        // Initialize cancellation token source for all listeners
+        listenerCancellationTokenSource = new CancellationTokenSource();
+
         ProxyRunning = true;
 
         CertificateManager.StartClearingCertificates();
@@ -703,6 +718,9 @@ public partial class ProxyServer : IDisposable
             throw new InvalidOperationException("Proxy is not running.");
         }
 
+        // Signal all listeners to stop
+        listenerCancellationTokenSource?.Cancel();
+
         if (SystemProxySettingsManager != null)
         {
             var setAsSystemProxy = ProxyEndPoints.OfType<ExplicitProxyEndPoint>()
@@ -716,16 +734,29 @@ public partial class ProxyServer : IDisposable
             QuitListen(endPoint);
         }
 
+        // Wait for all listener tasks to complete (with timeout)
+        try
+        {
+            Task.WaitAll(listenerTasks.ToArray(), TimeSpan.FromSeconds(5));
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Some listener tasks did not complete gracefully");
+        }
+
         ProxyEndPoints.Clear();
 
         CertificateManager?.StopClearingCertificates();
         TcpConnectionFactory.Dispose();
 
+        listenerCancellationTokenSource?.Dispose();
+        listenerCancellationTokenSource = null;
+
         ProxyRunning = false;
     }
 
     /// <summary>
-    ///     Listen on given end point of local machine.
+    ///     Listen on given end point of local machine using modern async pattern.
     /// </summary>
     /// <param name="endPoint">The end point to listen.</param>
     private void Listen ( ProxyEndPoint endPoint )
@@ -737,15 +768,16 @@ public partial class ProxyServer : IDisposable
             endPoint.Listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
         }
 
-
         try
         {
             endPoint.Listener.Start();
-
             endPoint.Port = ((IPEndPoint)endPoint.Listener.LocalEndpoint).Port;
 
-            // accept clients asynchronously
-            endPoint.Listener.BeginAcceptSocket(OnAcceptConnection, endPoint);
+            // Start modern async listener task
+            var listenerTask = AcceptConnectionsAsync(endPoint, listenerCancellationTokenSource!.Token);
+            listenerTasks.Add(listenerTask);
+
+            logger.LogInformation("Started listening on {EndPoint} with async accept pattern", endPoint);
         }
         catch (SocketException ex)
         {
@@ -770,7 +802,6 @@ public partial class ProxyServer : IDisposable
             throw new ArgumentException("Cannot set endPoints not added to proxy as system proxy", nameof(endPoint));
         }
 
-
         if (!ProxyRunning)
         {
             throw new InvalidOperationException("Cannot set system proxy settings before proxy has been started.");
@@ -789,118 +820,214 @@ public partial class ProxyServer : IDisposable
     }
 
     /// <summary>
-    ///     Act when a connection is received from client.
+    ///     Modern high-performance async accept loop for .NET 8+
     /// </summary>
-    private void OnAcceptConnection ( IAsyncResult asyn )
+    /// <param name="endPoint">The proxy endpoint to accept connections for</param>
+    /// <param name="cancellationToken">Cancellation token to stop the accept loop</param>
+    private async Task AcceptConnectionsAsync(ProxyEndPoint endPoint, CancellationToken cancellationToken)
     {
-        var endPoint = asyn.AsyncState as ProxyEndPoint;
-
-        Socket? tcpClient = null;
-
-        try
-        {
-            // based on end point type call appropriate request handlers
-            tcpClient = endPoint!.Listener!.EndAcceptSocket(asyn);
-            tcpClient.NoDelay = NoDelay;
-        }
-        catch (ObjectDisposedException)
-        {
-            // The listener was Stop()'d, disposing the underlying socket and
-            // triggering the completion of the callback. We're already exiting,
-            // so just return.
-            return;
-        }
-        catch
-        {
-            // Other errors are discarded to keep proxy running
-        }
-
-        if (tcpClient != null)
-            Task.Run(async () => { await HandleClient(tcpClient, endPoint!); });
+        var listener = endPoint.Listener!;
+        var endPointInfo = $"{endPoint.IpAddress}:{endPoint.Port}";
+        
+        logger.LogDebug("Started async accept loop for endpoint {EndPoint}", endPointInfo);
 
         try
         {
-            // based on end point type call appropriate request handlers
-            // Get the listener that handles the client request.
-            endPoint!.Listener!.BeginAcceptSocket(OnAcceptConnection, endPoint);
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                Socket? tcpClient = null;
+
+                try
+                {
+                    // Modern async accept - much more efficient than the old callback pattern
+                    tcpClient = await listener.AcceptSocketAsync(cancellationToken).ConfigureAwait(false);
+                    
+                    // Configure socket for maximum performance immediately
+                    ConfigureSocketForPerformance(tcpClient);
+
+                    // Fire and forget client handling
+                    _ = HandleClientConnectionAsync(tcpClient, endPoint, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Expected when shutting down
+                    break;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Listener was disposed - exit gracefully
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Error accepting connection on endpoint {EndPoint}", endPointInfo);
+                    
+                    // Close the problematic socket if we got one
+                    try
+                    {
+                        tcpClient?.Close();
+                    }
+                    catch { }
+
+                    // Brief pause before retry to avoid tight error loops
+                    try
+                    {
+                        await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                }
+            }
         }
-        catch (Exception ex) when (ex is ObjectDisposedException || ex is InvalidOperationException)
+        finally
         {
-            // The listener was Stop()'d, disposing the underlying socket and
-            // triggering the completion of the callback. We're already exiting,
-            // so just return.
+            logger.LogDebug("Async accept loop ended for endpoint {EndPoint}", endPointInfo);
         }
     }
-
 
     /// <summary>
     ///     Change the ThreadPool.WorkerThread minThread
     /// </summary>
     /// <param name="workerThreads">minimum Threads allocated in the ThreadPool</param>
+    [Obsolete("No longer used")]
     private void SetThreadPoolMinThread ( int workerThreads )
     {
         ThreadPool.GetMinThreads(out _, out var minCompletionPortThreads);
         ThreadPool.GetMaxThreads(out var maxWorkerThreads, out _);
-
 
         ThreadPool.SetMinThreads(Math.Min(maxWorkerThreads, Math.Max(workerThreads, Environment.ProcessorCount)), minCompletionPortThreads);
     }
 
 
     /// <summary>
-    ///     Handle the client.
+    ///     Handle client connection with optimized async pattern
     /// </summary>
-    /// <param name="tcpClientSocket">The client socket.</param>
-    /// <param name="endPoint">The proxy endpoint.</param>
-    /// <returns>The task.</returns>
-    private async Task HandleClient ( Socket tcpClientSocket, ProxyEndPoint endPoint )
+    /// <param name="tcpClientSocket">Client socket</param>
+    /// <param name="endPoint">Proxy endpoint</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    private async Task HandleClientConnectionAsync(Socket tcpClientSocket, ProxyEndPoint endPoint, CancellationToken cancellationToken)
     {
-        using var clientConnectionActivity = activitySource?.StartActivity(nameof(HandleClient), ActivityKind.Consumer);
-        tcpClientSocket.ReceiveTimeout = ConnectionTimeOutSeconds * 1000;
-        tcpClientSocket.SendTimeout = ConnectionTimeOutSeconds * 1000;
-
-        tcpClientSocket.LingerState = new LingerOption(true, TcpTimeWaitSeconds);
-
-        // TODO: What does this callback do?
-        //await InvokeClientConnectionCreateEvent(tcpClientSocket);
-        
-        clientConnectionActivity?.SetTag("client.endpoint", tcpClientSocket.RemoteEndPoint?.ToString());
-        clientConnectionActivity?.SetTag("proxy.endpoint", endPoint.ToString());
-        clientConnectionActivity?.SetTag("connection.type", endPoint.GetType().Name);
+        // Only create activity if tracing is enabled (performance optimization)
+        Activity? clientConnectionActivity = null;
+        if (activitySource.HasListeners())
+        {
+            clientConnectionActivity = activitySource.StartActivity("ClientConnection", ActivityKind.Server);
+            clientConnectionActivity?.SetTag("client.endpoint", tcpClientSocket.RemoteEndPoint?.ToString());
+            clientConnectionActivity?.SetTag("proxy.endpoint", endPoint.ToString());
+            clientConnectionActivity?.SetTag("connection.type", endPoint.GetType().Name);
+        }
 
         using var clientConnection = new TcpClientConnection(tcpClientSocket);
         
         try
         {
-            if (endPoint is ExplicitProxyEndPoint eep)
-                await HandleClientExplicitEndpoint(eep, clientConnection).ConfigureAwait(false);
-            else if (endPoint is TransparentProxyEndPoint tep)
-                await HandleClientTransparentEndpoint(tep, clientConnection).ConfigureAwait(false);
-            else if (endPoint is SocksProxyEndPoint sep) 
-                await HandleClientSocksEndpoint(sep, clientConnection).ConfigureAwait(false);
+            using (clientConnectionActivity)
+            {
+                // Route to appropriate handler based on endpoint type
+                switch (endPoint)
+                {
+                    case ExplicitProxyEndPoint eep:
+                        await HandleClientExplicitEndpoint(eep, clientConnection).ConfigureAwait(false);
+                        break;
+                    case TransparentProxyEndPoint tep:
+                        await HandleClientTransparentEndpoint(tep, clientConnection).ConfigureAwait(false);
+                        break;
+                    case SocksProxyEndPoint sep:
+                        await HandleClientSocksEndpoint(sep, clientConnection).ConfigureAwait(false);
+                        break;
+                    default:
+                        logger.LogWarning("Unknown endpoint type: {EndPointType}", endPoint.GetType().Name);
+                        break;
+                }
+            }
         }
         catch (Exception ex)
         {
-            
             clientConnectionActivity?.RecordException(ex);
-            throw;
+            logger.LogDebug(ex, "Error handling client connection from {RemoteEndPoint}",
+                tcpClientSocket.RemoteEndPoint);
         }
     }
 
+    /// <summary>
+    ///     Optimize ThreadPool settings for high-performance proxy scenarios
+    /// </summary>
+    private void OptimizeThreadPoolForProxy()
+    {
+        var processorCount = Environment.ProcessorCount;
+        
+        // Set minimum threads to avoid thread starvation under load
+        var minWorkerThreads = Math.Max(processorCount * 2, ThreadPoolWorkerThread);
+        var minCompletionPortThreads = processorCount * 2;
+        
+        ThreadPool.SetMinThreads(minWorkerThreads, minCompletionPortThreads);
+        
+        // Set maximum threads for very high concurrency scenarios
+        var maxWorkerThreads = processorCount * 64; // Aggressive for proxy workloads
+        var maxCompletionPortThreads = processorCount * 64;
+        
+        ThreadPool.SetMaxThreads(maxWorkerThreads, maxCompletionPortThreads);
+        
+        logger.LogDebug("Optimized ThreadPool: MinWorkers={MinWorkers}, MinIOCP={MinIOCP}, MaxWorkers={MaxWorkers}, MaxIOCP={MaxIOCP}",
+            minWorkerThreads, minCompletionPortThreads, maxWorkerThreads, maxCompletionPortThreads);
+    }
+
+    /// <summary>
+    ///     Configure socket for maximum performance
+    /// </summary>
+    /// <param name="socket">Socket to configure</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ConfigureSocketForPerformance ( Socket socket )
+    {
+        socket.NoDelay = NoDelay;
+        socket.ReceiveTimeout = ConnectionTimeOutSeconds * 1000;
+        socket.SendTimeout = ConnectionTimeOutSeconds * 1000;
+        socket.LingerState = new LingerOption(true, TcpTimeWaitSeconds);
+
+        // Optimize buffer sizes for high throughput
+        socket.ReceiveBufferSize = 65536; // 64KB
+        socket.SendBufferSize = 65536;    // 64KB
+
+        // Platform-specific optimizations
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            try
+            {
+                // Windows-specific TCP optimizations
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 1);
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 3);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex, "Failed to set Windows-specific socket options");
+            }
+        }
+    }
 
     /// <summary>
     ///     Quit listening on the given end point.
     /// </summary>
     private static void QuitListen ( ProxyEndPoint endPoint )
     {
-        endPoint.Listener!.Stop();
-        endPoint.Listener.Server.Dispose();
+        try
+        {
+            endPoint.Listener?.Stop();
+            endPoint.Listener?.Server?.Dispose();
+        }
+        catch (Exception)
+        {
+            // Ignore errors during shutdown
+        }
     }
 
     /// <summary>
     ///     Update client connection count.
     /// </summary>
     /// <param name="increment">Should we increment/decrement?</param>
+    [Obsolete("Keeping a count of client connections using locking is not performant")]
     internal void UpdateClientConnectionCount ( bool increment )
     {
         int old = clientConnectionCount;
@@ -924,6 +1051,7 @@ public partial class ProxyServer : IDisposable
     ///     Update server connection count.
     /// </summary>
     /// <param name="increment">Should we increment/decrement?</param>
+    [Obsolete("Keeping a count of server connections using locking is not performant")]
     internal void UpdateServerConnectionCount ( bool increment )
     {
         var old = serverConnectionCount;
@@ -1013,6 +1141,7 @@ public partial class ProxyServer : IDisposable
             BufferPool?.Dispose();
             loggerFactory.Dispose();
             activitySource?.Dispose();
+            listenerCancellationTokenSource?.Dispose();
         }
     }
 

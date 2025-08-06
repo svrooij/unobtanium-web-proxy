@@ -51,7 +51,7 @@ public abstract class ProxyEndPoint
 
     public override string ToString ()
     {
-        return $"{IpAddress}:{Port}";
+        return $"[{GetType().Name}] {IpAddress}:{Port}";
     }
 }
 
