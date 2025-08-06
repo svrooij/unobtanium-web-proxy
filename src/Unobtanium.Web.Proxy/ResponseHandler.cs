@@ -134,7 +134,7 @@ public partial class ProxyServer
         // Use the new response event system (PREFERRED)
         if (configuration.Events.HasOnResponse)
         {
-            using var activity = activitySource?.StartActivity(nameof(OnBeforeResponse), ActivityKind.Internal);
+            using var activity = activitySource.StartActivity(nameof(configuration.Events.OnResponse), ActivityKind.Internal);
             
             // Create HttpRequestMessage and HttpResponseMessage from the session
             var httpRequest = CreateHttpRequestMessageFromCustomRequest(args.HttpClient.Request);
@@ -165,7 +165,7 @@ public partial class ProxyServer
     /// <summary>
     /// Convert custom Response to HttpResponseMessage for new event system
     /// </summary>
-    private async Task<HttpResponseMessage> ConvertCustomResponseToHttpResponseMessage(Response customResponse)
+    private Task<HttpResponseMessage> ConvertCustomResponseToHttpResponseMessage(Response customResponse)
     {
         var httpResponse = new HttpResponseMessage((HttpStatusCode)customResponse.StatusCode)
         {
@@ -199,7 +199,7 @@ public partial class ProxyServer
             }
         }
 
-        return httpResponse;
+        return Task.FromResult(httpResponse);
     }
 
     /// <summary>

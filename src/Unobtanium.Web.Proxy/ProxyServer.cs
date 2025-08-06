@@ -57,7 +57,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     /// <see cref="ActivitySource"/> that can be supplied to support distributed tracing
     /// </summary>
-    internal readonly ActivitySource? activitySource;
+    internal readonly ActivitySource activitySource;
 
     /// <summary>
     /// Logger factory to create loggers for various types
@@ -855,33 +855,33 @@ public partial class ProxyServer : IDisposable
     /// <returns>The task.</returns>
     private async Task HandleClient ( Socket tcpClientSocket, ProxyEndPoint endPoint )
     {
+        using var clientConnectionActivity = activitySource?.StartActivity(nameof(HandleClient), ActivityKind.Consumer);
         tcpClientSocket.ReceiveTimeout = ConnectionTimeOutSeconds * 1000;
         tcpClientSocket.SendTimeout = ConnectionTimeOutSeconds * 1000;
 
         tcpClientSocket.LingerState = new LingerOption(true, TcpTimeWaitSeconds);
 
-        await InvokeClientConnectionCreateEvent(tcpClientSocket);
-
-        // Create a root activity for the entire client connection lifetime
-        using var clientConnectionActivity = activitySource?.StartActivity("ClientConnection", ActivityKind.Server);
+        // TODO: What does this callback do?
+        //await InvokeClientConnectionCreateEvent(tcpClientSocket);
+        
         clientConnectionActivity?.SetTag("client.endpoint", tcpClientSocket.RemoteEndPoint?.ToString());
         clientConnectionActivity?.SetTag("proxy.endpoint", endPoint.ToString());
         clientConnectionActivity?.SetTag("connection.type", endPoint.GetType().Name);
 
-        using var clientConnection = new TcpClientConnection(this, tcpClientSocket);
+        using var clientConnection = new TcpClientConnection(tcpClientSocket);
         
         try
         {
             if (endPoint is ExplicitProxyEndPoint eep)
-                await HandleClient(eep, clientConnection);
+                await HandleClientExplicitEndpoint(eep, clientConnection).ConfigureAwait(false);
             else if (endPoint is TransparentProxyEndPoint tep)
-                await HandleClient(tep, clientConnection);
+                await HandleClientTransparentEndpoint(tep, clientConnection).ConfigureAwait(false);
             else if (endPoint is SocksProxyEndPoint sep) 
-                await HandleClient(sep, clientConnection);
+                await HandleClientSocksEndpoint(sep, clientConnection).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            clientConnectionActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            
             clientConnectionActivity?.RecordException(ex);
             throw;
         }

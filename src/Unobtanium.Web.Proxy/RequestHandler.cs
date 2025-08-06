@@ -424,7 +424,7 @@ public partial class ProxyServer
     /// <param name="requestActivity">Activity where this requests belongs to.</param>
     /// <param name="cancellationToken">Cancellation token for this request</param>
     /// <returns></returns>
-    private async Task OnBeforeRequest ( SessionEventArgs args, Activity? requestActivity = null, CancellationToken cancellationToken = default)
+    private async Task OnBeforeRequest ( SessionEventArgs args, Activity? requestActivity, CancellationToken cancellationToken = default)
     {
         args.TimeLine["Request Received"] = DateTime.UtcNow;
 
@@ -437,13 +437,13 @@ public partial class ProxyServer
         // Use the new event system for request handling (PREFERRED)
         if (configuration.Events.HasOnRequest) 
         {
-            using var activity = activitySource?.StartActivity(nameof(OnBeforeRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
+            using var activity = activitySource.StartActivity(nameof(configuration.Events.OnRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
             
             // Create HttpRequestMessage from the custom Request
             var httpRequest = CreateHttpRequestMessageFromCustomRequest(args.HttpClient.Request);
             
-            requestActivity?.SetTag("requestUri", args.HttpClient.Request.Url);
-            requestActivity?.SetTag("requestMethod", httpRequest.Method.ToString());
+            activity?.SetTag("requestUri", args.HttpClient.Request.Url);
+            activity?.SetTag("requestMethod", httpRequest.Method.ToString());
 
             // If the request has a body and it's been read, add it to the HttpRequestMessage
             if (args.HttpClient.Request.HasBody && args.HttpClient.Request.IsBodyRead)

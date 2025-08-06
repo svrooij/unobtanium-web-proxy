@@ -48,6 +48,11 @@ public abstract class ProxyEndPoint
     ///     Generic certificate to use for SSL decryption.
     /// </summary>
     public X509Certificate2? GenericCertificate { get; set; }
+
+    public override string ToString ()
+    {
+        return $"{IpAddress}:{Port}";
+    }
 }
 
 internal class ProxyEndPointComparer : IEqualityComparer<ProxyEndPoint>

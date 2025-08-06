@@ -17,7 +17,7 @@ public partial class ProxyServer
     /// <param name="endPoint">The transparent endpoint.</param>
     /// <param name="clientConnection">The client connection.</param>
     /// <returns></returns>
-    private async Task HandleClient ( SocksProxyEndPoint endPoint, TcpClientConnection clientConnection )
+    private async Task HandleClientSocksEndpoint ( SocksProxyEndPoint endPoint, TcpClientConnection clientConnection )
     {
         var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
@@ -139,6 +139,6 @@ public partial class ProxyServer
             BufferPool.ReturnBuffer(buffer);
         }
 
-        await HandleClient(endPoint, clientConnection, port, cancellationTokenSource, cancellationToken);
+        await handleClientTransparentEndpoint(endPoint, clientConnection, port, cancellationTokenSource, cancellationToken);
     }
 }

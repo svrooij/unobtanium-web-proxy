@@ -21,16 +21,12 @@ internal class TcpClientConnection : IDisposable
 
     private int? processId;
 
-    internal TcpClientConnection ( ProxyServer proxyServer, Socket tcpClientSocket )
+    internal TcpClientConnection (Socket tcpClientSocket )
     {
         this.tcpClientSocket = tcpClientSocket;
-        ProxyServer = proxyServer;
-        ProxyServer.UpdateClientConnectionCount(true);
     }
 
     public object? ClientUserData { get; set; }
-
-    private ProxyServer ProxyServer { get; }
 
     public Guid Id { get; } = Guid.NewGuid();
 
@@ -42,10 +38,11 @@ internal class TcpClientConnection : IDisposable
 
     internal SslApplicationProtocol NegotiatedApplicationProtocol { get; set; }
 
+    // TODO: Investigate performance impact of this property
     public void Dispose ()
     {
         Dispose(true);
-        GC.SuppressFinalize(this);
+        //GC.SuppressFinalize(this);
     }
 
     public Stream GetStream ()
@@ -71,9 +68,11 @@ internal class TcpClientConnection : IDisposable
             return processId.Value;
         }
 
-        throw new PlatformNotSupportedException();
+        //throw new PlatformNotSupportedException();
+        return -1; // Not supported on this platform
     }
 
+    // TODO: Investigate performance impact of this method
     protected virtual void Dispose ( bool disposing )
     {
         if (disposed) return;
@@ -83,8 +82,9 @@ internal class TcpClientConnection : IDisposable
             // delay calling tcp connection close()
             // so that client have enough time to call close first.
             // This way we can push tcp Time_Wait to client side when possible.
+
             await Task.Delay(1000);
-            ProxyServer.UpdateClientConnectionCount(false);
+            //ProxyServer.UpdateClientConnectionCount(false);
 
             if (disposing)
                 try
