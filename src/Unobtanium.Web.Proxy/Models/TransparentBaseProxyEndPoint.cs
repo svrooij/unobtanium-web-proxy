@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Logging;
+using System.Net;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.EventArguments;
 
@@ -30,5 +31,5 @@ public abstract class TransparentBaseProxyEndPoint : ProxyEndPoint
     public abstract string GenericCertificateName { get; set; }
 
     internal abstract Task InvokeBeforeSslAuthenticate ( ProxyServer proxyServer,
-        BeforeSslAuthenticateEventArgs connectArgs, ExceptionHandler? exceptionFunc );
+        BeforeSslAuthenticateEventArgs connectArgs, ILogger? logger );
 }

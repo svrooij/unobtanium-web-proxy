@@ -51,7 +51,7 @@ public partial class ProxyServer
                 var args = new BeforeSslAuthenticateEventArgs(this, clientConnection, cancellationTokenSource,
                     httpsHostName);
 
-                await endPoint.InvokeBeforeSslAuthenticate(this, args, ExceptionFunc);
+                await endPoint.InvokeBeforeSslAuthenticate(this, args, logger);
 
                 if (cancellationTokenSource.IsCancellationRequested)
                     throw new Exception("Session was terminated by user.");

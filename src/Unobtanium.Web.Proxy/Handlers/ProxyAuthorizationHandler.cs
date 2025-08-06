@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -70,8 +71,9 @@ public partial class ProxyServer
         }
         catch (Exception e)
         {
-            OnException(null, new ProxyAuthorizationException("Error whilst authorizing request", session, e,
-                httpHeaders));
+            logger.LogError(e, "Error whilst authorizing request");
+            //OnException(null, new ProxyAuthorizationException("Error whilst authorizing request", session, e,
+            //    httpHeaders));
 
             // Return not authorized
             session.HttpClient.Response = CreateAuthentication407Response("Proxy Authentication Invalid");

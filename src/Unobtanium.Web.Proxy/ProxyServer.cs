@@ -47,14 +47,6 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     private int clientConnectionCount;
 
-    /// <summary>
-    ///     Backing field for exposed public property.
-    /// </summary>
-    private ExceptionHandler? exceptionFunc;
-
-    /// <summary>
-    ///     Backing field for exposed public property.
-    /// </summary>
     private int serverConnectionCount;
 
     /// <summary>
@@ -72,7 +64,7 @@ public partial class ProxyServer : IDisposable
     /// </summary>
     internal readonly ILoggerFactory loggerFactory;
 
-    private readonly ILogger<ProxyServer> logger;
+    internal readonly ILogger<ProxyServer> logger;
 
     private readonly ProxyServerConfiguration configuration;
 
@@ -314,12 +306,14 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     ///     Callback for error events in this proxy instance.
     /// </summary>
+    [Obsolete("All errors are logged in the ILogger, connect to that")]
     public ExceptionHandler? ExceptionFunc
     {
-        get => exceptionFunc;
+        get => null;
         set
         {
-            exceptionFunc = value;
+            // Ignore anything they set here, we log everything in the ILogger
+            //exceptionFunc = value;
         }
     }
 
@@ -893,15 +887,6 @@ public partial class ProxyServer : IDisposable
         }
     }
 
-    /// <summary>
-    ///     Handle exception.
-    /// </summary>
-    /// <param name="clientStream">The client stream.</param>
-    /// <param name="exception">The exception.</param>
-    private void OnException ( HttpClientStream? clientStream, Exception exception )
-    {
-        ExceptionFunc?.Invoke(exception);
-    }
 
     /// <summary>
     ///     Quit listening on the given end point.
@@ -931,7 +916,7 @@ public partial class ProxyServer : IDisposable
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Error invoking ClientConnectionCountChanged event");
-            OnException(null, ex);
+            
         }
     }
 
@@ -954,7 +939,7 @@ public partial class ProxyServer : IDisposable
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Error invoking ServerConnectionCountChanged event");
-            OnException(null, ex);
+            
         }
     }
 
@@ -967,7 +952,7 @@ public partial class ProxyServer : IDisposable
     {
         // client connection created
         if (OnClientConnectionCreate != null)
-            await OnClientConnectionCreate.InvokeAsync(this, clientSocket, ExceptionFunc);
+            await OnClientConnectionCreate.InvokeAsync(this, clientSocket, logger);
     }
 
     /// <summary>
@@ -979,7 +964,7 @@ public partial class ProxyServer : IDisposable
     {
         // server connection created
         if (OnServerConnectionCreate != null)
-            await OnServerConnectionCreate.InvokeAsync(this, serverSocket, ExceptionFunc);
+            await OnServerConnectionCreate.InvokeAsync(this, serverSocket, logger);
     }
 
     /// <summary>

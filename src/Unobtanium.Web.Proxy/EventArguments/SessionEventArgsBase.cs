@@ -31,11 +31,6 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     internal readonly CancellationTokenSource CancellationTokenSource;
 
     /// <summary>
-    /// Exception handler function for the session.
-    /// </summary>
-    protected readonly ExceptionHandler? ExceptionFunc;
-
-    /// <summary>
     /// Logger instance for the session.
     /// </summary>
     internal readonly ILogger logger;
@@ -51,7 +46,6 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
         CancellationTokenSource cancellationTokenSource ) : base(server, clientStream.Connection)
     {
         BufferPool = server.BufferPool;
-        ExceptionFunc = server.ExceptionFunc;
         TimeLine["Session Created"] = DateTime.UtcNow;
 
         CancellationTokenSource = cancellationTokenSource;
@@ -184,14 +178,6 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     }
 
     /// <summary>
-    /// Called when an exception is thrown in user event.
-    /// </summary>
-    protected void OnException ( Exception exception )
-    {
-        ExceptionFunc?.Invoke(exception);
-    }
-
-    /// <summary>
     ///     Dispose this instance.
     /// </summary>
     protected virtual void Dispose ( bool disposing )
@@ -243,7 +229,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
         }
         catch (Exception ex)
         {
-            OnException(new Exception("Exception thrown in user event", ex));
+            logger.LogError(ex, "Exception thrown in DataSent event handler");
         }
     }
 
@@ -255,7 +241,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
         }
         catch (Exception ex)
         {
-            OnException(new Exception("Exception thrown in user event", ex));
+            logger.LogError(ex, "Exception thrown in DataReceived event handler");
         }
     }
 

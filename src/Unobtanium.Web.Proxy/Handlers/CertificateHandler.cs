@@ -27,7 +27,7 @@ public partial class ProxyServer
             var args = new CertificateValidationEventArgs(sessionArgs!, certificate, chain, sslPolicyErrors);
 
             // why is the sender null?
-            ServerCertificateValidationCallback.InvokeAsync(this, args, ExceptionFunc).Wait();
+            ServerCertificateValidationCallback.InvokeAsync(this, args, logger).Wait();
             return args.IsValid;
         }
 
@@ -79,7 +79,7 @@ public partial class ProxyServer
             };
 
 
-            ClientCertificateSelectionCallback.InvokeAsync(this, args, ExceptionFunc).Wait();
+            ClientCertificateSelectionCallback.InvokeAsync(this, args, logger).Wait();
             return args.ClientCertificate;
         }
 

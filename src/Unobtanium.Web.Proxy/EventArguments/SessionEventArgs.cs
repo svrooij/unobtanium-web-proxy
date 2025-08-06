@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -140,7 +141,7 @@ public class SessionEventArgs : SessionEventArgsBase
         }
         catch (Exception ex)
         {
-            OnException(new Exception("Exception thrown in user event", ex));
+            logger.LogError(ex, "Exception thrown in MultipartRequestPartSent event handler");
         }
     }
 

@@ -262,7 +262,7 @@ public partial class ProxyServer
                 clientStream.DataRead += ( o, args ) => connectArgs.OnDataSent(args.Buffer, args.Offset, args.Count);
                 clientStream.DataWrite += ( o, args ) => connectArgs.OnDataReceived(args.Buffer, args.Offset, args.Count);
 
-                await endPoint.InvokeBeforeTunnelConnectRequest(this, connectArgs, ExceptionFunc);
+                await endPoint.InvokeBeforeTunnelConnectRequest(this, connectArgs, logger);
 
                 // filter out excluded host names
                 var decryptSsl = endPoint.DecryptSsl && connectArgs.DecryptSsl;
@@ -285,7 +285,7 @@ public partial class ProxyServer
 
                 if (await CheckAuthorization(connectArgs) == false)
                 {
-                    await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, ExceptionFunc);
+                    await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger);
 
                     // send the response
                     await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationToken);
@@ -312,7 +312,7 @@ public partial class ProxyServer
                     connectRequest.ClientHelloInfo = clientHelloInfo;
                 }
 
-                await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, ExceptionFunc, isClientHello);
+                await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger, isClientHello);
 
                 if (decryptSsl && clientHelloInfo != null)
                 {
@@ -524,7 +524,7 @@ sslStream.NegotiatedApplicationProtocol;
                             },
                             async args => { await OnBeforeRequest(args, cancellationToken: cancellationToken); },
                             async args => { await OnBeforeResponse(args); },
-                            connectArgs.CancellationTokenSource, clientStream.Connection.Id, ExceptionFunc);
+                            connectArgs.CancellationTokenSource, clientStream.Connection.Id, null);
                     }
                     finally
                     {
@@ -646,25 +646,25 @@ sslStream.NegotiatedApplicationProtocol;
             // Now create the request using original method (fallback)
             await HandleHttpSessionRequest(endPoint, clientStream, cancellationTokenSource, connectArgs, prefetchTask);
         }
-        catch (ProxyException e)
-        {
-            closeServerConnection = true;
-            OnException(clientStream, e);
-        }
-        catch (IOException e)
-        {
-            closeServerConnection = true;
-            OnException(clientStream, new Exception("Connection was aborted", e));
-        }
-        catch (SocketException e)
-        {
-            closeServerConnection = true;
-            OnException(clientStream, new Exception("Could not connect", e));
-        }
+        //catch (ProxyException e)
+        //{
+        //    closeServerConnection = true;
+        //    OnException(clientStream, e);
+        //}
+        //catch (IOException e)
+        //{
+        //    closeServerConnection = true;
+        //    OnException(clientStream, new Exception("Connection was aborted", e));
+        //}
+        //catch (SocketException e)
+        //{
+        //    closeServerConnection = true;
+        //    OnException(clientStream, new Exception("Could not connect", e));
+        //}
         catch (Exception e)
         {
             closeServerConnection = true;
-            OnException(clientStream, new Exception("Error occured in whilst handling the client", e));
+            logger.LogError(e, "Error handling client request");
         }
         finally
         {

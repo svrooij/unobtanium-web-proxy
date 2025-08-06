@@ -146,12 +146,10 @@ internal class TcpHelper
     /// <param name="onDataSend"></param>
     /// <param name="onDataReceive"></param>
     /// <param name="cancellationTokenSource"></param>
-    /// <param name="exceptionFunc"></param>
     /// <returns></returns>
     internal static Task SendRawWithCallbacks ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
         Action<byte[], int, int> onDataSend, Action<byte[], int, int> onDataReceive,
-        CancellationTokenSource cancellationTokenSource,
-        ExceptionHandler? exceptionFunc )
+        CancellationTokenSource cancellationTokenSource)
     {
         // todo: fix APM mode
         return SendRawTapWithCallbacks(clientStream, serverStream, bufferPool, onDataSend, onDataReceive,

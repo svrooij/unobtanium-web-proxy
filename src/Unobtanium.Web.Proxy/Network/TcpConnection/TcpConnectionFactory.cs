@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -701,8 +702,9 @@ retry:
                         connection?.Dispose();
             }
             catch (Exception e)
-            {
-                Server.ExceptionFunc?.Invoke(new Exception("An error occurred when disposing server connections.", e));
+            { 
+                Server.logger.LogError(e, "An error occurred when disposing server connections.");
+
             }
             finally
             {

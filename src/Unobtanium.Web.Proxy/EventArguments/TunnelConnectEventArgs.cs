@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Threading;
 using Unobtanium.Web.Proxy.Helpers;
 using Unobtanium.Web.Proxy.Http;
@@ -60,7 +61,8 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
         }
         catch (Exception ex)
         {
-            OnException(new Exception("Exception thrown in user event", ex));
+            
+            logger.LogError(ex, "Exception thrown in OnDecryptedDataSent event");
         }
     }
 
@@ -72,7 +74,7 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
         }
         catch (Exception ex)
         {
-            OnException(new Exception("Exception thrown in user event", ex));
+            logger.LogError(ex, "Exception thrown in OnDecryptedDataReceived event");
         }
     }
 

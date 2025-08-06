@@ -77,7 +77,10 @@ namespace WindowsServiceExample
             }
 
             if (Settings.Default.LogErrors)
-                _proxyServerInstance.ExceptionFunc = ProxyException;
+            {
+                // TODO connect to ILogger
+                //_proxyServerInstance.ExceptionFunc = ProxyException;
+            }
 
             _proxyServerInstance.StartAsync(cancellationToken: CancellationToken.None).GetAwaiter().GetResult();
 

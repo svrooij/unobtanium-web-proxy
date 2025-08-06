@@ -128,7 +128,7 @@ public partial class ProxyServer
         // Support legacy BeforeResponse event for backward compatibility (DEPRECATED)
         #pragma warning disable CS0618 // Type or member is obsolete
         if (BeforeResponse != null) 
-            await BeforeResponse.InvokeAsync(this, args, ExceptionFunc);
+            await BeforeResponse.InvokeAsync(this, args, logger);
         #pragma warning restore CS0618
 
         // Use the new response event system (PREFERRED)
@@ -212,7 +212,7 @@ public partial class ProxyServer
         // Support legacy AfterResponse event for backward compatibility (DEPRECATED)
         #pragma warning disable CS0618 // Type or member is obsolete
         if (AfterResponse != null) 
-            await AfterResponse.InvokeAsync(this, args, ExceptionFunc);
+            await AfterResponse.InvokeAsync(this, args, logger);
         #pragma warning restore CS0618
     }
 
@@ -231,7 +231,7 @@ public partial class ProxyServer
     {
         if (OnResponseBodyWrite != null)
         {
-            await OnResponseBodyWrite.InvokeAsync(this, args, ExceptionFunc);
+            await OnResponseBodyWrite.InvokeAsync(this, args, logger);
         }
     }
 #endif

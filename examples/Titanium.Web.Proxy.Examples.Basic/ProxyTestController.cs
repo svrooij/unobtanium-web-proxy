@@ -50,13 +50,14 @@ namespace Unobtanium.Web.Proxy.Examples.Basic
             //proxyServer.CertificateManager.TrustRootCertificate();
             //proxyServer.CertificateManager.TrustRootCertificateAsAdmin();
 
-            proxyServer.ExceptionFunc = async exception =>
-            {
-                if (exception is ProxyHttpException phex)
-                    WriteToConsole(exception.Message + ": " + phex.InnerException?.Message, ConsoleColor.Red);
-                else
-                    WriteToConsole(exception.Message, ConsoleColor.Red);
-            };
+            // TODO: Connect to ILogger, ExceptionFunc is removed
+            //proxyServer.ExceptionFunc = async exception =>
+            //{
+            //    if (exception is ProxyHttpException phex)
+            //        WriteToConsole(exception.Message + ": " + phex.InnerException?.Message, ConsoleColor.Red);
+            //    else
+            //        WriteToConsole(exception.Message, ConsoleColor.Red);
+            //};
 
             proxyServer.CertificateManager.SaveFakeCertificates = false;
             //proxyServer.ProxyBasicAuthenticateFunc = async (args, userName, password) =>

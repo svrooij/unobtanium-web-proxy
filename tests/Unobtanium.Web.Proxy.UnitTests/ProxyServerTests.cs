@@ -123,36 +123,37 @@ namespace Unobtanium.Web.Proxy.UnitTests
 
         }
 
-        [TestMethod]
-        public async Task InvokeClientConnectionCreateEvent_WhenCalledWithThrowInHandler_InvokesExceptionFunc ()
-        {
-            var proxy = new ProxyServer(configuration: null);
-            bool isEventHit = false;
-            bool isExceptionHit = false;
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            var exception = new Exception("Test exception");
-            proxy.OnClientConnectionCreate += ( sender, args ) =>
-            {
-                isEventHit = true;
-                throw exception;
-            };
+        //[TestMethod]
+        //[Ignore("Errors are logged not emitted as event")]
+        //public async Task InvokeClientConnectionCreateEvent_WhenCalledWithThrowInHandler_InvokesExceptionFunc ()
+        //{
+        //    var proxy = new ProxyServer(configuration: null);
+        //    bool isEventHit = false;
+        //    bool isExceptionHit = false;
+        //    var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        //    var exception = new Exception("Test exception");
+        //    proxy.OnClientConnectionCreate += ( sender, args ) =>
+        //    {
+        //        isEventHit = true;
+        //        throw exception;
+        //    };
 
-            proxy.ExceptionFunc = ( ex ) =>
-            {
-                Assert.IsInstanceOfType(ex, typeof(Exceptions.EventException));
-                Assert.AreEqual(exception, ex.InnerException);
-                isExceptionHit = true;
-            };
+        //    proxy.ExceptionFunc = ( ex ) =>
+        //    {
+        //        Assert.IsInstanceOfType(ex, typeof(Exceptions.EventException));
+        //        Assert.AreEqual(exception, ex.InnerException);
+        //        isExceptionHit = true;
+        //    };
 
 
-            // Act
-            await proxy.InvokeClientConnectionCreateEvent(socket);
+        //    // Act
+        //    await proxy.InvokeClientConnectionCreateEvent(socket);
 
-            // Assert
-            Assert.IsTrue(isEventHit);
-            Assert.IsTrue(isExceptionHit);
+        //    // Assert
+        //    Assert.IsTrue(isEventHit);
+        //    Assert.IsTrue(isExceptionHit);
 
-        }
+        //}
 
         [TestMethod]
         public async Task InvokeServerConnectionCreateEvent_WhenCalled_InvokesEventHandler ()
@@ -224,29 +225,30 @@ namespace Unobtanium.Web.Proxy.UnitTests
             Assert.IsTrue(isHit);
         }
 
-        [TestMethod]
-        public void UpdateClientConnectionCount_WhenCalledWithThrowInHandler_ThenExceptionFunctionIsCalled ()
-        {
-            var proxy = new ProxyServer(configuration: null);
-            bool isEventHit = false;
-            bool isExceptionHit = false;
-            var exception = new Exception("Test exception");
-            proxy.ClientConnectionCountChanged += ( sender, args ) =>
-            {
+        //[TestMethod]
+        //[Ignore("Errors are logged not emitted as event")]
+        //public void UpdateClientConnectionCount_WhenCalledWithThrowInHandler_ThenExceptionFunctionIsCalled ()
+        //{
+        //    var proxy = new ProxyServer(configuration: null);
+        //    bool isEventHit = false;
+        //    bool isExceptionHit = false;
+        //    var exception = new Exception("Test exception");
+        //    proxy.ClientConnectionCountChanged += ( sender, args ) =>
+        //    {
 
-                isEventHit = true;
-                throw exception;
-            };
-            proxy.ExceptionFunc = ( ex ) =>
-            {
-                Assert.AreEqual(exception, ex);
-                isExceptionHit = true;
-            };
+        //        isEventHit = true;
+        //        throw exception;
+        //    };
+        //    proxy.ExceptionFunc = ( ex ) =>
+        //    {
+        //        Assert.AreEqual(exception, ex);
+        //        isExceptionHit = true;
+        //    };
 
-            proxy.UpdateClientConnectionCount(true);
-            Assert.IsTrue(isEventHit);
-            Assert.IsTrue(isExceptionHit);
-        }
+        //    proxy.UpdateClientConnectionCount(true);
+        //    Assert.IsTrue(isEventHit);
+        //    Assert.IsTrue(isExceptionHit);
+        //}
 
         [TestMethod]
         public void UpdateClientConnectionCount_WhenCalled_ThenEventHoldsCorrectValue ()

@@ -431,7 +431,7 @@ public partial class ProxyServer
         // Support legacy BeforeRequest event for backward compatibility (DEPRECATED)
         #pragma warning disable CS0618 // Type or member is obsolete
         if (BeforeRequest != null) 
-            await BeforeRequest.InvokeAsync(this, args, ExceptionFunc);
+            await BeforeRequest.InvokeAsync(this, args, logger);
         #pragma warning restore CS0618
 
         // Use the new event system for request handling (PREFERRED)
@@ -635,7 +635,7 @@ public partial class ProxyServer
     internal async Task OnBeforeUpStreamConnectRequest ( ConnectRequest request )
     {
         if (BeforeUpStreamConnectRequest != null)
-            await BeforeUpStreamConnectRequest.InvokeAsync(this, request, ExceptionFunc);
+            await BeforeUpStreamConnectRequest.InvokeAsync(this, request, logger);
     }
 
 #if DEBUG
@@ -653,7 +653,7 @@ public partial class ProxyServer
     {
         if (OnRequestBodyWrite != null)
         {
-            await OnRequestBodyWrite.InvokeAsync(this, args, ExceptionFunc);
+            await OnRequestBodyWrite.InvokeAsync(this, args, logger);
         }
     }
 #endif
