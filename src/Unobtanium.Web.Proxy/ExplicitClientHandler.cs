@@ -330,59 +330,96 @@ public partial class ProxyServer
 
                     clientStream.Connection.SslProtocol = sslProtocol;
 
-                    var http2Supported = false;
+                    // Extract hostname once and reuse
+                    var connectHostnameSpan = requestLine.RequestUri.GetString().AsSpan();
+                    var colonIndex = connectHostnameSpan.IndexOf(':');
+                    var connectHostname = colonIndex >= 0 
+                        ? connectHostnameSpan[..colonIndex].ToString() 
+                        : connectHostnameSpan.ToString();
 
+                    // Start parallel operations for performance optimization
+                    Task<bool> http2SupportTask = null!;
+                    Task<X509Certificate2> certificateTask = null!;
+                    
+                    // Start certificate generation/retrieval in parallel
+                    certificateTask = Task.Run(async () =>
+                    {
+                        var certName = HttpHelper.GetWildCardDomainName(connectHostname,
+                            CertificateManager.DisableWildCardCertificates);
+                        return endPoint.GenericCertificate ??
+                               await CertificateManager.GetOrGenerateCertificateAsync(certName);
+                    });
+
+                    // Start HTTP/2 support detection in parallel if enabled
                     if (EnableHttp2)
                     {
                         var alpn = clientHelloInfo.GetAlpn();
                         if (alpn != null && alpn.Contains(SslApplicationProtocol.Http2))
-                            // test server HTTP/2 support
-                            try
+                        {
+                            http2SupportTask = Task.Run(async () =>
                             {
-                                // todo: this is a hack, because Titanium does not support HTTP protocol changing currently
-                                var connection = await TcpConnectionFactory.GetServerConnection(this, connectArgs,
-                                    true, SslExtensions.Http2ProtocolAsList,
-                                    true, true, cancellationTokenSource.Token);
-
-                                if (connection != null)
+                                try
                                 {
-                                    http2Supported = connection.NegotiatedApplicationProtocol ==
-                                                     SslApplicationProtocol.Http2;
+                                    // Test server HTTP/2 support
+                                    var connection = await TcpConnectionFactory.GetServerConnection(this, connectArgs,
+                                        true, SslExtensions.Http2ProtocolAsList,
+                                        true, true, cancellationTokenSource.Token);
 
-                                    // release connection back to pool instead of closing when connection pool is enabled.
-                                    await TcpConnectionFactory.Release(connection, true);
+                                    if (connection != null)
+                                    {
+                                        var supported = connection.NegotiatedApplicationProtocol == SslApplicationProtocol.Http2;
+                                        // release connection back to pool instead of closing when connection pool is enabled.
+                                        await TcpConnectionFactory.Release(connection, true);
+                                        return supported;
+                                    }
+                                    return false;
                                 }
-                            }
-                            catch (Exception)
-                            {
-                                // ignore
-                            }
+                                catch (Exception)
+                                {
+                                    // ignore
+                                    return false;
+                                }
+                            });
+                        }
+                        else
+                        {
+                            http2SupportTask = Task.FromResult(false);
+                        }
+                    }
+                    else
+                    {
+                        http2SupportTask = Task.FromResult(false);
                     }
 
+                    // Start server connection prefetch early and in parallel
                     if (EnableTcpServerConnectionPrefetch)
+                    {
                         // don't pass cancellation token here
                         // it could cause floating server connections when client exits
                         prefetchConnectionTask = TcpConnectionFactory.GetServerConnection(this, connectArgs,
                             true, null, false, true,
                             CancellationToken.None);
+                    }
 
-                    var connectHostname = requestLine.RequestUri.GetString();
-                    var idx = connectHostname.IndexOf(':');
-                    if (idx >= 0) connectHostname = connectHostname[..idx];
+                    // Wait for parallel operations to complete
+                    var http2Supported = await http2SupportTask;
+                    var certificate = await certificateTask;
 
-                    X509Certificate2? certificate = null;
+                    X509Certificate2? certToUse = certificate;
                     SslStream? sslStream = null;
                     try
                     {
                         sslStream = new SslStream(clientStream, false);
 
-                        var certName = HttpHelper.GetWildCardDomainName(connectHostname,
-                            CertificateManager.DisableWildCardCertificates);
-                        certificate = endPoint.GenericCertificate ??
-                                      await CertificateManager.GetOrGenerateCertificateAsync(certName);
-
-                        // Successfully managed to authenticate the client using the fake certificate
-                        var options = new SslServerAuthenticationOptions();
+                        // Prepare SSL authentication options
+                        var options = new SslServerAuthenticationOptions
+                        {
+                            ServerCertificate = certToUse,
+                            ClientCertificateRequired = false,
+                            EnabledSslProtocols = SupportedSslProtocols,
+                            CertificateRevocationCheckMode = X509RevocationMode.NoCheck
+                        };
+                        
                         if (EnableHttp2 && http2Supported)
                         {
                             options.ApplicationProtocols = clientHelloInfo.GetAlpn();
@@ -390,16 +427,9 @@ public partial class ProxyServer
                                 options.ApplicationProtocols = SslExtensions.Http11ProtocolAsList;
                         }
 
-                        options.ServerCertificate = certificate;
-                        options.ClientCertificateRequired = false;
-                        options.EnabledSslProtocols = SupportedSslProtocols;
-                        options.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
                         await sslStream.AuthenticateAsServerAsync(options, cancellationTokenSource.Token);
 
-
-                        clientStream.Connection.NegotiatedApplicationProtocol =
-sslStream.NegotiatedApplicationProtocol;
-
+                        clientStream.Connection.NegotiatedApplicationProtocol = sslStream.NegotiatedApplicationProtocol;
 
                         // HTTPS server created - we can now decrypt the client's traffic
                         clientStream = new HttpClientStream(this, clientStream.Connection, sslStream, BufferPool,
@@ -415,7 +445,7 @@ sslStream.NegotiatedApplicationProtocol;
                     {
                         sslStream?.Dispose();
 
-                        var certName = certificate?.GetNameInfo(X509NameType.SimpleName, false);
+                        var certName = certToUse?.GetNameInfo(X509NameType.SimpleName, false);
                         throw new ProxyConnectException(
                             $"Couldn't authenticate host '{connectHostname}' with certificate '{certName}'.", e,
                             connectArgs);
