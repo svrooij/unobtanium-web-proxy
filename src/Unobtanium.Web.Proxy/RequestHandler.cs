@@ -31,12 +31,12 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="endPoint">The proxy endpoint.</param>
     /// <param name="clientStream">The client stream.</param>
-    /// <param name="cancellationTokenSource">The cancellation token source for this async task.</param>
+    /// <param name="cancellationToken">The cancellation token source for this async task.</param>
     /// <param name="connectArgs">The Connect request if this is a HTTPS request from explicit endpoint.</param>
     /// <param name="prefetchConnectionTask">Prefetched server connection for current client using Connect/SNI headers.</param>
     /// <param name="isHttps">Is HTTPS</param>
     private async Task HandleHttpSessionRequest ( ProxyEndPoint endPoint, HttpClientStream clientStream,
-        CancellationTokenSource cancellationTokenSource, TunnelConnectSessionEventArgs? connectArgs = null,
+        CancellationToken cancellationToken, TunnelConnectSessionEventArgs? connectArgs = null,
         Task<TcpServerConnection?>? prefetchConnectionTask = null, bool isHttps = false )
     {
         var connectRequest = connectArgs?.HttpClient.ConnectRequest;
@@ -47,7 +47,7 @@ public partial class ProxyServer
 
         try
         {
-            var cancellationToken = cancellationTokenSource.Token;
+            //var cancellationToken = cancellationTokenSource.Token;
 
             // Loop through each subsequent request on this particular client connection
             // (assuming HTTP connection is kept alive by client)
@@ -63,7 +63,7 @@ public partial class ProxyServer
                 var requestLine = await clientStream.ReadRequestLine(cancellationToken);
                 if (requestLine.IsEmpty()) return;
 
-                var args = new SessionEventArgs(this, endPoint, clientStream, connectRequest, cancellationTokenSource)
+                var args = new SessionEventArgs(this, endPoint, clientStream, connectRequest, cancellationToken)
                 {
                     UserData = connectArgs?.UserData
                 };
@@ -187,7 +187,7 @@ public partial class ProxyServer
 
                         var result = await HandleHttpSessionRequest(args, connection,
                             clientStream.Connection.NegotiatedApplicationProtocol,
-                            cancellationToken, cancellationTokenSource);
+                            cancellationToken);
 
                         var newConnection = result.LatestConnection;
                         if (connection != newConnection && connection != null)
@@ -217,7 +217,7 @@ public partial class ProxyServer
                             return;
                         }
 
-                        if (cancellationTokenSource.IsCancellationRequested)
+                        if (cancellationToken.IsCancellationRequested)
                             throw new Exception("Session was terminated by user.");
 
                         // Release server connection for each HTTP session instead of per client connection.
@@ -260,7 +260,7 @@ public partial class ProxyServer
 
     private async Task<RetryResult> HandleHttpSessionRequest ( SessionEventArgs args,
         TcpServerConnection? serverConnection, SslApplicationProtocol sslApplicationProtocol,
-        CancellationToken cancellationToken, CancellationTokenSource cancellationTokenSource )
+        CancellationToken cancellationToken)
     {
         args.HttpClient.Request.Locked = true;
 
@@ -298,8 +298,7 @@ public partial class ProxyServer
                     args.HttpClient.ConnectRequest!.TunnelType = TunnelType.Websocket;
 
                 // if upgrading to websocket then relay the request without reading the contents
-                await HandleWebSocketUpgrade(args, args.ClientStream, connection, cancellationTokenSource,
-                    cancellationToken);
+                await HandleWebSocketUpgrade(args, args.ClientStream, connection, cancellationToken);
                 return false;
             }
 
@@ -311,7 +310,7 @@ public partial class ProxyServer
 
     private async Task HandleHttpSessionRequest ( SessionEventArgs args )
     {
-        var cancellationToken = args.CancellationTokenSource.Token;
+        var cancellationToken = args.CancellationToken;
         var request = args.HttpClient.Request;
 
         var body = request.CompressBodyAndUpdateContentLength();

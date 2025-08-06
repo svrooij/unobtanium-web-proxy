@@ -89,19 +89,19 @@ internal class TcpHelper
     /// <param name="cancellationTokenSource"></param>
     /// <returns></returns>
     private static async Task SendRawTap ( Stream clientStream, Stream serverStream,
-        CancellationTokenSource cancellationTokenSource )
+        CancellationToken cancellationToken )
     {
         // Now async relay all server=>client & client=>server data
-        var sendRelay = clientStream.CopyToAsync(serverStream, cancellationTokenSource.Token);
+        var sendRelay = clientStream.CopyToAsync(serverStream, cancellationToken);
         //var sendRelay =
         //    clientStream.CopyToAsync(serverStream, onDataSend, bufferPool, cancellationTokenSource.Token);
         var receiveRelay =
-            serverStream.CopyToAsync(clientStream, cancellationTokenSource.Token);
+            serverStream.CopyToAsync(clientStream, cancellationToken);
         //var receiveRelay =
         //    serverStream.CopyToAsync(clientStream, onDataReceive, bufferPool, cancellationTokenSource.Token);
 
         await Task.WhenAny(sendRelay, receiveRelay);
-        cancellationTokenSource.Cancel();
+        //cancellationTokenSource.Cancel();
 
         await Task.WhenAll(sendRelay, receiveRelay);
     }
@@ -121,16 +121,16 @@ internal class TcpHelper
     /// <returns></returns>
     private static async Task SendRawTapWithCallbacks ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
         Action<byte[], int, int>? onDataSend, Action<byte[], int, int>? onDataReceive,
-        CancellationTokenSource cancellationTokenSource )
+        CancellationToken cancellationToken )
     {
         // Now async relay all server=>client & client=>server data
         var sendRelay =
-            clientStream.CopyToAsync(serverStream, onDataSend, bufferPool, cancellationTokenSource.Token);
+            clientStream.CopyToAsync(serverStream, onDataSend, bufferPool, cancellationToken);
         var receiveRelay =
-            serverStream.CopyToAsync(clientStream, onDataReceive, bufferPool, cancellationTokenSource.Token);
+            serverStream.CopyToAsync(clientStream, onDataReceive, bufferPool, cancellationToken);
 
         await Task.WhenAny(sendRelay, receiveRelay);
-        cancellationTokenSource.Cancel();
+        //cancellationTokenSource.Cancel();
 
         await Task.WhenAll(sendRelay, receiveRelay);
     }
@@ -149,11 +149,11 @@ internal class TcpHelper
     /// <returns></returns>
     internal static Task SendRawWithCallbacks ( Stream clientStream, Stream serverStream, IBufferPool bufferPool,
         Action<byte[], int, int> onDataSend, Action<byte[], int, int> onDataReceive,
-        CancellationTokenSource cancellationTokenSource)
+        CancellationToken cancellationToken)
     {
         // todo: fix APM mode
         return SendRawTapWithCallbacks(clientStream, serverStream, bufferPool, onDataSend, onDataReceive,
-            cancellationTokenSource);
+            cancellationToken);
     }
 
     /// <summary>
@@ -166,10 +166,10 @@ internal class TcpHelper
     /// <param name="cancellationTokenSource"></param>
     /// <returns></returns>
     internal static Task SendRaw ( Stream clientStream, Stream serverStream,
-        CancellationTokenSource cancellationTokenSource )
+        CancellationToken cancellationToken )
     {
         // todo: fix APM mode
         return SendRawTap(clientStream, serverStream,
-            cancellationTokenSource);
+            cancellationToken);
     }
 }

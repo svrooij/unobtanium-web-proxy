@@ -223,15 +223,17 @@ public partial class ProxyServer
     /// </summary>
     /// <param name="endPoint">The explicit endpoint.</param>
     /// <param name="clientConnection">The client connection.</param>
+    /// <param name="activityContext"></param>
+    /// <param name="cancellationTokenSource"></param>
     /// <returns>The task.</returns>
-    private async Task HandleClientExplicitEndpoint ( ExplicitProxyEndPoint endPoint, TcpClientConnection clientConnection )
+    private async Task HandleClientExplicitEndpoint ( ExplicitProxyEndPoint endPoint, TcpClientConnection clientConnection, ActivityContext? activityContext, CancellationTokenSource cancellationTokenSource )
     {
-        using var handleActivity = activitySource.CreateActivity(nameof(HandleClientExplicitEndpoint), ActivityKind.Internal);
-        var cancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = cancellationTokenSource.Token;
+        //using var handleActivity = activitySource.StartActivity(nameof(HandleClientExplicitEndpoint), ActivityKind.Consumer, activityContext ?? default);
+        
+        //var cancellationToken = cancellationTokenSource.Token;
 
         var clientStream = new HttpClientStream(this, clientConnection, clientConnection.GetStream(), BufferPool,
-            cancellationToken);
+            cancellationTokenSource.Token);
 
         Task<TcpServerConnection?>? prefetchConnectionTask = null;
         var closeServerConnection = false;
@@ -240,15 +242,15 @@ public partial class ProxyServer
 
         try
         {
-            var method = await HttpHelper.GetMethod(clientStream, BufferPool, cancellationToken);
-            if (clientStream.IsClosed) return;
+            var method = await HttpHelper.GetMethod(clientStream, BufferPool, cancellationTokenSource.Token);
+            if (clientStream.IsClosed || cancellationTokenSource.IsCancellationRequested) return;
 
             // Client wants to create a secure tcp tunnel (probably its a HTTPS or Websocket request)
             if (method == KnownMethod.Connect)
             {
-                using var connectActivity = activitySource.CreateActivity($"ExplicitClientHandler_Connect", ActivityKind.Internal);
+                using var connectActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Connect", ActivityKind.Consumer);
                 // read the first line HTTP command
-                var requestLine = await clientStream.ReadRequestLine(cancellationToken);
+                var requestLine = await clientStream.ReadRequestLine(cancellationTokenSource.Token);
                 if (requestLine.IsEmpty()) return;
 
                 var connectRequest = new ConnectRequest(requestLine.RequestUri)
@@ -257,10 +259,10 @@ public partial class ProxyServer
                     HttpVersion = requestLine.Version
                 };
 
-                await HeaderParser.ReadHeaders(clientStream, connectRequest.Headers, cancellationToken);
+                await HeaderParser.ReadHeaders(clientStream, connectRequest.Headers, cancellationTokenSource.Token);
 
                 connectArgs = new TunnelConnectSessionEventArgs(this, endPoint, connectRequest, clientStream,
-                    cancellationTokenSource);
+                    cancellationTokenSource.Token);
                 clientStream.DataRead += ( o, args ) => connectArgs.OnDataSent(args.Buffer, args.Offset, args.Count);
                 clientStream.DataWrite += ( o, args ) => connectArgs.OnDataReceived(args.Buffer, args.Offset, args.Count);
 
@@ -281,7 +283,7 @@ public partial class ProxyServer
                         };
 
                     // send the response
-                    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationToken);
+                    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationTokenSource.Token);
                     return;
                 }
 
@@ -290,7 +292,7 @@ public partial class ProxyServer
                     await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger);
 
                     // send the response
-                    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationToken);
+                    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationTokenSource.Token);
                     return;
                 }
 
@@ -302,9 +304,9 @@ public partial class ProxyServer
                 response.Headers.FixProxyHeaders();
                 connectArgs.HttpClient.Response = response;
 
-                await clientStream.WriteResponseAsync(response, cancellationToken);
+                await clientStream.WriteResponseAsync(response, cancellationTokenSource.Token);
 
-                var clientHelloInfo = await SslTools.PeekClientHello(clientStream, BufferPool, cancellationToken);
+                var clientHelloInfo = await SslTools.PeekClientHello(clientStream, BufferPool, cancellationTokenSource.Token);
                 if (clientStream.IsClosed) return;
 
                 var isClientHello = clientHelloInfo != null;
@@ -340,7 +342,7 @@ public partial class ProxyServer
                                 // todo: this is a hack, because Titanium does not support HTTP protocol changing currently
                                 var connection = await TcpConnectionFactory.GetServerConnection(this, connectArgs,
                                     true, SslExtensions.Http2ProtocolAsList,
-                                    true, true, cancellationToken);
+                                    true, true, cancellationTokenSource.Token);
 
                                 if (connection != null)
                                 {
@@ -392,7 +394,7 @@ public partial class ProxyServer
                         options.ClientCertificateRequired = false;
                         options.EnabledSslProtocols = SupportedSslProtocols;
                         options.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
-                        await sslStream.AuthenticateAsServerAsync(options, cancellationToken);
+                        await sslStream.AuthenticateAsServerAsync(options, cancellationTokenSource.Token);
 
 
                         clientStream.Connection.NegotiatedApplicationProtocol =
@@ -401,7 +403,7 @@ sslStream.NegotiatedApplicationProtocol;
 
                         // HTTPS server created - we can now decrypt the client's traffic
                         clientStream = new HttpClientStream(this, clientStream.Connection, sslStream, BufferPool,
-                            cancellationToken);
+                            cancellationTokenSource.Token);
                         sslStream = null; // clientStream was created, no need to keep SSL stream reference
 
                         clientStream.DataRead += ( o, args ) =>
@@ -419,7 +421,7 @@ sslStream.NegotiatedApplicationProtocol;
                             connectArgs);
                     }
 
-                    method = await HttpHelper.GetMethod(clientStream, BufferPool, cancellationToken);
+                    method = await HttpHelper.GetMethod(clientStream, BufferPool, cancellationTokenSource.Token);
                     if (clientStream.IsClosed) return;
 
                     if (method == KnownMethod.Invalid)
@@ -431,7 +433,7 @@ sslStream.NegotiatedApplicationProtocol;
                 }
                 else if (clientHelloInfo == null)
                 {
-                    method = await HttpHelper.GetMethod(clientStream, BufferPool, cancellationToken);
+                    method = await HttpHelper.GetMethod(clientStream, BufferPool, cancellationTokenSource.Token);
                     if (clientStream.IsClosed) return;
                 }
 
@@ -448,7 +450,7 @@ sslStream.NegotiatedApplicationProtocol;
                     // this connection should not be HTTPS.
                     var connection = (await TcpConnectionFactory.GetServerConnection(this, connectArgs,
                         true, null,
-                        true, false, cancellationToken))!;
+                        true, false, cancellationTokenSource.Token))!;
 
                     try
                     {
@@ -463,10 +465,10 @@ sslStream.NegotiatedApplicationProtocol;
                                 try
                                 {
                                     // clientStream.Available should be at most BufferSize because it is using the same buffer size
-                                    var read = await clientStream.ReadAsync(data, 0, available, cancellationToken);
+                                    var read = await clientStream.ReadAsync(data, 0, available, cancellationTokenSource.Token);
                                     if (read != available) throw new Exception("Internal error.");
 
-                                    await connection.Stream.WriteAsync(data, 0, available, true, cancellationToken);
+                                    await connection.Stream.WriteAsync(data, 0, available, true, cancellationTokenSource.Token);
                                 }
                                 finally
                                 {
@@ -475,12 +477,12 @@ sslStream.NegotiatedApplicationProtocol;
                             }
 
                             var serverHelloInfo =
-                                await SslTools.PeekServerHello(connection.Stream, BufferPool, cancellationToken);
+                                await SslTools.PeekServerHello(connection.Stream, BufferPool, cancellationTokenSource.Token);
                             ((ConnectResponse)connectArgs.HttpClient.Response).ServerHelloInfo = serverHelloInfo;
                         }
 
                         if (!clientStream.IsClosed && !connection.Stream.IsClosed)
-                            await TcpHelper.SendRaw(clientStream, connection.Stream, connectArgs.CancellationTokenSource);
+                            await TcpHelper.SendRaw(clientStream, connection.Stream, connectArgs.CancellationToken);
                     }
                     finally
                     {
@@ -494,41 +496,41 @@ sslStream.NegotiatedApplicationProtocol;
 
             if (connectArgs != null && method == KnownMethod.Pri)
             {
-                using var prefaceActivity = activitySource.StartActivity("Http2ConnectionPreface", ActivityKind.Server);
+                using var prefaceActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Http2ConnectionPreface", ActivityKind.Consumer);
                 // todo
-                var httpCmd = await clientStream.ReadLineAsync(cancellationToken);
+                var httpCmd = await clientStream.ReadLineAsync(cancellationTokenSource.Token);
                 if (httpCmd == "PRI * HTTP/2.0")
                 {
                     connectArgs.HttpClient.ConnectRequest!.TunnelType = TunnelType.Http2;
 
                     // HTTP/2 Connection Preface
-                    var line = await clientStream.ReadLineAsync(cancellationToken);
+                    var line = await clientStream.ReadLineAsync(cancellationTokenSource.Token);
                     if (line != string.Empty)
                         throw new Exception($"HTTP/2 Protocol violation. Empty string expected, '{line}' received");
 
-                    line = await clientStream.ReadLineAsync(cancellationToken);
+                    line = await clientStream.ReadLineAsync(cancellationTokenSource.Token);
                     if (line != "SM")
                         throw new Exception($"HTTP/2 Protocol violation. 'SM' expected, '{line}' received");
 
-                    line = await clientStream.ReadLineAsync(cancellationToken);
+                    line = await clientStream.ReadLineAsync(cancellationTokenSource.Token);
                     if (line != string.Empty)
                         throw new Exception($"HTTP/2 Protocol violation. Empty string expected, '{line}' received");
 
                     var connection = (await TcpConnectionFactory.GetServerConnection(this, connectArgs,
                         true, SslExtensions.Http2ProtocolAsList,
-                        true, false, cancellationToken))!;
+                        true, false, cancellationTokenSource.Token))!;
                     try
                     {
                         var connectionPreface = new ReadOnlyMemory<byte>(Http2Helper.ConnectionPreface);
-                        await connection.Stream.WriteAsync(connectionPreface, cancellationToken);
+                        await connection.Stream.WriteAsync(connectionPreface, cancellationTokenSource.Token);
                         await Http2Helper.SendHttp2(clientStream, connection.Stream,
-                            () => new SessionEventArgs(this, endPoint, clientStream, connectArgs?.HttpClient.ConnectRequest, cancellationTokenSource)
+                            () => new SessionEventArgs(this, endPoint, clientStream, connectArgs?.HttpClient.ConnectRequest, cancellationTokenSource.Token)
                             {
                                 UserData = connectArgs?.UserData
                             },
-                            async args => { await OnBeforeRequest(args, prefaceActivity, cancellationToken: cancellationToken); },
+                            async args => { await OnBeforeRequest(args, prefaceActivity, cancellationToken: cancellationTokenSource.Token); },
                             async args => { await OnBeforeResponse(args); },
-                            connectArgs.CancellationTokenSource, clientStream.Connection.Id, null);
+                            connectArgs.CancellationToken, clientStream.Connection.Id, null);
                     }
                     finally
                     {
@@ -541,9 +543,9 @@ sslStream.NegotiatedApplicationProtocol;
             // NEW: Handle regular HTTP requests using HttpRequestMessage
             if (method != KnownMethod.Connect && method != KnownMethod.Pri && method != KnownMethod.Invalid)
             {
-                using var requestActivity = activitySource.StartActivity("ParseIncomingRequest", ActivityKind.Server);
+                using var requestActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_HandleHttpMessage", ActivityKind.Consumer);
                 // Parse the incoming request into HttpRequestMessage
-                var httpRequestMessage = await ParseHttpRequestMessage(clientStream, cancellationToken);
+                var httpRequestMessage = await ParseHttpRequestMessage(clientStream, cancellationTokenSource.Token);
                 if (httpRequestMessage != null)
                 {
                     try
@@ -560,27 +562,22 @@ sslStream.NegotiatedApplicationProtocol;
                             httpRequestMessage.RequestUri = builder.Uri;
                         }
 
-                        HttpResponseMessage? httpResponseMessage = null;
-
-                        // Fire the new event system with HttpRequestMessage
-
-                        
+                        HttpResponseMessage? httpResponseMessage = null;                        
                         
                         // Set activity tags for better telemetry
-                        requestActivity?.SetTag("http.method", httpRequestMessage.Method.Method);
-                        requestActivity?.SetTag("http.url", httpRequestMessage.RequestUri?.ToString());
-                        requestActivity?.SetTag("http.scheme", httpRequestMessage.RequestUri?.Scheme);
-                        requestActivity?.SetTag("http.target", httpRequestMessage.RequestUri?.PathAndQuery);
+                        requestActivity?.SetTag("http.request.method", httpRequestMessage.Method.Method);
+                        requestActivity?.SetTag("url.full", httpRequestMessage.RequestUri?.ToString());
                         if (httpRequestMessage.RequestUri?.Host != null)
                         {
-                            requestActivity?.SetTag("http.host", httpRequestMessage.RequestUri.Host);
+                            requestActivity?.SetTag("server.host", httpRequestMessage.RequestUri.Host);
+                            requestActivity?.SetTag("server.port", httpRequestMessage.RequestUri.Port);
                         }
 
                         // Add distributed tracing headers to the outgoing request
                         AddDistributedTracingHeadersToHttpRequestMessage(httpRequestMessage, requestActivity);
 
                         var requestArguments = new Events.RequestEventArguments(httpRequestMessage, requestActivity);
-                        var handlerResponse = await configuration.Events.InvokeOnRequest(this, requestArguments, logger, cancellationToken);
+                        var handlerResponse = await configuration.Events.InvokeOnRequest(this, requestArguments, logger, cancellationTokenSource.Token);
                         if (handlerResponse.Response is not null)
                         {
                             httpResponseMessage = handlerResponse.Response;
@@ -590,46 +587,52 @@ sslStream.NegotiatedApplicationProtocol;
                             httpRequestMessage = handlerResponse.ModifiedRequest;
                         }
                         requestActivity?.Stop();
-                        
 
+
+                        // Proxy server did not modify the request, use HttpClient to send the request to remote server
                         if (httpResponseMessage is null)
                         {
                             using (var httpClient = this.httpClientFactory.CreateHttpClient())
                             {
-                                httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
+                                httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationTokenSource.Token);
                             }
 
 
-                            using (var responseActivity = activitySource?.StartActivity("HttpResponse", ActivityKind.Server))
+                            using (var responseHandlerActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_OnResponse", ActivityKind.Producer))
                             {
-                                var responseArguments = new Events.ResponseEventArguments(httpRequestMessage, httpResponseMessage, responseActivity);
-                                var eventResponse = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, cancellationToken);
+                                var responseArguments = new Events.ResponseEventArguments(httpRequestMessage, httpResponseMessage, responseHandlerActivity);
+                                var eventResponse = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, cancellationTokenSource.Token);
                                 if (eventResponse.ModifiedResponse is not null)
                                 {
                                     httpResponseMessage = eventResponse.ModifiedResponse;
                                 }
                             }
 
-                            var response = await ConvertHttpResponseMessage(httpResponseMessage); // Convert to custom Response object
-                            await clientStream.WriteResponseAsync(response);
+                            using (var responseActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitRemoteResponse", ActivityKind.Producer))
+                            {
+                                // Convert HttpResponseMessage to custom Response object
+                                var response = await ConvertHttpResponseMessage(httpResponseMessage); // Convert to custom Response object
+                                responseActivity?.SetTag("http.status_code", response.StatusCode);
+                                responseActivity?.SetTag("http.status_text", response.StatusDescription);
+                                await clientStream.WriteResponseAsync(response);
+                            }
                             return;
                         }
 
 
-
-                        //var response = await ConvertHttpResponseMessage(httpResponseMessage);
-                        //await clientStream.WriteResponseAsync(response, cancellationToken);
-
-                        // No freaking idea why I need to call this, but otherwise it won't work
-                        // Maybe this calculates the Content-Length?
-                        if (httpResponseMessage.Content is not null)
+                        using (var responseActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitProxyResponse", ActivityKind.Producer))
                         {
-                            var content = await httpResponseMessage.Content.ReadAsByteArrayAsync(cancellationToken);
-                            await clientStream.WriteAsync(httpResponseMessage, content, cancellationToken);
-                        }
-                        else
-                        {
-                            await clientStream.WriteAsync(httpResponseMessage, null, cancellationToken);
+                            // No freaking idea why I need to call this, but otherwise it won't work
+                            // Maybe this calculates the Content-Length?
+                            if (httpResponseMessage.Content is not null)
+                            {
+                                var content = await httpResponseMessage.Content.ReadAsByteArrayAsync(cancellationTokenSource.Token);
+                                await clientStream.WriteAsync(httpResponseMessage, content, cancellationTokenSource.Token);
+                            }
+                            else
+                            {
+                                await clientStream.WriteAsync(httpResponseMessage, null, cancellationTokenSource.Token);
+                            }
                         }
 
                         return;
@@ -642,7 +645,6 @@ sslStream.NegotiatedApplicationProtocol;
                     finally
                     {
                         httpRequestMessage.Dispose();
-
                     }
                 }
             }
@@ -651,7 +653,7 @@ sslStream.NegotiatedApplicationProtocol;
             prefetchConnectionTask = null;
 
             // Now create the request using original method (fallback)
-            await HandleHttpSessionRequest(endPoint, clientStream, cancellationTokenSource, connectArgs, prefetchTask);
+            await HandleHttpSessionRequest(endPoint, clientStream, cancellationTokenSource.Token, connectArgs, prefetchTask);
         }
         catch (Exception e)
         {
@@ -732,6 +734,9 @@ sslStream.NegotiatedApplicationProtocol;
         else
         {
             activity.SetTag("http.traceparent_preserved", "true");
+            // If traceparent already exists, we assume it was set by the client
+            // Add a link to the request activity
+
         }
 
         // Add tracestate if it exists in the activity and wasn't already present

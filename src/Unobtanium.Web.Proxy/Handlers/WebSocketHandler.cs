@@ -14,7 +14,7 @@ public partial class ProxyServer
     /// </summary>
     private async Task HandleWebSocketUpgrade ( SessionEventArgs args,
         HttpClientStream clientStream, TcpServerConnection serverConnection,
-        CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken )
+        CancellationToken cancellationToken )
     {
         await serverConnection.Stream.WriteRequestAsync(args.HttpClient.Request, cancellationToken);
 
@@ -34,6 +34,6 @@ public partial class ProxyServer
         if (!args.HttpClient.Response.Locked) await OnBeforeResponse(args);
 
         await TcpHelper.SendRawWithCallbacks(clientStream, serverConnection.Stream, BufferPool,
-            args.OnDataSent, args.OnDataReceived, cancellationTokenSource);
+            args.OnDataSent, args.OnDataReceived, cancellationToken);
     }
 }

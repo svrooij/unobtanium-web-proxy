@@ -451,10 +451,12 @@ public partial class ProxyServer : IDisposable
 
         if (this.configuration.ShouldProxyRequest is not null && endPoint is ExplicitProxyEndPoint explicitEndPoint)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             explicitEndPoint.BeforeTunnelConnectRequest += async ( s, e ) =>
             {
-                e.DecryptSsl = await this.configuration.ShouldProxyRequest.Invoke(e.HttpClient.Request.RequestUri, e.CancellationTokenSource.Token);
+                e.DecryptSsl = await this.configuration.ShouldProxyRequest.Invoke(e.HttpClient.Request.RequestUri, e.CancellationToken);
             };
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         ProxyEndPoints.Add(endPoint);
@@ -909,11 +911,12 @@ public partial class ProxyServer : IDisposable
     /// <param name="cancellationToken">Cancellation token</param>
     private async Task HandleClientConnectionAsync(Socket tcpClientSocket, ProxyEndPoint endPoint, CancellationToken cancellationToken)
     {
+        using var connectionCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // Only create activity if tracing is enabled (performance optimization)
         Activity? clientConnectionActivity = null;
         if (activitySource.HasListeners())
         {
-            clientConnectionActivity = activitySource.StartActivity("ClientConnection", ActivityKind.Server);
+            clientConnectionActivity = activitySource.StartActivity(nameof(HandleClientConnectionAsync), ActivityKind.Server);
             clientConnectionActivity?.SetTag("client.endpoint", tcpClientSocket.RemoteEndPoint?.ToString());
             clientConnectionActivity?.SetTag("proxy.endpoint", endPoint.ToString());
             clientConnectionActivity?.SetTag("connection.type", endPoint.GetType().Name);
@@ -929,13 +932,13 @@ public partial class ProxyServer : IDisposable
                 switch (endPoint)
                 {
                     case ExplicitProxyEndPoint eep:
-                        await HandleClientExplicitEndpoint(eep, clientConnection).ConfigureAwait(false);
+                        await HandleClientExplicitEndpoint(eep, clientConnection, clientConnectionActivity?.Context, connectionCancellationTokenSource).ConfigureAwait(false);
                         break;
                     case TransparentProxyEndPoint tep:
-                        await HandleClientTransparentEndpoint(tep, clientConnection).ConfigureAwait(false);
+                        await HandleClientTransparentEndpoint(tep, clientConnection, connectionCancellationTokenSource).ConfigureAwait(false);
                         break;
                     case SocksProxyEndPoint sep:
-                        await HandleClientSocksEndpoint(sep, clientConnection).ConfigureAwait(false);
+                        await HandleClientSocksEndpoint(sep, clientConnection, connectionCancellationTokenSource).ConfigureAwait(false);
                         break;
                     default:
                         logger.LogWarning("Unknown endpoint type: {EndPointType}", endPoint.GetType().Name);
@@ -948,6 +951,10 @@ public partial class ProxyServer : IDisposable
             clientConnectionActivity?.RecordException(ex);
             logger.LogDebug(ex, "Error handling client connection from {RemoteEndPoint}",
                 tcpClientSocket.RemoteEndPoint);
+            if (connectionCancellationTokenSource.IsCancellationRequested == false)
+            {
+                connectionCancellationTokenSource.Cancel();
+            }
         }
     }
 

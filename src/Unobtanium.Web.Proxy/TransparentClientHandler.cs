@@ -26,9 +26,8 @@ public partial class ProxyServer
     /// <param name="endPoint">The transparent endpoint.</param>
     /// <param name="clientConnection">The client connection.</param>
     /// <returns></returns>
-    private Task HandleClientTransparentEndpoint ( TransparentProxyEndPoint endPoint, TcpClientConnection clientConnection )
+    private Task HandleClientTransparentEndpoint ( TransparentProxyEndPoint endPoint, TcpClientConnection clientConnection, CancellationTokenSource cancellationTokenSource )
     {
-        var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         return handleClientTransparentEndpoint(endPoint, clientConnection, endPoint.Port, cancellationTokenSource, cancellationToken);
     }
@@ -92,14 +91,14 @@ public partial class ProxyServer
                         sslStream?.Dispose();
 
                         var certName = certificate?.GetNameInfo(X509NameType.SimpleName, false);
-                        var session = new SessionEventArgs(this, endPoint, clientStream, null, cancellationTokenSource);
+                        var session = new SessionEventArgs(this, endPoint, clientStream, null, cancellationToken);
                         throw new ProxyConnectException(
                             $"Couldn't authenticate host '{httpsHostName}' with certificate '{certName}'.", e, session);
                     }
                 }
                 else
                 {
-                    var sessionArgs = new SessionEventArgs(this, endPoint, clientStream, null, cancellationTokenSource);
+                    var sessionArgs = new SessionEventArgs(this, endPoint, clientStream, null, cancellationToken);
                     var connection = (await TcpConnectionFactory.GetServerConnection(this, args.ForwardHttpsHostName,
                         args.ForwardHttpsPort,
                         HttpHeader.VersionUnknown, false, null,
@@ -130,7 +129,7 @@ public partial class ProxyServer
                         }
 
                         if (!clientStream.IsClosed && !connection.Stream.IsClosed)
-                            await TcpHelper.SendRaw(clientStream, connection.Stream, cancellationTokenSource);
+                            await TcpHelper.SendRaw(clientStream, connection.Stream, cancellationToken);
                     }
                     finally
                     {
@@ -143,7 +142,7 @@ public partial class ProxyServer
 
             // HTTPS server created - we can now decrypt the client's traffic
             // Now create the request
-            await HandleHttpSessionRequest(endPoint, clientStream, cancellationTokenSource, isHttps: isHttps);
+            await HandleHttpSessionRequest(endPoint, clientStream, cancellationToken, isHttps: isHttps);
         }
         catch (Exception e)
         {

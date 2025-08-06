@@ -28,7 +28,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     /// Cancellation token source for the session.
     /// </summary>
-    internal readonly CancellationTokenSource CancellationTokenSource;
+    internal readonly CancellationToken CancellationToken;
 
     /// <summary>
     /// Logger instance for the session.
@@ -43,12 +43,12 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// </summary>
     private protected SessionEventArgsBase ( ProxyServer server, ProxyEndPoint endPoint,
         HttpClientStream clientStream, ConnectRequest? connectRequest, Request request,
-        CancellationTokenSource cancellationTokenSource ) : base(server, clientStream.Connection)
+        CancellationToken cancellationToken ) : base(server, clientStream.Connection)
     {
         BufferPool = server.BufferPool;
         TimeLine["Session Created"] = DateTime.UtcNow;
 
-        CancellationTokenSource = cancellationTokenSource;
+        CancellationToken = cancellationToken;
 
         ClientStream = clientStream;
         HttpClient = new HttpWebClient(connectRequest, request,
@@ -174,7 +174,7 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     public void Dispose ()
     {
         Dispose(true);
-        GC.SuppressFinalize(this);
+        //GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -248,8 +248,9 @@ public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
     /// <summary>
     ///     Terminates the session abruptly by terminating client/server connections.
     /// </summary>
+    [Obsolete("Not supported anymore")]
     public void TerminateSession ()
     {
-        CancellationTokenSource.Cancel();
+        //CancellationTokenSource.Cancel();
     }
 }

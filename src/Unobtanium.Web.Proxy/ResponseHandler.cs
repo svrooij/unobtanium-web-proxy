@@ -23,7 +23,7 @@ public partial class ProxyServer
     /// <returns> The task.</returns>
     private async Task HandleHttpSessionResponse ( SessionEventArgs args )
     {
-        var cancellationToken = args.CancellationTokenSource.Token;
+        var cancellationToken = args.CancellationToken;
 
         // read response & headers from server
         await args.HttpClient.ReceiveResponse(cancellationToken);
@@ -85,7 +85,7 @@ public partial class ProxyServer
             // clear current response
             await args.ClearResponse(cancellationToken);
             var result = await HandleHttpSessionRequest(args, null, args.ClientConnection.NegotiatedApplicationProtocol,
-                cancellationToken, args.CancellationTokenSource);
+                cancellationToken);
             if (result.LatestConnection != null) args.HttpClient.SetConnection(result.LatestConnection);
 
             return;
@@ -144,7 +144,7 @@ public partial class ProxyServer
             
             try
             {
-                var response = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, args.CancellationTokenSource.Token);
+                var response = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, args.CancellationToken);
                 
                 // Handle the response from the new event system
                 if (response.ModifiedResponse != null)

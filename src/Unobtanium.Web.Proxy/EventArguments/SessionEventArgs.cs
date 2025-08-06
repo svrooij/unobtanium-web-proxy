@@ -35,8 +35,8 @@ public class SessionEventArgs : SessionEventArgsBase
     /// <summary>
     /// Constructor to initialize the proxy
     /// </summary>
-    internal SessionEventArgs ( ProxyServer server, ProxyEndPoint endPoint, HttpClientStream clientStream, ConnectRequest? connectRequest, CancellationTokenSource cancellationTokenSource )
-        : base(server, endPoint, clientStream, connectRequest, new Request(), cancellationTokenSource)
+    internal SessionEventArgs ( ProxyServer server, ProxyEndPoint endPoint, HttpClientStream clientStream, ConnectRequest? connectRequest, CancellationToken cancellationToken )
+        : base(server, endPoint, clientStream, connectRequest, new Request(), cancellationToken)
     {
     }
 

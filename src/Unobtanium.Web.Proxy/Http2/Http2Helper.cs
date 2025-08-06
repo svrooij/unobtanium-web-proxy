@@ -32,7 +32,7 @@ namespace Unobtanium.Web.Proxy.Http2
         internal static async Task SendHttp2 ( Stream clientStream, Stream serverStream,
             Func<SessionEventArgs> sessionFactory,
             Func<SessionEventArgs, Task> onBeforeRequest, Func<SessionEventArgs, Task> onBeforeResponse,
-            CancellationTokenSource cancellationTokenSource, Guid connectionId,
+            CancellationToken cancellationToken, Guid connectionId,
             ExceptionHandler? exceptionFunc )
         {
             var clientSettings = new Http2Settings();
@@ -44,15 +44,14 @@ namespace Unobtanium.Web.Proxy.Http2
             var sendRelay =
                 CopyHttp2FrameAsync(clientStream, serverStream, clientSettings, serverSettings,
                     sessionFactory, sessions, onBeforeRequest,
-                    connectionId, true, cancellationTokenSource.Token, exceptionFunc);
+                    connectionId, true, cancellationToken, exceptionFunc);
             var receiveRelay =
                 CopyHttp2FrameAsync(serverStream, clientStream, serverSettings, clientSettings,
                     sessionFactory, sessions, onBeforeResponse,
-                    connectionId, false, cancellationTokenSource.Token, exceptionFunc);
+                    connectionId, false, cancellationToken, exceptionFunc);
 
             await Task.WhenAny(sendRelay, receiveRelay);
-            cancellationTokenSource.Cancel();
-
+            
             await Task.WhenAll(sendRelay, receiveRelay);
         }
 

@@ -16,8 +16,8 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
     private bool? isHttpsConnect;
 
     internal TunnelConnectSessionEventArgs ( ProxyServer server, ProxyEndPoint endPoint, ConnectRequest connectRequest,
-        HttpClientStream clientStream, CancellationTokenSource cancellationTokenSource )
-        : base(server, endPoint, clientStream, connectRequest, connectRequest, cancellationTokenSource)
+        HttpClientStream clientStream, CancellationToken cancellationToken)
+        : base(server, endPoint, clientStream, connectRequest, connectRequest, cancellationToken)
     {
     }
 

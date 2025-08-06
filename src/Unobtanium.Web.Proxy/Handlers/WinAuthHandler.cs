@@ -160,7 +160,7 @@ public partial class ProxyServer
             ") failed. Please check credentials.</h2></div>";
         var originalErrorMessage =
             "<div class=\"inserted-by-proxy\"><h3>Response from remote web server below.</h3></div><br/>";
-        var body = await args.GetResponseBodyAsString(args.CancellationTokenSource.Token);
+        var body = await args.GetResponseBodyAsString(args.CancellationToken);
         var idx = body.IndexOfIgnoreCase("<body>");
         if (idx >= 0)
         {
