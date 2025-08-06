@@ -26,9 +26,9 @@ public class EventMigrationTests
             return context.Response.WriteAsync("Server response");
         });
 
-        // Use the new event system to block requests
-        var config = new ProxyServerConfiguration();
-        config.Events.OnRequest += (sender, e, cancellationToken) =>
+        
+
+        var proxy = testSuite.GetProxyWithHandler(OnRequest: (sender, e, cancellationToken) =>
         {
             if (e.Request.RequestUri?.Host.Contains("blocked.com") == true)
             {
@@ -39,11 +39,7 @@ public class EventMigrationTests
                 return Task.FromResult(RequestEventResponse.EarlyResponse(blockedResponse));
             }
             return Task.FromResult(RequestEventResponse.ContinueResponse());
-        };
-
-        var proxy = new ProxyServer(config);
-        proxy.AddEndPoint(new Models.ExplicitProxyEndPoint(IPAddress.Any, 0));
-        await proxy.StartAsync();
+        });
 
         var client = testSuite.GetClient(proxy);
 
@@ -83,9 +79,7 @@ public class EventMigrationTests
             return Task.FromResult(RequestEventResponse.ContinueResponse());
         };
 
-        var proxy = new ProxyServer(config);
-        proxy.AddEndPoint(new Models.ExplicitProxyEndPoint(IPAddress.Any, 0));
-        await proxy.StartAsync();
+        var proxy = testSuite.GetProxy(proxyServerConfiguration: config);
 
         var client = testSuite.GetClient(proxy);
 
@@ -130,9 +124,7 @@ public class EventMigrationTests
             return Task.FromResult(RequestEventResponse.ContinueResponse());
         };
 
-        var proxy = new ProxyServer(config);
-        proxy.AddEndPoint(new Models.ExplicitProxyEndPoint(IPAddress.Any, 0));
-        await proxy.StartAsync();
+        var proxy = testSuite.GetProxy(proxyServerConfiguration: config);
 
         var client = testSuite.GetClient(proxy);
 
@@ -179,9 +171,7 @@ public class EventMigrationTests
             return Task.FromResult(Events.ResponseEventResponse.ModifyResponse(modifiedResponse));
         };
 
-        var proxy = new ProxyServer(config);
-        proxy.AddEndPoint(new Models.ExplicitProxyEndPoint(IPAddress.Any, 0));
-        await proxy.StartAsync();
+        var proxy = testSuite.GetProxy(proxyServerConfiguration: config);
 
         var client = testSuite.GetClient(proxy);
 
@@ -198,7 +188,7 @@ public class EventMigrationTests
     [TestMethod, Timeout(10000)]
     public async Task ModernEventSystem_PerformanceAndCleanAPI()
     {
-        var testSuite = new TestSuite();
+        using var testSuite = new TestSuite();
         var server = testSuite.GetServer();
         server.HandleRequest(context =>
         {
@@ -206,23 +196,17 @@ public class EventMigrationTests
             return context.Response.WriteAsync($"Custom: {customHeader}");
         });
 
-        var config = new ProxyServerConfiguration();
         var requestCount = 0;
 
-        // Demonstrate clean, modern API
-        config.Events.OnRequest += (sender, e, cancellationToken) =>
+        var proxy = testSuite.GetProxyWithHandler(OnRequest: (sender, e, cancellationToken) =>
         {
             requestCount++;
-            
+
             // Standard HttpRequestMessage API
             e.Request.Headers.Add("X-Custom", $"Request-{requestCount}");
-            
-            return Task.FromResult(RequestEventResponse.ContinueResponse());
-        };
 
-        var proxy = new ProxyServer(config);
-        proxy.AddEndPoint(new Models.ExplicitProxyEndPoint(IPAddress.Any, 0));
-        await proxy.StartAsync();
+            return Task.FromResult(RequestEventResponse.ContinueResponse());
+        });
 
         var client = testSuite.GetClient(proxy);
 
@@ -233,6 +217,5 @@ public class EventMigrationTests
         Assert.IsTrue(content.Contains("Request-1"), "Custom header should contain request number");
         Assert.AreEqual(1, requestCount, "Request should have been processed by modern event system");
 
-        proxy.Stop();
     }
 }
