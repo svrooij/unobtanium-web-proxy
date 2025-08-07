@@ -7,14 +7,27 @@ namespace Unobtanium.Web.Proxy.Events;
 /// </summary>
 public class RequestEventArguments: IDisposable
 {
-    public RequestEventArguments ( HttpRequestMessage request, Activity? requestActivity )
+    /// <summary>
+    /// Event arguments for the <see cref="ProxyServerEvents.OnRequest"/> event."/>
+    /// </summary>
+    /// <param name="request">Incoming http request</param>
+    /// <param name="requestActivity">Activity for distributed tracing</param>
+    internal RequestEventArguments ( HttpRequestMessage request, Activity? requestActivity )
     {
         Request = request;
         RequestActivity = requestActivity;
     }
+    /// <summary>
+    /// Incoming HTTP request message that is being processed by the proxy server.
+    /// </summary>
     public HttpRequestMessage Request { get; internal set; }
+
+    /// <summary>
+    /// Activity for distributed tracing, which can be used to track the request across different services.
+    /// </summary>
     public Activity? RequestActivity { get; internal set; }
     
+    /// <inheritdoc/>
     public void Dispose ()
     {
         RequestActivity?.Dispose();
