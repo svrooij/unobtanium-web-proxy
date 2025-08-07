@@ -58,9 +58,9 @@ public enum CertificateEngine
 /// </summary>
 public sealed class CertificateManager : IDisposable
 {
-    private const string DefaultRootCertificateIssuer = "Titanium";
+    private const string DefaultRootCertificateIssuer = "Unobtanium";
 
-    private const string DefaultRootRootCertificateName = "Titanium Root Certificate Authority";
+    private const string DefaultRootRootCertificateName = "Unobtanium Root Certificate Authority";
 
     private readonly SemaphoreSlim rootCertCreationLock = new(1, 1);
 
@@ -441,7 +441,13 @@ public sealed class CertificateManager : IDisposable
                     certificate = await GenerateCertificateAsync(certificateName, false, cancellationToken);
                     try
                     {
-                        await certificateCache.SaveCertificateAsync(subjectName, certificate, cancellationToken);
+                        // Save the certificate to cache in a background task
+                        // want the certificate as soon as possible.
+                        _ = Task.Run(async () =>
+                        {
+                            await certificateCache.SaveCertificateAsync(subjectName, certificate, cancellationToken);
+                        }, cancellationToken);
+                        
                     }
                     catch (Exception e)
                     {
@@ -472,6 +478,9 @@ public sealed class CertificateManager : IDisposable
     /// <remarks>Tries memory cache, disk cache and lastly generates new certificate</remarks>
     public async Task<X509Certificate2?> GetOrGenerateCertificateAsync ( string certificateName, CancellationToken cancellationToken = default )
     {
+        using var activity = ProxyServer.ActivitySource.StartActivity("GetOrGenerateCertificateAsync", System.Diagnostics.ActivityKind.Internal);
+        activity?.SetTag("req.host", certificateName);
+        logger.LogDebug("GetOrGenerateCertificateAsync({CertificateName}) called", certificateName);
         var cachedCert = await cachedCertificates.GetOrAddAsync(certificateName, async ( facCancellation ) =>
         {
             return new CachedCertificate((await GetCertificateFromDiskOrGenerateAsync(certificateName, false, facCancellation))!);
@@ -483,30 +492,33 @@ public sealed class CertificateManager : IDisposable
     /// <summary>
     /// Starts a never ending task, that is cancellable by calling <see cref="StopClearingCertificates"/>
     /// </summary>
-    internal async void StartClearingCertificates ()
+    internal Task StartClearingCertificates (CancellationToken cancellationToken)
     {
-        var cancellationToken = clearCertificatesTokenSource.Token;
-        while (!cancellationToken.IsCancellationRequested)
+        return Task.Run(async () =>
         {
-            var cutOff = DateTime.UtcNow.AddMinutes(-CertificateCacheTimeOutMinutes);
-
-            var outdated = cachedCertificates.Where(x => x.Value.LastAccess < cutOff).ToList();
-
-            foreach (var cache in outdated)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                cachedCertificates.TryRemove(cache.Key, out _);
+                // Wait two minutes and clean old certificates from cache
+                try
+                {
+                    await Task.Delay(120_000, cancellationToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    return;
+                }
+
+                var cutOff = DateTime.UtcNow.AddMinutes(-CertificateCacheTimeOutMinutes);
+
+                var outdated = cachedCertificates.Where(x => x.Value.LastAccess < cutOff).ToList();
+
+                foreach (var cache in outdated)
+                {
+                    cachedCertificates.TryRemove(cache.Key, out _);
+                }
             }
 
-            // after a minute come back to check for outdated certificates in cache
-            try
-            {
-                await Task.Delay(1000 * 60, cancellationToken);
-            }
-            catch (TaskCanceledException)
-            {
-                return;
-            }
-        }
+        }, cancellationToken);
     }
 
     /// <summary>

@@ -56,9 +56,9 @@ public partial class ProxyServer : IDisposable
     private WinHttpWebProxyFinder? systemProxyResolver;
 
     /// <summary>
-    /// <see cref="ActivitySource"/> that can be supplied to support distributed tracing
+    /// <see cref="System.Diagnostics.ActivitySource"/> that can be supplied to support distributed tracing
     /// </summary>
-    internal readonly ActivitySource activitySource;
+    internal static readonly ActivitySource ActivitySource = new ActivitySource(ProxyServerDefaults.ActivitySourceName);
 
     /// <summary>
     /// Logger factory to create loggers for various types
@@ -89,7 +89,7 @@ public partial class ProxyServer : IDisposable
     /// <param name="loggerFactory">Provide a log factory if you want to follow the logs</param>
     public ProxyServer (ProxyServerConfiguration configuration, IBufferPool? bufferPool = null, ILoggerFactory? loggerFactory = null, IProxyServerHttpClientFactory? proxyServerHttpClientFactory = null )
     {
-        this.activitySource = new ActivitySource(ProxyServerDefaults.ActivitySourceName);
+        
         this.loggerFactory = loggerFactory ?? new NullLoggerFactory();
         logger = this.loggerFactory.CreateLogger<ProxyServer>();
 
@@ -652,7 +652,6 @@ public partial class ProxyServer : IDisposable
     /// <param name="cancellationToken"></param>
     public async Task StartAsync ( bool changeSystemProxySettings = true, CancellationToken cancellationToken = default )
     {
-        //using var activity = activitySource?.StartActivity("StartAsync", ActivityKind.Server);
         logger.LogTrace("StartAsync(changeSystemProxySettings: {ChangeSystemProxySettings}) called", changeSystemProxySettings);
         if (ProxyRunning) throw new InvalidOperationException("Proxy is already running.");
 
@@ -701,7 +700,7 @@ public partial class ProxyServer : IDisposable
 
         ProxyRunning = true;
 
-        CertificateManager.StartClearingCertificates();
+        _ = CertificateManager.StartClearingCertificates(listenerCancellationTokenSource.Token);
 
         foreach (var endPoint in ProxyEndPoints)
         {
@@ -914,9 +913,9 @@ public partial class ProxyServer : IDisposable
         using var connectionCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // Only create activity if tracing is enabled (performance optimization)
         Activity? clientConnectionActivity = null;
-        if (activitySource.HasListeners())
+        if (ActivitySource.HasListeners())
         {
-            clientConnectionActivity = activitySource.StartActivity(nameof(HandleClientConnectionAsync), ActivityKind.Server);
+            clientConnectionActivity = ActivitySource.StartActivity(nameof(HandleClientConnectionAsync), ActivityKind.Server);
             clientConnectionActivity?.SetTag("client.endpoint", tcpClientSocket.RemoteEndPoint?.ToString());
             clientConnectionActivity?.SetTag("proxy.endpoint", endPoint.ToString());
             clientConnectionActivity?.SetTag("connection.type", endPoint.GetType().Name);
@@ -1147,7 +1146,6 @@ public partial class ProxyServer : IDisposable
             CertificateManager?.Dispose();
             BufferPool?.Dispose();
             loggerFactory.Dispose();
-            activitySource?.Dispose();
             listenerCancellationTokenSource?.Dispose();
         }
     }

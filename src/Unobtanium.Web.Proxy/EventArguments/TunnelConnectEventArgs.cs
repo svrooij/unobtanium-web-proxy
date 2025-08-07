@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.ComponentModel;
 using System.Threading;
 using Unobtanium.Web.Proxy.Helpers;
 using Unobtanium.Web.Proxy.Http;
@@ -46,48 +47,24 @@ public class TunnelConnectSessionEventArgs : SessionEventArgsBase
     /// <summary>
     ///     Fired when decrypted data is sent within this session to server/client.
     /// </summary>
+    [Obsolete("You won't receive any data here, were you using it? If so, please open an issue on GitHub to discuss.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public event EventHandler<DataEventArgs>? DecryptedDataSent;
 
     /// <summary>
     ///     Fired when decrypted data is received within this session from client/server.
     /// </summary>
+    [Obsolete("You won't receive any data here, were you using it? If so, please open an issue on GitHub to discuss.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public event EventHandler<DataEventArgs>? DecryptedDataReceived;
 
-    internal void OnDecryptedDataSent ( byte[] buffer, int offset, int count )
-    {
-        try
-        {
-            DecryptedDataSent?.Invoke(this, new DataEventArgs(buffer, offset, count));
-        }
-        catch (Exception ex)
-        {
-            
-            logger.LogError(ex, "Exception thrown in OnDecryptedDataSent event");
-        }
-    }
 
-    internal void OnDecryptedDataReceived ( byte[] buffer, int offset, int count )
-    {
-        try
-        {
-            DecryptedDataReceived?.Invoke(this, new DataEventArgs(buffer, offset, count));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Exception thrown in OnDecryptedDataReceived event");
-        }
-    }
 
     /// <summary>
     /// Dispose the object.
     /// </summary>
     ~TunnelConnectSessionEventArgs ()
     {
-#if DEBUG
-        // Finalizer should not be called
-        System.Diagnostics.Debugger.Break();
-#endif
-
         Dispose(false);
     }
 }
