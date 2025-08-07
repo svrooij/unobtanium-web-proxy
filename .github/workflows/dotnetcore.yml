@@ -4,6 +4,7 @@ on:
   push:
     branches:
         - develop
+        - feature/native-events 
     tags:
         - v* 
   pull_request:
