@@ -39,6 +39,7 @@ public partial class ProxyServer
         CancellationToken cancellationToken, TunnelConnectSessionEventArgs? connectArgs = null,
         Task<TcpServerConnection?>? prefetchConnectionTask = null, bool isHttps = false )
     {
+        throw new NotImplementedException("Obsolete code should not be reached.");
         var connectRequest = connectArgs?.HttpClient.ConnectRequest;
 
         var prefetchTask = prefetchConnectionTask;

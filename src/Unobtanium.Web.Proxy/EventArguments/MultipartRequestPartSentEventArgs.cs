@@ -1,10 +1,12 @@
-﻿using Unobtanium.Web.Proxy.Http;
+﻿using System;
+using Unobtanium.Web.Proxy.Http;
 
 namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 /// Class that wraps the multipart sent request arguments.
 /// </summary>
+[Obsolete("This will be removed")]
 public class MultipartRequestPartSentEventArgs : ProxyEventArgsBase
 {
     /// <summary>

@@ -7,6 +7,7 @@ namespace Unobtanium.Web.Proxy.EventArguments;
 ///     The base event arguments.
 /// </summary>
 /// <seealso cref="System.EventArgs" />
+[Obsolete("This will be removed")]
 public abstract class ProxyEventArgsBase : EventArgs
 {
     private readonly TcpClientConnection clientConnection;

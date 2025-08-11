@@ -25,6 +25,7 @@ var config = new ProxyServerConfiguration()
 {
     TcpTimeWaitSeconds = 10,
     ConnectionTimeOutSeconds = 15,
+    EnableTcpServerConnectionPrefetch = false,
     ReuseSocket = false,
     EnableConnectionPool = true,
     ForwardToUpstreamGateway = true,

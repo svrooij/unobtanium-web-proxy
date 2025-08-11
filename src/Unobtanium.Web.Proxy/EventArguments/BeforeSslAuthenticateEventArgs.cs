@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using Unobtanium.Web.Proxy.Network.Tcp;
 
 namespace Unobtanium.Web.Proxy.EventArguments;
@@ -6,6 +7,7 @@ namespace Unobtanium.Web.Proxy.EventArguments;
 /// <summary>
 ///     This is used in transparent endpoint before authenticating client.
 /// </summary>
+[Obsolete("This will be removed")]
 public class BeforeSslAuthenticateEventArgs : ProxyEventArgsBase
 {
     internal readonly CancellationTokenSource TaskCancellationSource;

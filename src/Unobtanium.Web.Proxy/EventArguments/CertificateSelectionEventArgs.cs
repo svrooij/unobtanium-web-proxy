@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Unobtanium.Web.Proxy.EventArguments;
 
@@ -13,6 +14,7 @@ namespace Unobtanium.Web.Proxy.EventArguments;
 /// <param name="localCertificates">The local certificates.</param>
 /// <param name="remoteCertificate">The remote certificate.</param>
 /// <param name="acceptableIssuers">The acceptable issuers.</param>
+[Obsolete("This will be removed")]
 public class CertificateSelectionEventArgs ( SessionEventArgsBase session, string targetHost,
     X509CertificateCollection localCertificates, X509Certificate? remoteCertificate, string[] acceptableIssuers ) : ProxyEventArgsBase(session.Server, session.ClientConnection)
 {

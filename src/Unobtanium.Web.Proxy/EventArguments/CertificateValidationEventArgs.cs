@@ -1,4 +1,5 @@
-﻿using System.Net.Security;
+﻿using System;
+using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Unobtanium.Web.Proxy.EventArguments;
@@ -7,6 +8,7 @@ namespace Unobtanium.Web.Proxy.EventArguments;
 ///     An argument passed on to the user for validating the server certificate
 ///     during SSL authentication.
 /// </summary>
+[Obsolete("This will be removed")]
 public class CertificateValidationEventArgs : ProxyEventArgsBase
 {
     /// <summary>

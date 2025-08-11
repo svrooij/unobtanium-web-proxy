@@ -20,10 +20,10 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/svrooij/unobtanium-web-proxy.git</RepositoryUrl>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <NoWarn>1701;1702;CA1416</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <NoWarn>1701;1702;CA1416;CS0618;CS8602</NoWarn>
   </PropertyGroup>
   <ItemGroup>

@@ -1,10 +1,12 @@
-﻿using Unobtanium.Web.Proxy.Network.Tcp;
+﻿using System;
+using Unobtanium.Web.Proxy.Network.Tcp;
 
 namespace Unobtanium.Web.Proxy.EventArguments;
 
 /// <summary>
 /// Represents the arguments for an empty proxy event.
 /// </summary>
+[Obsolete("This will be removed")]
 public class EmptyProxyEventArgs : ProxyEventArgsBase
 {
     /// <summary>

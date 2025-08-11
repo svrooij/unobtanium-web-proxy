@@ -12,6 +12,7 @@ namespace Unobtanium.Web.Proxy.EventArguments;
 /// <summary>
 ///     A class that wraps the state when a tunnel connect event happen for Explicit endpoints.
 /// </summary>
+[Obsolete("This will be removed")]
 public class TunnelConnectSessionEventArgs : SessionEventArgsBase
 {
     private bool? isHttpsConnect;

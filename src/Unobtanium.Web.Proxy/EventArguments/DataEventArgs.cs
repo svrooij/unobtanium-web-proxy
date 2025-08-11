@@ -11,6 +11,7 @@ namespace Unobtanium.Web.Proxy.StreamExtended.Network;
 /// <param name="buffer">The buffer containing the data.</param>
 /// <param name="offset">The offset in the buffer where the data begins.</param>
 /// <param name="count">The number of bytes of data in the buffer.</param>
+[Obsolete("This will be removed")]
 public class DataEventArgs ( byte[] buffer, int offset, int count ) : EventArgs
 {
 

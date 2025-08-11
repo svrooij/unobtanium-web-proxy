@@ -6,6 +6,7 @@ namespace Unobtanium.Web.Proxy.EventArguments;
 /// <summary>
 /// Event arguments for <see cref="BeforeBodyWriteEventArgs"/>.
 /// </summary>
+[Obsolete("This will be removed")]
 public class BeforeBodyWriteEventArgs : ProxyEventArgsBase
 {
     internal BeforeBodyWriteEventArgs ( SessionEventArgs session, byte[] bodyBytes, bool isChunked, bool isLastChunk ) : base(session.Server, session.ClientConnection)

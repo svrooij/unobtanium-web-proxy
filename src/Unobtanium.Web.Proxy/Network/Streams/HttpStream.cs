@@ -1170,9 +1170,16 @@ internal class HttpStream : Stream, IHttpStreamWriter, IHttpStreamReader, IPeekS
         headerBuilder.WriteHeaders(httpResponse.Headers, httpResponse.Content?.Headers);
         await WriteHeadersAsync(headerBuilder, cancellationToken);
 
-        if (httpResponse.Content != null)
+        if (content is not null)
         {
+            await WriteBodyAsync(content, false, cancellationToken);
+        } else if (httpResponse.Content != null)
+        {
+            // TODO: Maybe read as stream and write to the stream directly?
+            //using var contentStream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken);
+            //await contentStream.CopyToAsync(BaseStream, cancellationToken);
             var body = await httpResponse.Content.ReadAsByteArrayAsync(cancellationToken);
+
             await WriteBodyAsync(body, false, cancellationToken);
         }
     }

@@ -18,6 +18,7 @@ namespace Unobtanium.Web.Proxy.EventArguments;
 /// A proxy session ends when client terminates connection to proxy
 /// or when server terminates connection from proxy.
 /// </summary>
+[Obsolete("This will be removed")]
 public abstract class SessionEventArgsBase : ProxyEventArgsBase, IDisposable
 {
     /// <summary>

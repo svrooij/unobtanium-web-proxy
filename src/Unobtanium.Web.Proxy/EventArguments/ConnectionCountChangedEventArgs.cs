@@ -10,6 +10,7 @@ namespace Unobtanium.Web.Proxy.EventArguments;
 /// </summary>
 /// <param name="NewValue">New connection count.</param>
 /// <param name="OldValue">Old connection count.</param>
+[Obsolete("This will be removed")]
 public class ConnectionCountChangedEventArgs ( int OldValue, int NewValue ) : EventArgs
 {
     /// <summary>
