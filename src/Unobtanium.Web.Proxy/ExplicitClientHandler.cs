@@ -270,40 +270,9 @@ public partial class ProxyServer
 
                 connectArgs = new TunnelConnectSessionEventArgs(this, endPoint, connectRequest, clientStream,
                     cancellationTokenSource.Token);
-                //clientStream.DataRead += ( o, args ) => connectArgs.OnDataSent(args.Buffer, args.Offset, args.Count);
-                //clientStream.DataWrite += ( o, args ) => connectArgs.OnDataReceived(args.Buffer, args.Offset, args.Count);
-
-                //await endPoint.InvokeBeforeTunnelConnectRequest(this, connectArgs, logger);
-
-                // filter out excluded host names
-                //var decryptSsl = endPoint.DecryptSsl && connectArgs.DecryptSsl;
-                //var sendRawData = !decryptSsl;
 
                 var decryptSsl = await configuration.Events.InvokeShouldDecryptNewConnection(connectHostname, cancellationTokenSource).ConfigureAwait(false);
                 var sendRawData = !decryptSsl;
-                //if (connectArgs.DenyConnect)
-                //{
-                //    if (connectArgs.HttpClient.Response.StatusCode == 0)
-                //        connectArgs.HttpClient.Response = new Response
-                //        {
-                //            HttpVersion = HttpHeader.Version11,
-                //            StatusCode = (int)HttpStatusCode.Forbidden,
-                //            StatusDescription = "Forbidden"
-                //        };
-
-                //    // send the response
-                //    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationTokenSource.Token);
-                //    return;
-                //}
-
-                //if (await CheckAuthorization(connectArgs) == false)
-                //{
-                //    await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger);
-
-                //    // send the response
-                //    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationTokenSource.Token);
-                //    return;
-                //}
 
                 // write back successful CONNECT response
                 var response = ConnectResponse.CreateSuccessfulConnectResponse(connectRequest.HttpVersion);
@@ -324,8 +293,6 @@ public partial class ProxyServer
                     connectRequest.TunnelType = TunnelType.Https;
                     connectRequest.ClientHelloInfo = clientHelloInfo;
                 }
-
-                //await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger, isClientHello);
 
                 if (decryptSsl && clientHelloInfo != null)
                 {
@@ -431,11 +398,6 @@ public partial class ProxyServer
                         clientStream = new HttpClientStream(this, clientStream.Connection, sslStream, BufferPool,
                             cancellationTokenSource.Token);
                         sslStream = null; // clientStream was created, no need to keep SSL stream reference
-
-                        //clientStream.DataRead += ( o, args ) =>
-                        //    connectArgs.OnDecryptedDataSent(args.Buffer, args.Offset, args.Count);
-                        //clientStream.DataWrite += ( o, args ) =>
-                        //    connectArgs.OnDecryptedDataReceived(args.Buffer, args.Offset, args.Count);
                     }
                     catch (Exception e)
                     {

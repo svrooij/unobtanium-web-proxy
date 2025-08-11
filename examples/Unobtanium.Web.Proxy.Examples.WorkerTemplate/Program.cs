@@ -27,11 +27,10 @@ var config = new ProxyServerConfiguration()
     ConnectionTimeOutSeconds = 15,
     ReuseSocket = false,
     EnableConnectionPool = true,
-    //EnableHttp2 = true,
     ForwardToUpstreamGateway = true,
     CertificateTrustMode = ProxyCertificateTrustMode.UserTrust,
     ShouldProxyRequest = async ( uri, cancellationToken ) => {
-        return uri.Host.Contains("graph.microsoft.com");
+        return uri.Host.Contains("graph.microsoft.com") || uri.Host.Contains("openai.azure.com");
         //return !uri.Host.Contains("localhost");
     }
 };
@@ -59,6 +58,17 @@ config.Events.OnRequest += async (s, e, cancellationToken) =>
         var response = new HttpResponseMessage {
             StatusCode = System.Net.HttpStatusCode.Unauthorized,
             Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
+        };
+        return Unobtanium.Web.Proxy.Events.RequestEventResponse.EarlyResponse(response);
+    }
+
+    if (e.Request.RequestUri.ToString().Contains("openai.azure.com"))
+    {
+        return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
+        var response = new HttpResponseMessage
+        {
+            StatusCode = System.Net.HttpStatusCode.Unauthorized,
+            //Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
         };
         return Unobtanium.Web.Proxy.Events.RequestEventResponse.EarlyResponse(response);
     }
