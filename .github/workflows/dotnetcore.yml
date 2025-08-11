@@ -4,6 +4,7 @@ on:
   push:
     branches:
         - develop
+        - feature/native-events 
     tags:
         - v* 
   pull_request:
@@ -36,6 +37,7 @@ jobs:
     - name: 🔨 Build 
       run: |
         dotnet build src/Unobtanium.Web.Proxy/Unobtanium.Web.Proxy.csproj --configuration Release
+        dotnet build src/Unobtanium.Web.Proxy.Events/Unobtanium.Web.Proxy.Events.csproj --configuration Release
         dotnet build tests/Unobtanium.Web.Proxy.UnitTests/Unobtanium.Web.Proxy.UnitTests.csproj --configuration Release
         dotnet build tests/Unobtanium.Web.Proxy.IntegrationTests/Unobtanium.Web.Proxy.IntegrationTests.csproj --property WarningLevel=0
 
@@ -103,11 +105,17 @@ jobs:
     - name: 📦 Package
       shell: pwsh
       run: |
-        dotnet pack src/Unobtanium.Web.Proxy/Unobtanium.Web.Proxy.csproj --configuration Release -p:Version=$("${{ github.ref_name }}".Substring(1))
+        $version = $("${{ github.ref_name }}".Substring(1))
+        $isPrerelease = $version -match '-(alpha|beta|rc|preview)'
+        Write-Host "Version: $version"
+        Write-Host "Is Prerelease: $isPrerelease"
+        
+        dotnet pack src/Unobtanium.Web.Proxy/Unobtanium.Web.Proxy.csproj --configuration Release -p:Version=$version -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
+        dotnet pack src/Unobtanium.Web.Proxy.Events/Unobtanium.Web.Proxy.Events.csproj --configuration Release -p:Version=$version -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
 
     - name: 🚀 Publish
       run: |
-        dotnet nuget push **\*.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_AUTH_TOKEN
+        dotnet nuget push **/*.{nupkg,snupkg} -s https://api.nuget.org/v3/index.json -k $NUGET_AUTH_TOKEN
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
     
@@ -115,7 +123,10 @@ jobs:
       shell: pwsh
       run: |
         $version = $("${{ github.ref_name }}".Substring(1));
-        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## 🚀 Published'
+        $isPrerelease = $version -match '-(alpha|beta|rc|preview)'
+        $prereleaseText = if ($isPrerelease) { " (pre-release)" } else { "" }
+        
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## 🚀 Published$prereleaseText"
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Code [tag ${{ github.ref_name }}](https://github.com/svrooij/unobtanium-web-proxy/tree/${{ github.ref_name }}) has been published to NuGet."
-        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Nuget [$version](https://www.nuget.org/packages/Unobtanium.Web.Proxy/$version) has been published to NuGet."
-      
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Nuget [Unobtanium.Web.Proxy $version](https://www.nuget.org/packages/Unobtanium.Web.Proxy/$version) has been published to NuGet.$prereleaseText"
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Nuget [Unobtanium.Web.Proxy.Events $version](https://www.nuget.org/packages/Unobtanium.Web.Proxy.Events/$version) has been published to NuGet.$prereleaseText"

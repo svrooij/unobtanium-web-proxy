@@ -56,8 +56,7 @@ public partial class ProxyServer
                 if (clientStream.IsClosed) return;
 
                 // Create request activity as child of current activity (which should be the ClientConnection activity)
-                using var requestActivity = activitySource?.StartActivity("HttpRequest", ActivityKind.Server);
-                requestActivity?.SetTag("proxy.server", "Unobtanium.Web.Proxy");
+                using var requestActivity = ActivitySource.StartActivity("HttpRequest", ActivityKind.Server);
 
                 // read the request line
                 var requestLine = await clientStream.ReadRequestLine(cancellationToken);
@@ -436,7 +435,7 @@ public partial class ProxyServer
         // Use the new event system for request handling (PREFERRED)
         if (configuration.Events.HasOnRequest) 
         {
-            using var activity = activitySource.StartActivity(nameof(configuration.Events.OnRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
+            using var activity = ActivitySource.StartActivity(nameof(configuration.Events.OnRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
             
             // Create HttpRequestMessage from the custom Request
             var httpRequest = CreateHttpRequestMessageFromCustomRequest(args.HttpClient.Request);

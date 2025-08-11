@@ -134,7 +134,7 @@ public partial class ProxyServer
         // Use the new response event system (PREFERRED)
         if (configuration.Events.HasOnResponse)
         {
-            using var activity = activitySource.StartActivity(nameof(configuration.Events.OnResponse), ActivityKind.Internal);
+            using var activity = ActivitySource.StartActivity(nameof(configuration.Events.OnResponse), ActivityKind.Internal);
             
             // Create HttpRequestMessage and HttpResponseMessage from the session
             var httpRequest = CreateHttpRequestMessageFromCustomRequest(args.HttpClient.Request);

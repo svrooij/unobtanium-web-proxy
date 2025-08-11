@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.Events;
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unobtanium.Web.Proxy")]
 
 namespace Unobtanium.Web.Proxy.Events;
 /// <summary>
@@ -12,6 +14,22 @@ namespace Unobtanium.Web.Proxy.Events;
 /// </summary>
 public class ProxyServerEvents
 {
+    /// <summary>
+    /// Each new connection to the proxy server will call this function.
+    /// You can use this event to decide wheter or not this connection should be decrypted or forwarded as is.<br/><br/>
+    /// returning <see langword="false"/> will result in the connection being forwarded as is, without decryption.<br/>
+    /// returning <see langword="true"/> will result in the connection being decrypted and processed by the proxy server.<br/>
+    /// </summary>
+    /// <remarks>You will get the hostname and and a cancellation token source</remarks>
+    public Func<string,CancellationTokenSource, Task<bool>>? ShouldDecryptNewConnection;
+
+    internal async Task<bool> InvokeShouldDecryptNewConnection (string hostname, CancellationTokenSource cancellationTokenSource )
+    {
+        if (ShouldDecryptNewConnection == null)
+            return true; // Default to true if no handler is registered.
+        return await ShouldDecryptNewConnection.Invoke(hostname, cancellationTokenSource);
+    }
+
     /// <summary>
     ///    You'll get this event for each request that the proxy server is decrypting and processing.
     /// </summary>
@@ -24,9 +42,9 @@ public class ProxyServerEvents
     /// </remarks>
     public event AsyncEventHandler<RequestEventArguments, RequestEventResponse>? OnRequest;
 
-    public bool HasOnRequest => OnRequest != null;
+    internal bool HasOnRequest => OnRequest != null;
 
-    public async Task<RequestEventResponse> InvokeOnRequest ( object sender, RequestEventArguments requestEventArguments, ILogger? logger, CancellationToken cancellationToken)
+    internal async Task<RequestEventResponse> InvokeOnRequest ( object sender, RequestEventArguments requestEventArguments, ILogger? logger, CancellationToken cancellationToken)
     {
         if(OnRequest == null)
             return RequestEventResponse.ContinueResponse();
@@ -61,9 +79,9 @@ public class ProxyServerEvents
     /// <remarks>Use this event for logging or caching purpuses</remarks>
     public event AsyncEventHandler<ResponseEventArguments, ResponseEventResponse>? OnResponse;
 
-    public bool HasOnResponse => OnResponse != null;
+    internal bool HasOnResponse => OnResponse != null;
 
-    public async Task<ResponseEventResponse> InvokeOnResponse ( object sender, ResponseEventArguments responseEventArguments, ILogger? logger, CancellationToken cancellationToken )
+    internal async Task<ResponseEventResponse> InvokeOnResponse ( object sender, ResponseEventArguments responseEventArguments, ILogger? logger, CancellationToken cancellationToken )
     {
         if (OnResponse == null)
             return ResponseEventResponse.ContinueResponse();

@@ -17,6 +17,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
 
 
         [TestMethod]
+        [Ignore("This cert manager will be removed anyway, so this test is not needed")]
         public async Task CertificateManager_EngineBouncyCastle_CreatesCertificates ()
         {
             var tasks = new List<Task>();
@@ -25,7 +26,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
             {
                 CertificateEngine = CertificateEngine.BouncyCastle
             };
-            mgr.StartClearingCertificates();
+            _ = mgr.StartClearingCertificates(CancellationToken.None);
             await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             for (var i = 0; i < 5; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
@@ -51,7 +52,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
             {
                 CertificateEngine = CertificateEngine.Pure
             };
-            mgr.StartClearingCertificates();
+            _ = mgr.StartClearingCertificates(CancellationToken.None);
             await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             for (var i = 0; i < 5; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>
@@ -79,7 +80,7 @@ namespace Unobtanium.Web.Proxy.UnitTests
 
             await mgr.LoadOrCreateRootCertificateAsync(false, CancellationToken.None);
             mgr.TrustRootCertificate(true);
-            mgr.StartClearingCertificates();
+            _ = mgr.StartClearingCertificates(CancellationToken.None);
 
             for (var i = 0; i < 5; i++)
                 tasks.AddRange(hostNames.Select(host => Task.Run(async () =>

@@ -1,11 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
-using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.EventArguments;
-using Unobtanium.Web.Proxy.Extensions;
 
 namespace Unobtanium.Web.Proxy.Models;
 
@@ -37,7 +34,8 @@ public class ExplicitProxyEndPoint : ProxyEndPoint
     ///     Set the <see cref="TunnelConnectSessionEventArgs.DecryptSsl" /> property to false if this HTTP connect request
     ///     shouldn't be decrypted and instead be relayed.
     /// </summary>
-    [Obsolete("This event will be removed in future versions. Use ShouldProxyRequest on ProxyServerConfiguration instead.")]
+    /// <remarks>Replaced with <see cref="Events.ProxyServerEvents.ShouldDecryptNewConnection"/></remarks>
+    [Obsolete("This event will be removed in future versions. Use ShouldDecryptNewConnection on ProxyServerConfiguration.Events instead.")]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public event AsyncEventHandler<TunnelConnectSessionEventArgs>? BeforeTunnelConnectRequest;
 
@@ -45,22 +43,25 @@ public class ExplicitProxyEndPoint : ProxyEndPoint
     ///     Intercept tunnel connect response.
     ///     Valid only for explicit endpoints.
     /// </summary>
+    /// <remarks>This will be removed, why would you use it?</remarks>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("This event is disconnected, why were you using it?")]
     public event AsyncEventHandler<TunnelConnectSessionEventArgs>? BeforeTunnelConnectResponse;
 
-    internal async Task InvokeBeforeTunnelConnectRequest ( ProxyServer proxyServer,
-        TunnelConnectSessionEventArgs connectArgs, ILogger? logger )
-    {
-        if (BeforeTunnelConnectRequest != null)
-            await BeforeTunnelConnectRequest.InvokeAsync(proxyServer, connectArgs, logger);
-    }
+    //internal async Task InvokeBeforeTunnelConnectRequest ( ProxyServer proxyServer,
+    //    TunnelConnectSessionEventArgs connectArgs, ILogger? logger )
+    //{
+    //    if (BeforeTunnelConnectRequest != null)
+    //        await BeforeTunnelConnectRequest.InvokeAsync(proxyServer, connectArgs, logger);
+    //}
 
-    internal async Task InvokeBeforeTunnelConnectResponse ( ProxyServer proxyServer,
-        TunnelConnectSessionEventArgs connectArgs, ILogger? logger, bool isClientHello = false )
-    {
-        if (BeforeTunnelConnectResponse != null)
-        {
-            connectArgs.IsHttpsConnect = isClientHello;
-            await BeforeTunnelConnectResponse.InvokeAsync(proxyServer, connectArgs, logger);
-        }
-    }
+    //internal async Task InvokeBeforeTunnelConnectResponse ( ProxyServer proxyServer,
+    //    TunnelConnectSessionEventArgs connectArgs, ILogger? logger, bool isClientHello = false )
+    //{
+    //    if (BeforeTunnelConnectResponse != null)
+    //    {
+    //        connectArgs.IsHttpsConnect = isClientHello;
+    //        await BeforeTunnelConnectResponse.InvokeAsync(proxyServer, connectArgs, logger);
+    //    }
+    //}
 }

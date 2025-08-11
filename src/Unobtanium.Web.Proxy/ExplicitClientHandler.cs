@@ -248,7 +248,7 @@ public partial class ProxyServer
             // Client wants to create a secure tcp tunnel (probably its a HTTPS or Websocket request)
             if (method == KnownMethod.Connect)
             {
-                using var connectActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Connect", ActivityKind.Consumer);
+                using var connectActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Connect", ActivityKind.Consumer);
                 // read the first line HTTP command
                 var requestLine = await clientStream.ReadRequestLine(cancellationTokenSource.Token);
                 if (requestLine.IsEmpty()) return;
@@ -261,40 +261,49 @@ public partial class ProxyServer
 
                 await HeaderParser.ReadHeaders(clientStream, connectRequest.Headers, cancellationTokenSource.Token);
 
+                // Extract hostname once and reuse
+                var connectHostnameSpan = requestLine.RequestUri.GetString().AsSpan();
+                var colonIndex = connectHostnameSpan.IndexOf(':');
+                string connectHostname = colonIndex >= 0
+                    ? connectHostnameSpan[..colonIndex].ToString()
+                    : connectHostnameSpan.ToString();
+
                 connectArgs = new TunnelConnectSessionEventArgs(this, endPoint, connectRequest, clientStream,
                     cancellationTokenSource.Token);
-                clientStream.DataRead += ( o, args ) => connectArgs.OnDataSent(args.Buffer, args.Offset, args.Count);
-                clientStream.DataWrite += ( o, args ) => connectArgs.OnDataReceived(args.Buffer, args.Offset, args.Count);
+                //clientStream.DataRead += ( o, args ) => connectArgs.OnDataSent(args.Buffer, args.Offset, args.Count);
+                //clientStream.DataWrite += ( o, args ) => connectArgs.OnDataReceived(args.Buffer, args.Offset, args.Count);
 
-                await endPoint.InvokeBeforeTunnelConnectRequest(this, connectArgs, logger);
+                //await endPoint.InvokeBeforeTunnelConnectRequest(this, connectArgs, logger);
 
                 // filter out excluded host names
-                var decryptSsl = endPoint.DecryptSsl && connectArgs.DecryptSsl;
+                //var decryptSsl = endPoint.DecryptSsl && connectArgs.DecryptSsl;
+                //var sendRawData = !decryptSsl;
+
+                var decryptSsl = await configuration.Events.InvokeShouldDecryptNewConnection(connectHostname, cancellationTokenSource).ConfigureAwait(false);
                 var sendRawData = !decryptSsl;
+                //if (connectArgs.DenyConnect)
+                //{
+                //    if (connectArgs.HttpClient.Response.StatusCode == 0)
+                //        connectArgs.HttpClient.Response = new Response
+                //        {
+                //            HttpVersion = HttpHeader.Version11,
+                //            StatusCode = (int)HttpStatusCode.Forbidden,
+                //            StatusDescription = "Forbidden"
+                //        };
 
-                if (connectArgs.DenyConnect)
-                {
-                    if (connectArgs.HttpClient.Response.StatusCode == 0)
-                        connectArgs.HttpClient.Response = new Response
-                        {
-                            HttpVersion = HttpHeader.Version11,
-                            StatusCode = (int)HttpStatusCode.Forbidden,
-                            StatusDescription = "Forbidden"
-                        };
+                //    // send the response
+                //    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationTokenSource.Token);
+                //    return;
+                //}
 
-                    // send the response
-                    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationTokenSource.Token);
-                    return;
-                }
+                //if (await CheckAuthorization(connectArgs) == false)
+                //{
+                //    await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger);
 
-                if (await CheckAuthorization(connectArgs) == false)
-                {
-                    await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger);
-
-                    // send the response
-                    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationTokenSource.Token);
-                    return;
-                }
+                //    // send the response
+                //    await clientStream.WriteResponseAsync(connectArgs.HttpClient.Response, cancellationTokenSource.Token);
+                //    return;
+                //}
 
                 // write back successful CONNECT response
                 var response = ConnectResponse.CreateSuccessfulConnectResponse(connectRequest.HttpVersion);
@@ -316,7 +325,7 @@ public partial class ProxyServer
                     connectRequest.ClientHelloInfo = clientHelloInfo;
                 }
 
-                await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger, isClientHello);
+                //await endPoint.InvokeBeforeTunnelConnectResponse(this, connectArgs, logger, isClientHello);
 
                 if (decryptSsl && clientHelloInfo != null)
                 {
@@ -330,25 +339,14 @@ public partial class ProxyServer
 
                     clientStream.Connection.SslProtocol = sslProtocol;
 
-                    // Extract hostname once and reuse
-                    var connectHostnameSpan = requestLine.RequestUri.GetString().AsSpan();
-                    var colonIndex = connectHostnameSpan.IndexOf(':');
-                    var connectHostname = colonIndex >= 0 
-                        ? connectHostnameSpan[..colonIndex].ToString() 
-                        : connectHostnameSpan.ToString();
+                    
 
                     // Start parallel operations for performance optimization
                     Task<bool> http2SupportTask = null!;
                     Task<X509Certificate2?> certificateTask = null!;
                     
                     // Start certificate generation/retrieval in parallel
-                    certificateTask = Task.Run(async () =>
-                    {
-                        var certName = HttpHelper.GetWildCardDomainName(connectHostname,
-                            CertificateManager.DisableWildCardCertificates);
-                        return endPoint.GenericCertificate ??
-                               await CertificateManager.GetOrGenerateCertificateAsync(certName);
-                    });
+                    certificateTask = Task.Run(() => CertificateManager.GetOrGenerateCertificateAsync(connectHostname, cancellationTokenSource.Token));
 
                     // Start HTTP/2 support detection in parallel if enabled
                     if (EnableHttp2)
@@ -401,11 +399,9 @@ public partial class ProxyServer
                             CancellationToken.None);
                     }
 
-                    // Wait for parallel operations to complete
-                    var http2Supported = await http2SupportTask;
-                    var certificate = await certificateTask;
+                    await Task.WhenAll(http2SupportTask, certificateTask).ConfigureAwait(false);
 
-                    X509Certificate2? certToUse = certificate;
+                    X509Certificate2? certToUse = certificateTask.Result;
                     SslStream? sslStream = null;
                     try
                     {
@@ -420,7 +416,7 @@ public partial class ProxyServer
                             CertificateRevocationCheckMode = X509RevocationMode.NoCheck
                         };
                         
-                        if (EnableHttp2 && http2Supported)
+                        if (EnableHttp2 && http2SupportTask.Result)
                         {
                             options.ApplicationProtocols = clientHelloInfo.GetAlpn();
                             if (options.ApplicationProtocols == null || options.ApplicationProtocols.Count == 0)
@@ -436,10 +432,10 @@ public partial class ProxyServer
                             cancellationTokenSource.Token);
                         sslStream = null; // clientStream was created, no need to keep SSL stream reference
 
-                        clientStream.DataRead += ( o, args ) =>
-                            connectArgs.OnDecryptedDataSent(args.Buffer, args.Offset, args.Count);
-                        clientStream.DataWrite += ( o, args ) =>
-                            connectArgs.OnDecryptedDataReceived(args.Buffer, args.Offset, args.Count);
+                        //clientStream.DataRead += ( o, args ) =>
+                        //    connectArgs.OnDecryptedDataSent(args.Buffer, args.Offset, args.Count);
+                        //clientStream.DataWrite += ( o, args ) =>
+                        //    connectArgs.OnDecryptedDataReceived(args.Buffer, args.Offset, args.Count);
                     }
                     catch (Exception e)
                     {
@@ -472,7 +468,8 @@ public partial class ProxyServer
 
                 if (method == KnownMethod.Invalid) sendRawData = true;
 
-                // Hostname is excluded or it is not an HTTPS connect
+                // Forward the connection as is to the server
+                // TODO: Maybe this part can be optimized even further, but for now I don't care
                 if (sendRawData)
                 {
                     // create new connection to server.
@@ -496,7 +493,7 @@ public partial class ProxyServer
                                 {
                                     // clientStream.Available should be at most BufferSize because it is using the same buffer size
                                     var read = await clientStream.ReadAsync(data, 0, available, cancellationTokenSource.Token);
-                                    if (read != available) throw new Exception("Internal error.");
+                                    if (read != available) throw new IOException("Raw stream has wrong number of bytes red");
 
                                     await connection.Stream.WriteAsync(data, 0, available, true, cancellationTokenSource.Token);
                                 }
@@ -526,7 +523,7 @@ public partial class ProxyServer
 
             if (connectArgs != null && method == KnownMethod.Pri)
             {
-                using var prefaceActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Http2ConnectionPreface", ActivityKind.Consumer);
+                using var prefaceActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Http2ConnectionPreface", ActivityKind.Consumer);
                 // todo
                 var httpCmd = await clientStream.ReadLineAsync(cancellationTokenSource.Token);
                 if (httpCmd == "PRI * HTTP/2.0")
@@ -573,7 +570,7 @@ public partial class ProxyServer
             // NEW: Handle regular HTTP requests using HttpRequestMessage
             if (method != KnownMethod.Connect && method != KnownMethod.Pri && method != KnownMethod.Invalid)
             {
-                using var requestActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_HandleHttpMessage", ActivityKind.Consumer);
+                using var requestActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_HandleHttpMessage", ActivityKind.Consumer);
                 // Parse the incoming request into HttpRequestMessage
                 var httpRequestMessage = await ParseHttpRequestMessage(clientStream, cancellationTokenSource.Token);
                 if (httpRequestMessage != null)
@@ -628,7 +625,7 @@ public partial class ProxyServer
                             }
 
 
-                            using (var responseHandlerActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_OnResponse", ActivityKind.Producer))
+                            using (var responseHandlerActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_OnResponse", ActivityKind.Producer))
                             {
                                 var responseArguments = new Events.ResponseEventArguments(httpRequestMessage, httpResponseMessage, responseHandlerActivity, requestArguments.RequestId);
                                 var eventResponse = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, cancellationTokenSource.Token);
@@ -638,19 +635,18 @@ public partial class ProxyServer
                                 }
                             }
 
-                            using (var responseActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitRemoteResponse", ActivityKind.Producer))
+                            using (var responseActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitRemoteResponse", ActivityKind.Producer))
                             {
                                 // Convert HttpResponseMessage to custom Response object
                                 var response = await ConvertHttpResponseMessage(httpResponseMessage); // Convert to custom Response object
-                                responseActivity?.SetTag("http.status_code", response.StatusCode);
-                                responseActivity?.SetTag("http.status_text", response.StatusDescription);
+                                responseActivity?.SetTag("http.response.status_code", response.StatusCode);
                                 await clientStream.WriteResponseAsync(response);
                             }
                             return;
                         }
 
 
-                        using (var responseActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitProxyResponse", ActivityKind.Producer))
+                        using (var responseActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitProxyResponse", ActivityKind.Producer))
                         {
                             // No freaking idea why I need to call this, but otherwise it won't work
                             // Maybe this calculates the Content-Length?
