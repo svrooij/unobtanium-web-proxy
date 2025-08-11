@@ -248,7 +248,7 @@ public partial class ProxyServer
             // Client wants to create a secure tcp tunnel (probably its a HTTPS or Websocket request)
             if (method == KnownMethod.Connect)
             {
-                using var connectActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Connect", ActivityKind.Consumer);
+                using var connectActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Connect", ActivityKind.Consumer);
                 // read the first line HTTP command
                 var requestLine = await clientStream.ReadRequestLine(cancellationTokenSource.Token);
                 if (requestLine.IsEmpty()) return;
@@ -485,7 +485,7 @@ public partial class ProxyServer
 
             if (connectArgs != null && method == KnownMethod.Pri)
             {
-                using var prefaceActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Http2ConnectionPreface", ActivityKind.Consumer);
+                using var prefaceActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Http2ConnectionPreface", ActivityKind.Consumer);
                 // todo
                 var httpCmd = await clientStream.ReadLineAsync(cancellationTokenSource.Token);
                 if (httpCmd == "PRI * HTTP/2.0")
@@ -532,7 +532,7 @@ public partial class ProxyServer
             // NEW: Handle regular HTTP requests using HttpRequestMessage
             if (method != KnownMethod.Connect && method != KnownMethod.Pri && method != KnownMethod.Invalid)
             {
-                using var requestActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_HandleHttpMessage", ActivityKind.Consumer);
+                using var requestActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_HandleHttpMessage", ActivityKind.Consumer);
                 // Parse the incoming request into HttpRequestMessage
                 var httpRequestMessage = await ParseHttpRequestMessage(clientStream, cancellationTokenSource.Token);
                 if (httpRequestMessage != null)
@@ -587,7 +587,7 @@ public partial class ProxyServer
                             }
 
 
-                            using (var responseHandlerActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_OnResponse", ActivityKind.Producer))
+                            using (var responseHandlerActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_OnResponse", ActivityKind.Producer))
                             {
                                 var responseArguments = new Events.ResponseEventArguments(httpRequestMessage, httpResponseMessage, responseHandlerActivity, requestArguments.RequestId);
                                 var eventResponse = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, cancellationTokenSource.Token);
@@ -597,7 +597,7 @@ public partial class ProxyServer
                                 }
                             }
 
-                            using (var responseActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitRemoteResponse", ActivityKind.Producer))
+                            using (var responseActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitRemoteResponse", ActivityKind.Producer))
                             {
                                 // Convert HttpResponseMessage to custom Response object
                                 var response = await ConvertHttpResponseMessage(httpResponseMessage); // Convert to custom Response object
@@ -608,7 +608,7 @@ public partial class ProxyServer
                         }
 
 
-                        using (var responseActivity = ActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitProxyResponse", ActivityKind.Producer))
+                        using (var responseActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitProxyResponse", ActivityKind.Producer))
                         {
                             // No freaking idea why I need to call this, but otherwise it won't work
                             // Maybe this calculates the Content-Length?
