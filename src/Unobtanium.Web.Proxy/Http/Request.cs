@@ -10,6 +10,7 @@ namespace Unobtanium.Web.Proxy.Http;
 ///     Http(s) request object.
 /// </summary>
 [TypeConverter(typeof(ExpandableObjectConverter))]
+[Obsolete("You won't be getting this anymore, the events will give HttpRequestMessage instead.")]
 public class Request : RequestResponseBase
 {
     private ByteString requestUriString8;

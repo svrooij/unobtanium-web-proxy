@@ -339,7 +339,7 @@ public partial class ProxyServer
 
                     // Start parallel operations for performance optimization
                     Task<bool> http2SupportTask = null!;
-                    Task<X509Certificate2> certificateTask = null!;
+                    Task<X509Certificate2?> certificateTask = null!;
                     
                     // Start certificate generation/retrieval in parallel
                     certificateTask = Task.Run(async () =>
@@ -630,7 +630,7 @@ public partial class ProxyServer
 
                             using (var responseHandlerActivity = activitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_OnResponse", ActivityKind.Producer))
                             {
-                                var responseArguments = new Events.ResponseEventArguments(httpRequestMessage, httpResponseMessage, responseHandlerActivity);
+                                var responseArguments = new Events.ResponseEventArguments(httpRequestMessage, httpResponseMessage, responseHandlerActivity, requestArguments.RequestId);
                                 var eventResponse = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, cancellationTokenSource.Token);
                                 if (eventResponse.ModifiedResponse is not null)
                                 {

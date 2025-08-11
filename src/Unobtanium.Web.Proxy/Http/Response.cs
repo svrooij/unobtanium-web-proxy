@@ -10,6 +10,7 @@ namespace Unobtanium.Web.Proxy.Http;
 ///     Http(s) response object
 /// </summary>
 [TypeConverter(typeof(ExpandableObjectConverter))]
+[Obsolete("You won't be getting this anymore, the events will give HttpResponseMessage instead.")]
 public class Response : RequestResponseBase
 {
     /// <summary>
