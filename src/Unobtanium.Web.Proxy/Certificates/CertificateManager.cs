@@ -478,7 +478,7 @@ public sealed class CertificateManager : IDisposable
     /// <remarks>Tries memory cache, disk cache and lastly generates new certificate</remarks>
     public async Task<X509Certificate2?> GetOrGenerateCertificateAsync ( string certificateName, CancellationToken cancellationToken = default )
     {
-        using var activity = ProxyServer.ActivitySource.StartActivity("GetOrGenerateCertificateAsync", System.Diagnostics.ActivityKind.Internal);
+        using var activity = ProxyServer.ProxyActivitySource.StartActivity("GetOrGenerateCertificateAsync", System.Diagnostics.ActivityKind.Internal);
         activity?.SetTag("req.host", certificateName);
         logger.LogDebug("GetOrGenerateCertificateAsync({CertificateName}) called", certificateName);
         var cachedCert = await cachedCertificates.GetOrAddAsync(certificateName, async ( facCancellation ) =>

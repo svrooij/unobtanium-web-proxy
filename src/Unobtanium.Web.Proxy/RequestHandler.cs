@@ -56,7 +56,7 @@ public partial class ProxyServer
                 if (clientStream.IsClosed) return;
 
                 // Create request activity as child of current activity (which should be the ClientConnection activity)
-                using var requestActivity = ActivitySource.StartActivity("HttpRequest", ActivityKind.Server);
+                using var requestActivity = ProxyActivitySource.StartActivity("HttpRequest", ActivityKind.Server);
 
                 // read the request line
                 var requestLine = await clientStream.ReadRequestLine(cancellationToken);
@@ -89,14 +89,17 @@ public partial class ProxyServer
                         request.Method = requestLine.Method;
                         request.HttpVersion = requestLine.Version;
 
-                        // Set activity tags with request information
-                        requestActivity?.SetTag("http.method", request.Method);
-                        requestActivity?.SetTag("http.url", request.Url);
-                        requestActivity?.SetTag("http.scheme", request.IsHttps ? "https" : "http");
-                        requestActivity?.SetTag("http.target", request.RequestUri.PathAndQuery);
-                        if (request.RequestUri.Host != null)
+                        if (requestActivity is not null)
                         {
-                            requestActivity?.SetTag("http.host", request.RequestUri.Host);
+                            // Set activity tags with request information
+                            requestActivity.SetTag("http.method", request.Method);
+                            requestActivity.SetTag("http.url", request.Url);
+                            requestActivity.SetTag("http.scheme", request.IsHttps ? "https" : "http");
+                            requestActivity.SetTag("http.target", request.RequestUri.PathAndQuery);
+                            if (request.RequestUri.Host != null)
+                            {
+                                requestActivity.SetTag("http.host", request.RequestUri.Host);
+                            }
                         }
 
                         // we need this to syphon out data from connection if API user changes them.
@@ -435,7 +438,7 @@ public partial class ProxyServer
         // Use the new event system for request handling (PREFERRED)
         if (configuration.Events.HasOnRequest) 
         {
-            using var activity = ActivitySource.StartActivity(nameof(configuration.Events.OnRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
+            using var activity = ProxyActivitySource.StartActivity(nameof(configuration.Events.OnRequest), ActivityKind.Internal, requestActivity?.Context ?? default);
             
             // Create HttpRequestMessage from the custom Request
             var httpRequest = CreateHttpRequestMessageFromCustomRequest(args.HttpClient.Request);

@@ -26,14 +26,14 @@ public partial class ProxyServer
     /// <param name="endPoint">The transparent endpoint.</param>
     /// <param name="clientConnection">The client connection.</param>
     /// <returns></returns>
-    private Task HandleClientTransparentEndpoint ( TransparentProxyEndPoint endPoint, TcpClientConnection clientConnection, CancellationTokenSource cancellationTokenSource )
+    private Task HandleClientTransparentEndpoint ( TransparentProxyEndPoint endPoint, TcpClientConnection clientConnection, ActivityContext? activityContext, CancellationTokenSource cancellationTokenSource )
     {
         var cancellationToken = cancellationTokenSource.Token;
-        return handleClientTransparentEndpoint(endPoint, clientConnection, endPoint.Port, cancellationTokenSource, cancellationToken);
+        return handleClientTransparentEndpoint(endPoint, clientConnection, endPoint.Port, cancellationTokenSource, activityContext, cancellationToken);
     }
 
     private async Task handleClientTransparentEndpoint ( TransparentBaseProxyEndPoint endPoint, TcpClientConnection clientConnection,
-        int port, CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken )
+        int port, CancellationTokenSource cancellationTokenSource, ActivityContext? activityContext, CancellationToken cancellationToken )
     {
         var isHttps = false;
         var clientStream = new HttpClientStream(this, clientConnection, clientConnection.GetStream(), BufferPool,

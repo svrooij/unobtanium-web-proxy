@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ public partial class ProxyServer
     /// <param name="endPoint">The transparent endpoint.</param>
     /// <param name="clientConnection">The client connection.</param>
     /// <returns></returns>
-    private async Task HandleClientSocksEndpoint ( SocksProxyEndPoint endPoint, TcpClientConnection clientConnection, CancellationTokenSource cancellationTokenSource)
+    private async Task HandleClientSocksEndpoint ( SocksProxyEndPoint endPoint, TcpClientConnection clientConnection, ActivityContext? activityContext, CancellationTokenSource cancellationTokenSource)
     {
         var cancellationToken = cancellationTokenSource.Token;
 
@@ -138,6 +139,6 @@ public partial class ProxyServer
             BufferPool.ReturnBuffer(buffer);
         }
 
-        await handleClientTransparentEndpoint(endPoint, clientConnection, port, cancellationTokenSource, cancellationToken);
+        await handleClientTransparentEndpoint(endPoint, clientConnection, port, cancellationTokenSource, activityContext, cancellationToken);
     }
 }

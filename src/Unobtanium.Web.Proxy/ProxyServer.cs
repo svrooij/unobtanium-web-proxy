@@ -58,7 +58,7 @@ public partial class ProxyServer : IDisposable
     /// <summary>
     /// <see cref="System.Diagnostics.ActivitySource"/> that can be supplied to support distributed tracing
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = new ActivitySource(ProxyServerDefaults.ActivitySourceName);
+    internal static readonly ActivitySource ProxyActivitySource = new ActivitySource(ProxyServerDefaults.ActivitySourceName);
 
     /// <summary>
     /// Logger factory to create loggers for various types
@@ -913,9 +913,9 @@ public partial class ProxyServer : IDisposable
         using var connectionCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // Only create activity if tracing is enabled (performance optimization)
         Activity? clientConnectionActivity = null;
-        if (ActivitySource.HasListeners())
+        if (ProxyActivitySource.HasListeners())
         {
-            clientConnectionActivity = ActivitySource.StartActivity(nameof(HandleClientConnectionAsync), ActivityKind.Server);
+            clientConnectionActivity = ProxyActivitySource.StartActivity(nameof(HandleClientConnectionAsync), ActivityKind.Server);
             clientConnectionActivity?.SetTag("client.endpoint", tcpClientSocket.RemoteEndPoint?.ToString());
             clientConnectionActivity?.SetTag("proxy.endpoint", endPoint.ToString());
             clientConnectionActivity?.SetTag("connection.type", endPoint.GetType().Name);
@@ -931,17 +931,17 @@ public partial class ProxyServer : IDisposable
                 switch (endPoint)
                 {
                     case ExplicitProxyEndPoint eep:
-                        await HandleClientExplicitEndpoint(eep, clientConnection, clientConnectionActivity?.Context, connectionCancellationTokenSource).ConfigureAwait(false);
+                        await HandleClientExplicitEndpoint(eep, clientConnection, clientConnectionActivity?.Context, connectionCancellationTokenSource);
                         break;
                     case TransparentProxyEndPoint tep:
-                        await HandleClientTransparentEndpoint(tep, clientConnection, connectionCancellationTokenSource).ConfigureAwait(false);
+                        await HandleClientTransparentEndpoint(tep, clientConnection, clientConnectionActivity?.Context, connectionCancellationTokenSource);
                         break;
                     case SocksProxyEndPoint sep:
-                        await HandleClientSocksEndpoint(sep, clientConnection, connectionCancellationTokenSource).ConfigureAwait(false);
+                        await HandleClientSocksEndpoint(sep, clientConnection, clientConnectionActivity?.Context, connectionCancellationTokenSource);
                         break;
                     default:
                         logger.LogWarning("Unknown endpoint type: {EndPointType}", endPoint.GetType().Name);
-                        break;
+                        throw new NotSupportedException($"Endpoint type {endPoint.GetType().Name} is not supported.");
                 }
             }
         }
@@ -971,8 +971,8 @@ public partial class ProxyServer : IDisposable
         ThreadPool.SetMinThreads(minWorkerThreads, minCompletionPortThreads);
         
         // Set maximum threads for very high concurrency scenarios
-        var maxWorkerThreads = processorCount * 64; // Aggressive for proxy workloads
-        var maxCompletionPortThreads = processorCount * 64;
+        var maxWorkerThreads = processorCount * 32; // Aggressive for proxy workloads
+        var maxCompletionPortThreads = processorCount * 32;
         
         ThreadPool.SetMaxThreads(maxWorkerThreads, maxCompletionPortThreads);
         
