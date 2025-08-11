@@ -42,7 +42,7 @@ public partial class ProxyServer
 
         try
         {
-            var clientHelloInfo = await SslTools.PeekClientHello(clientStream, BufferPool, cancellationToken);
+            var clientHelloInfo = await SslTools.PeekClientHello(clientStream, BufferPool, activityContext, cancellationToken);
 
             if (clientHelloInfo != null)
             {

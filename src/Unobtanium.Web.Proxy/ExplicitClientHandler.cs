@@ -228,10 +228,9 @@ public partial class ProxyServer
     /// <returns>The task.</returns>
     private async Task HandleClientExplicitEndpoint ( ExplicitProxyEndPoint endPoint, TcpClientConnection clientConnection, ActivityContext? activityContext, CancellationTokenSource cancellationTokenSource )
     {
-        //using var handleActivity = activitySource.StartActivity(nameof(HandleClientExplicitEndpoint), ActivityKind.Consumer, activityContext ?? default);
+        logger.LogDebug("HandleClientExplicitEndpoint called for {EndPoint}", endPoint);
+        using var handleActivity = ProxyActivitySource.StartActivity(nameof(HandleClientExplicitEndpoint), ActivityKind.Consumer, activityContext ?? default);
         
-        //var cancellationToken = cancellationTokenSource.Token;
-
         var clientStream = new HttpClientStream(this, clientConnection, clientConnection.GetStream(), BufferPool,
             cancellationTokenSource.Token);
 
@@ -242,13 +241,15 @@ public partial class ProxyServer
 
         try
         {
+            //using var methodActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Method", ActivityKind.Consumer);
             var method = await HttpHelper.GetMethod(clientStream, BufferPool, cancellationTokenSource.Token);
+            //methodActivity?.Stop();
             if (clientStream.IsClosed || cancellationTokenSource.IsCancellationRequested) return;
 
             // Client wants to create a secure tcp tunnel (probably its a HTTPS or Websocket request)
             if (method == KnownMethod.Connect)
             {
-                using var connectActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Connect", ActivityKind.Consumer);
+                using var connectActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Connect", ActivityKind.Consumer, handleActivity?.Context ?? default);
                 // read the first line HTTP command
                 var requestLine = await clientStream.ReadRequestLine(cancellationTokenSource.Token);
                 if (requestLine.IsEmpty()) return;
@@ -270,10 +271,10 @@ public partial class ProxyServer
 
                 connectArgs = new TunnelConnectSessionEventArgs(this, endPoint, connectRequest, clientStream,
                     cancellationTokenSource.Token);
-
+                //using var decryptSslActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_ShouldDecryptSsl", ActivityKind.Internal);
                 var decryptSsl = await configuration.Events.InvokeShouldDecryptNewConnection(connectHostname, cancellationTokenSource).ConfigureAwait(false);
                 var sendRawData = !decryptSsl;
-
+                //decryptSslActivity?.Stop();
                 // write back successful CONNECT response
                 var response = ConnectResponse.CreateSuccessfulConnectResponse(connectRequest.HttpVersion);
 
@@ -284,7 +285,7 @@ public partial class ProxyServer
 
                 await clientStream.WriteResponseAsync(response, cancellationTokenSource.Token);
 
-                var clientHelloInfo = await SslTools.PeekClientHello(clientStream, BufferPool, cancellationTokenSource.Token);
+                var clientHelloInfo = await SslTools.PeekClientHello(clientStream, BufferPool, connectActivity?.Context ?? default, cancellationTokenSource.Token);
                 if (clientStream.IsClosed) return;
 
                 var isClientHello = clientHelloInfo != null;
@@ -306,8 +307,6 @@ public partial class ProxyServer
 
                     clientStream.Connection.SslProtocol = sslProtocol;
 
-                    
-
                     // Start parallel operations for performance optimization
                     Task<bool> http2SupportTask = null!;
                     Task<X509Certificate2?> certificateTask = null!;
@@ -321,6 +320,7 @@ public partial class ProxyServer
                         var alpn = clientHelloInfo.GetAlpn();
                         if (alpn != null && alpn.Contains(SslApplicationProtocol.Http2))
                         {
+                            //using var http2Activity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Http2Detection", ActivityKind.Internal, handleActivity?.Context ?? default);
                             http2SupportTask = Task.Run(async () =>
                             {
                                 try
@@ -428,12 +428,15 @@ public partial class ProxyServer
                 if (cancellationTokenSource.IsCancellationRequested)
                     throw new Exception("Session was terminated by user.");
 
-                if (method == KnownMethod.Invalid) sendRawData = true;
+                if (method == KnownMethod.Invalid)
+                    sendRawData = true;
 
                 // Forward the connection as is to the server
                 // TODO: Maybe this part can be optimized even further, but for now I don't care
                 if (sendRawData)
                 {
+                    logger.LogInformation("Sending raw request to {Hostname}", connectHostname);
+                    
                     // create new connection to server.
                     // If we detected that client tunnel CONNECTs without SSL by checking for empty client hello then 
                     // this connection should not be HTTPS.
@@ -485,7 +488,7 @@ public partial class ProxyServer
 
             if (connectArgs != null && method == KnownMethod.Pri)
             {
-                using var prefaceActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Http2ConnectionPreface", ActivityKind.Consumer);
+                using var prefaceActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_Http2ConnectionPreface", ActivityKind.Consumer, handleActivity?.Context ?? default);
                 // todo
                 var httpCmd = await clientStream.ReadLineAsync(cancellationTokenSource.Token);
                 if (httpCmd == "PRI * HTTP/2.0")
@@ -532,7 +535,7 @@ public partial class ProxyServer
             // NEW: Handle regular HTTP requests using HttpRequestMessage
             if (method != KnownMethod.Connect && method != KnownMethod.Pri && method != KnownMethod.Invalid)
             {
-                using var requestActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_HandleHttpMessage", ActivityKind.Consumer);
+                using var requestActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_HandleHttpMessage", ActivityKind.Consumer, handleActivity?.Context ?? default);
                 // Parse the incoming request into HttpRequestMessage
                 var httpRequestMessage = await ParseHttpRequestMessage(clientStream, cancellationTokenSource.Token);
                 if (httpRequestMessage != null)
@@ -587,7 +590,7 @@ public partial class ProxyServer
                             }
 
 
-                            using (var responseHandlerActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_OnResponse", ActivityKind.Producer))
+                            using (var responseHandlerActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_OnResponse", ActivityKind.Producer, handleActivity?.Context ?? default))
                             {
                                 var responseArguments = new Events.ResponseEventArguments(httpRequestMessage, httpResponseMessage, responseHandlerActivity, requestArguments.RequestId);
                                 var eventResponse = await configuration.Events.InvokeOnResponse(this, responseArguments, logger, cancellationTokenSource.Token);
@@ -597,7 +600,7 @@ public partial class ProxyServer
                                 }
                             }
 
-                            using (var responseActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitRemoteResponse", ActivityKind.Producer))
+                            using (var responseActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitRemoteResponse", ActivityKind.Producer, handleActivity?.Context ?? default))
                             {
                                 // Convert HttpResponseMessage to custom Response object
                                 var response = await ConvertHttpResponseMessage(httpResponseMessage); // Convert to custom Response object
@@ -608,7 +611,7 @@ public partial class ProxyServer
                         }
 
 
-                        using (var responseActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitProxyResponse", ActivityKind.Producer))
+                        using (var responseActivity = ProxyActivitySource.StartActivity($"{nameof(HandleClientExplicitEndpoint)}_TransmitProxyResponse", ActivityKind.Producer, handleActivity?.Context ?? default))
                         {
                             // No freaking idea why I need to call this, but otherwise it won't work
                             // Maybe this calculates the Content-Length?
@@ -634,6 +637,11 @@ public partial class ProxyServer
                     {
                         httpRequestMessage.Dispose();
                     }
+                } else
+                {
+                    logger.LogWarning("HttpRequestMessage is null, that cannot be good");
+                    clientStream.Close();
+                    cancellationTokenSource.Cancel();
                 }
             }
 
@@ -650,12 +658,15 @@ public partial class ProxyServer
         }
         finally
         {
+            logger.LogDebug("HandleClientExplicitEndpoint finished for {EndPoint}", endPoint);
+            handleActivity?.Stop();
             if (!cancellationTokenSource.IsCancellationRequested) cancellationTokenSource.Cancel();
 
             await TcpConnectionFactory.Release(prefetchConnectionTask, closeServerConnection);
 
             clientStream.Dispose();
             connectArgs?.Dispose();
+            
         }
     }
 
@@ -696,11 +707,8 @@ public partial class ProxyServer
 
     /// <summary>
     ///     Add distributed tracing headers to HttpRequestMessage if they don't already exist.
-    ///     This ensures that trace context is propagated even if the original client request 
-    ///     didn't include tracing headers.
+    ///     This ensures that trace context is propagated across service boundaries.
     /// </summary>
-    /// <param name="httpRequestMessage">The HttpRequestMessage to modify</param>
-    /// <param name="activity">The current activity context</param>
     private void AddDistributedTracingHeadersToHttpRequestMessage(HttpRequestMessage httpRequestMessage, Activity? activity)
     {
         if (activity == null) return;

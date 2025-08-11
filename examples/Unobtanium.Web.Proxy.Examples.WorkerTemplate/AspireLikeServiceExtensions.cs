@@ -49,8 +49,8 @@ internal static class AspireLikeServiceExtensions
                     //.AddAspNetCoreInstrumentation()
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddConsoleExporter();
+                    .AddHttpClientInstrumentation();
+                    //.AddConsoleExporter();
             });
 
         builder.AddOpenTelemetryExporters();
