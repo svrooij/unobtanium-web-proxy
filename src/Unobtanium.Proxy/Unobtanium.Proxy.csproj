@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Unobtanium.Web.Proxy.Events\Unobtanium.Web.Proxy.Events.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <Compile Update=".\ProxyServer.*.cs">
+          <DependentUpon>ProxyServer.cs</DependentUpon>
+      </Compile>
+      
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+  </ItemGroup>
+
+</Project>

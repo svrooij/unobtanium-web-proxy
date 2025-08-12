@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.Events;
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unobtanium.Web.Proxy")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unobtanium.Proxy")]
 
 namespace Unobtanium.Web.Proxy.Events;
 /// <summary>
@@ -21,7 +22,7 @@ public class ProxyServerEvents
     /// returning <see langword="true"/> will result in the connection being decrypted and processed by the proxy server.<br/>
     /// </summary>
     /// <remarks>You will get the hostname and and a cancellation token source</remarks>
-    public Func<string,CancellationTokenSource, Task<bool>>? ShouldDecryptNewConnection;
+    public Func<string, CancellationTokenSource, Task<bool>>? ShouldDecryptNewConnection;
 
     internal async Task<bool> InvokeShouldDecryptNewConnection (string hostname, CancellationTokenSource cancellationTokenSource )
     {

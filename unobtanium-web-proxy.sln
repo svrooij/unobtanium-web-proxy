@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unobtanium.Web.Proxy.Events
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unobtanium.Web.Proxy.Examples.WorkerTemplate", "examples\Unobtanium.Web.Proxy.Examples.WorkerTemplate\Unobtanium.Web.Proxy.Examples.WorkerTemplate.csproj", "{7EB773D3-1133-4DDA-B36A-521F723C9C83}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unobtanium.Proxy", "src\Unobtanium.Proxy\Unobtanium.Proxy.csproj", "{955730A7-8EA8-4D90-8A60-6CD875B85821}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{7EB773D3-1133-4DDA-B36A-521F723C9C83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7EB773D3-1133-4DDA-B36A-521F723C9C83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7EB773D3-1133-4DDA-B36A-521F723C9C83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{955730A7-8EA8-4D90-8A60-6CD875B85821}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{955730A7-8EA8-4D90-8A60-6CD875B85821}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{955730A7-8EA8-4D90-8A60-6CD875B85821}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{955730A7-8EA8-4D90-8A60-6CD875B85821}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +88,7 @@ Global
 		{84478257-32A3-4B14-AD56-F95374AFDDCF} = {F71E12F7-48CF-4C35-A8AA-5AF73CA822BB}
 		{54B8BCDB-4E12-4580-BAAE-2B3E4A99A58E} = {46821EED-5499-4F91-90B0-41186B92CDA4}
 		{7EB773D3-1133-4DDA-B36A-521F723C9C83} = {316955EF-CB32-4026-9171-9706DB54374D}
+		{955730A7-8EA8-4D90-8A60-6CD875B85821} = {46821EED-5499-4F91-90B0-41186B92CDA4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ECA518CB-9F91-4DBF-8966-41E090E3D9B2}
