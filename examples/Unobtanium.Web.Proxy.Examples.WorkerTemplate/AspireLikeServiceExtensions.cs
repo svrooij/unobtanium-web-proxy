@@ -1,6 +1,7 @@
 ﻿using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Unobtanium.Proxy;
 
 namespace Unobtanium.Web.Proxy.Examples.WorkerTemplate;
 
@@ -45,7 +46,7 @@ internal static class AspireLikeServiceExtensions
             .WithTracing(tracing =>
             {
                 tracing
-                    .AddSource(ProxyServerDefaults.ActivitySourceName)
+                    .AddSource(ProxyServer.ActivitySourceName)
                     //.AddAspNetCoreInstrumentation()
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()

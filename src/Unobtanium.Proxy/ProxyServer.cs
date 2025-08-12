@@ -16,8 +16,8 @@ using Unobtanium.Proxy.Interfaces;
 namespace Unobtanium.Proxy;
 public partial class ProxyServer : IDisposable
 {
-    
-    internal static readonly ActivitySource ProxyActivitySource = new("Unobtanium.Proxy");
+    public const string ActivitySourceName = "Unobtanium.Proxy";
+    internal static readonly ActivitySource ProxyActivitySource = new(ActivitySourceName);
 
     private readonly ProxyServerConfiguration _configuration;
     private readonly ICertificateManager _certificateManager;
@@ -31,9 +31,9 @@ public partial class ProxyServer : IDisposable
 
     public ProxyServer(
         ProxyServerConfiguration configuration,
-        ICertificateManager? certificateManager,
-        ILogger<ProxyServer>? logger,
-        IProxyHttpClientFactory? httpClientFactory)
+        ICertificateManager? certificateManager = null,
+        ILogger<ProxyServer>? logger = null,
+        IProxyHttpClientFactory? httpClientFactory = null)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _certificateManager = certificateManager ?? new DefaultCertificateManager(null, null, null);
@@ -69,6 +69,26 @@ public partial class ProxyServer : IDisposable
         {
             StartListeningForRequests(endpoint);
         }
+    }
+
+    public void Stop()
+    {
+        if (!_isListening)
+        {
+            _logger.LogWarning("Proxy server is not running. Ignoring stop request.");
+            return;
+        }
+        _isListening = false;
+        _cancellationTokenSource.Cancel();
+        // Wait for all listener tasks to complete
+        Task.WaitAll(_listenerTasks.ToArray());
+        foreach (var endpoint in _configuration.Endpoints)
+        {
+            endpoint.Listener?.Stop();
+            endpoint.Listener?.Server.Close();
+            endpoint.Listener = null;
+        }
+        _logger.LogInformation("Proxy Server stopped successfully.");
     }
 
     private void StartListeningForRequests ( ProxyEndpoint endpoint )

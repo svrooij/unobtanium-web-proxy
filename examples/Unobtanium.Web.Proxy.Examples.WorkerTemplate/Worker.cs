@@ -1,3 +1,5 @@
+using Unobtanium.Proxy;
+
 namespace Unobtanium.Web.Proxy.Examples.WorkerTemplate;
 
 public class Worker : BackgroundService

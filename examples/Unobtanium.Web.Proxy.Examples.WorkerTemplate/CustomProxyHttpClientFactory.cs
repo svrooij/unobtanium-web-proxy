@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unobtanium.Proxy.Interfaces;
 
 namespace Unobtanium.Web.Proxy.Examples.WorkerTemplate;
-internal class CustomProxyHttpClientFactory : IProxyServerHttpClientFactory
+internal class CustomProxyHttpClientFactory : IProxyHttpClientFactory
 {
     private readonly IHttpClientFactory httpClientFactory;
 
@@ -14,7 +15,7 @@ internal class CustomProxyHttpClientFactory : IProxyServerHttpClientFactory
         this.httpClientFactory = httpClientFactory;
     }
 
-    public HttpClient CreateHttpClient ()
+    public HttpClient CreateHttpClient (string host)
     {
         return httpClientFactory.CreateClient("Unobtanium.Web.Proxy.Examples.WorkerTemplate");
     }

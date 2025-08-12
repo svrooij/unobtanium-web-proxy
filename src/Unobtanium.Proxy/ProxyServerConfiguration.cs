@@ -12,6 +12,7 @@ public class ProxyServerConfiguration
     public int DefaultPort { get; init; } = 8000;
     public List<ProxyEndpoint> Endpoints { get; init; } = new List<ProxyEndpoint>();
     public ProxyServerEvents Events { get; init; } = new ProxyServerEvents();
+    public Func<string, CancellationToken, Task<bool>> TryDecryptHttps { get; set; } = (_, _) => Task.FromResult(true);
 
     /// <summary>
     ///     Customize the minimum ThreadPool size (increase it on a server)

@@ -1,8 +1,7 @@
-using Unobtanium.Web.Proxy;
+using Unobtanium.Proxy;
+using Unobtanium.Proxy.Interfaces;
 using Unobtanium.Web.Proxy.Events;
 using Unobtanium.Web.Proxy.Examples.WorkerTemplate;
-using Unobtanium.Web.Proxy.Models;
-using Unobtanium.Web.Proxy.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHttpClient("Unobtanium.Web.Proxy.Examples.WorkerTemplate", client =>
@@ -23,17 +22,13 @@ builder.AddSensibleDefault();
 
 var config = new ProxyServerConfiguration()
 {
-    TcpTimeWaitSeconds = 10,
-    ConnectionTimeOutSeconds = 15,
-    EnableTcpServerConnectionPrefetch = false,
-    ReuseSocket = false,
-    EnableConnectionPool = true,
-    ForwardToUpstreamGateway = true,
-    CertificateTrustMode = ProxyCertificateTrustMode.UserTrust,
-    ShouldProxyRequest = async ( uri, cancellationToken ) => {
-        return uri.Host.Contains("graph.microsoft.com") || uri.Host.Contains("openai.azure.com");
-        //return !uri.Host.Contains("localhost");
-    }
+    DefaultPort = 8000,
+    TryDecryptHttps = async (host, _) =>
+    {
+        // Implement your logic to determine if HTTPS decryption should be attempted
+        // For example, you might check if the URL is in a whitelist
+        return host.StartsWith("graph.microsoft.com");
+    },
 };
 config.Events.OnRequest += async (s, e, cancellationToken) =>
 {
@@ -43,7 +38,7 @@ config.Events.OnRequest += async (s, e, cancellationToken) =>
     //    var body = await e.Request.Content!.ReadAsStringAsync(cancellationToken);
     //    Console.WriteLine(body);
     //}
-    if (e.Request.RequestUri.ToString().StartsWith("https://graph.microsoft.com/v1.0/"))
+    if (e.Request.RequestUri.ToString().Contains("graph.microsoft.com/v1.0/"))
     {
         var content = @"{
 	""error"": {
@@ -87,15 +82,15 @@ config.Events.OnResponse += async (s, e, cancellationToken) =>
     return ResponseEventResponse.ContinueResponse();
 };
 
-config.EndPoints = [new ExplicitProxyEndPoint(System.Net.IPAddress.Any, 8000)];
+//config.Endpoints = [new ExplicitProxyEndPoint(System.Net.IPAddress.Any, 8000)];
 builder.Services.AddSingleton(config);
 builder.Services.AddSingleton<ProxyServer>();
 
 // Register the custom HttpClient factory for the proxy server to use
-builder.Services.AddSingleton<IProxyServerHttpClientFactory, CustomProxyHttpClientFactory>();
+builder.Services.AddSingleton<IProxyHttpClientFactory, CustomProxyHttpClientFactory>();
 
 // Register HttpClientService to handle outbound requests without using system proxy
-builder.Services.AddSingleton<HttpClientService>();
+//builder.Services.AddSingleton<HttpClientService>();
 
 builder.Services.AddHostedService<Worker>();
 

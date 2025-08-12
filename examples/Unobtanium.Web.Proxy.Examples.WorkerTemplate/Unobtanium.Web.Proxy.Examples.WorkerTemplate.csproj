@@ -19,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Unobtanium.Web.Proxy\Unobtanium.Web.Proxy.csproj" />
+    <ProjectReference Include="..\..\src\Unobtanium.Proxy\Unobtanium.Proxy.csproj" />
   </ItemGroup>
 </Project>

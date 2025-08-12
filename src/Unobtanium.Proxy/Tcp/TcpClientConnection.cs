@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ public class TcpClientConnection : IDisposable
 {
     private readonly Socket tcpClientSocket;
     
-    private Stream? stream;
+    private NetworkStream? stream;
 
     public TcpClientConnection ( Socket tcpClientSocket, Activity? activity )
     {
@@ -21,7 +22,9 @@ public class TcpClientConnection : IDisposable
 
     public readonly Activity? Activity;
 
-    public Stream GetStream => stream ??= new NetworkStream(tcpClientSocket, true);
+    public NetworkStream GetStream => stream ??= new NetworkStream(tcpClientSocket, true);
+
+    public EndPoint RemoteEndpoint => tcpClientSocket.RemoteEndPoint ?? throw new InvalidOperationException("Socket is not connected.");
 
     public void Dispose ()
     {
