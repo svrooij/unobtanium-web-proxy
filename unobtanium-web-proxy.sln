@@ -10,6 +10,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unobtanium.Web.Proxy", "src\Unobtanium.Web.Proxy\Unobtanium.Web.Proxy.csproj", "{8C37C4FF-B96E-4470-BFA8-B9E0C80B41FF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F71E12F7-48CF-4C35-A8AA-5AF73CA822BB}"
+	ProjectSection(SolutionItems) = preProject
+		tests\run-tests.ps1 = tests\run-tests.ps1
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0B43DBA0-F59D-43DC-A1D7-2BB6AFF31E10}"
 	ProjectSection(SolutionItems) = preProject

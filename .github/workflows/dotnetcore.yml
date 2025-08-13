@@ -4,7 +4,7 @@ on:
   push:
     branches:
         - develop
-        - feature/native-events 
+        - feature/kestrel-proxy
     tags:
         - v* 
   pull_request:
@@ -38,8 +38,8 @@ jobs:
       run: |
         dotnet build src/Unobtanium.Web.Proxy/Unobtanium.Web.Proxy.csproj --configuration Release
         dotnet build src/Unobtanium.Web.Proxy.Events/Unobtanium.Web.Proxy.Events.csproj --configuration Release
-        dotnet build tests/Unobtanium.Web.Proxy.UnitTests/Unobtanium.Web.Proxy.UnitTests.csproj --configuration Release
-        dotnet build tests/Unobtanium.Web.Proxy.IntegrationTests/Unobtanium.Web.Proxy.IntegrationTests.csproj --property WarningLevel=0
+        dotnet build tests/Unobtanium.Web.Proxy.KestrelTests/Unobtanium.Web.Proxy.KestrelTests.csproj --configuration Release
+        
 
     - name: 🧪 Test
       id: test

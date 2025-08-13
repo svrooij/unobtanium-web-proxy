@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Net;
@@ -27,16 +28,17 @@ internal class ProxyBackgroundService : BackgroundService
     private IHost? _proxyHost;
 
     public ProxyBackgroundService (
-        ILogger<ProxyBackgroundService> logger,
+        
         IServiceProvider serviceProvider,
         IOptions<ProxyServerOptions> options,
         ProxyServerEvents events,
         ICertificateManager certificateManager,
+        ILogger<ProxyBackgroundService>? logger = null,
         IProxyHttpClientFactory? proxyHttpClientFactory = null,
         TimeProvider? timeProvider = null
         )
     {
-        _logger = logger;
+        _logger = logger ?? new NullLogger<ProxyBackgroundService>();
         _serviceProvider = serviceProvider;
         _options = options.Value;
         _certificateManager = certificateManager;
@@ -354,7 +356,7 @@ internal class ProxyBackgroundService : BackgroundService
         public ILogger CreateLogger ( string categoryName )
         {
             // Get ILoggerFactory from the main service provider
-            var loggerFactory = _serviceProvider.GetRequiredService<ILoggerFactory>();
+            var loggerFactory = _serviceProvider.GetService<ILoggerFactory>() ?? new NullLoggerFactory();
             return loggerFactory.CreateLogger(categoryName);
         }
 

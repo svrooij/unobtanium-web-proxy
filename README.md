@@ -15,7 +15,7 @@ Report bugs or raise issues here.
 
 [![Unobtanium web proxy][badge_twp-repo]][link_twp-repo]
 
-This project is a reboot of the original [Titanium-Web-Proxy](https://github.com/justcoding121/titanium-web-proxy) project. The original project was last updated two years ago, has been archived by the author on July 9th 2023 and has been inactive since then. This project aims to continue the development of the original project and provide a stable and reliable proxy server library for .NET developers.
+This project is a rewrite of the original [Titanium-Web-Proxy](https://github.com/justcoding121/titanium-web-proxy) project. The original project was last updated two years ago, has been archived by the author on July 9th 2023 and has been inactive since then. This project aims to ~~continue the development of the original project and~~ provide a stable and reliable proxy server library for .NET developers.
 
 [Announcement](https://github.com/svrooij/titanium-web-proxy/discussions/2) [Reboot discussion](https://github.com/svrooij/titanium-web-proxy/discussions/7) [Issues](https://github.com/svrooij/titanium-web-proxy/issues?q=is%3Aissue+is%3Aopen+label%3Areboot)
 
@@ -38,8 +38,8 @@ This proxy server uses a modern, clean event system based on standard `HttpReque
 ### Request Interception
 
 ```csharp
-var config = new ProxyServerConfiguration();
-config.Events.OnRequest += async (sender, e, cancellationToken) =>
+var events = new ProxyServerEvents();
+events.OnRequest += async (sender, e, cancellationToken) =>
 {
     Console.WriteLine($"Request: {e.Request.Method} {e.Request.RequestUri}");
     
@@ -81,7 +81,7 @@ config.Events.OnRequest += async (sender, e, cancellationToken) =>
 ### Response Interception
 
 ```csharp
-config.Events.OnResponse += async (sender, e, cancellationToken) =>
+events.OnResponse += async (sender, e, cancellationToken) =>
 {
     Console.WriteLine($"Response: {e.Response.StatusCode} from {e.Request.RequestUri}");
     
@@ -118,13 +118,11 @@ config.Events.OnResponse += async (sender, e, cancellationToken) =>
 * Multithreaded and asynchronous proxy employing server connection pooling, certificate cache, and buffer pooling
 * View, modify, redirect and block requests or responses
 * Modern event system based on `HttpRequestMessage` and `HttpResponseMessage`
-* Supports mutual SSL authentication, proxy authentication & automatic upstream proxy detection
-* Supports kerberos, NTLM authentication over HTTP protocols on windows domain controlled networks
-* SOCKS4/5 Proxy support
+
 
 ## Installation
 
-Package on [NuGet][link_nuget], `Unobtanium.Web.Proxy` will be a partial drop-in replacement for `Titanium.Web.Proxy`, if you're on `NET8.0 or higher`.
+Package on [NuGet][link_nuget], `Unobtanium.Web.Proxy` will be a ~~partial drop-in~~ replacement for `Titanium.Web.Proxy`, if you're on `NET8.0 or higher`.
 
 ```bash
 dotnet add package Unobtanium.Web.Proxy
@@ -140,95 +138,68 @@ As stated [above](#project-reboot), this project is a reboot of the original pro
 
 ```csharp
 using Unobtanium.Web.Proxy;
-using Microsoft.Extensions.DependencyInjection;
+using Unobtanium.Web.Proxy.Events;
+var events = new ProxyServerEvents();
+events.ShouldDecryptNewConnection = async (host, cts) =>
+{
+    // Log the new connection details
+    return host.Equals("graph.microsoft.com");
+};
+events.OnRequest += async (s, e, cancellationToken) =>
+{
+    Console.WriteLine($"Request to: {e.Request.RequestUri}");
+    if (e.Request.RequestUri.ToString().StartsWith("https://graph.microsoft.com/v1.0/"))
+    {
+        var content = @"What ever you want";
+        var response = new HttpResponseMessage {
+            StatusCode = System.Net.HttpStatusCode.Unauthorized,
+            Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
+        };
+        return Unobtanium.Web.Proxy.Events.RequestEventResponse.EarlyResponse(response);
+    }
+    return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
+};
 
-// Use dependency injection to create the proxy server (this will be the preferred way to create the proxy server in the future)
-// ActivitySource (for tracing) and ILogger are optional, but recommended
-// Since the ProxyServer has to be a singleton, you have to register the configuration as a singleton as well
-services.AddSingleton<ProxyServerConfiguration>(...);
-services.AddSingleton<ProxyServer>();
+events.OnResponse += async (s, e, cancellationToken) =>
+{
+    Console.WriteLine($"Response from: {e.Request.RequestUri}");
+    //if (e.Response.Content is not null)
+    //{
+    //    var body = await e.Response.Content!.ReadAsStringAsync(cancellationToken);
+    //    Console.WriteLine(body);
+    //}
+    return ResponseEventResponse.ContinueResponse();
+};
 
-// Get the proxy server from the service provider
-var proxyServer = provider.GetRequiredService<ProxyServer>();
+builder.Services.AddProxyEvents(events);
+
+builder.Services.AddProxyServices();
 ```
 
 ### Complete Example
 
-```csharp
-var config = new ProxyServerConfiguration();
+Check out the [worker template](./examples/Unobtanium.Web.Proxy.Examples.WorkerTemplate) for a complete example of how to use the proxy server in a .NET worker service.
 
-// Handle requests with HttpRequestMessage
-config.Events.OnRequest += async (sender, e, cancellationToken) =>
-{
-    Console.WriteLine($"Request: {e.Request.Method} {e.Request.RequestUri}");
-    
-    // Block specific domains
-    if (e.Request.RequestUri?.Host.Contains("blocked.com") == true)
-    {
-        var blockedResponse = new HttpResponseMessage(HttpStatusCode.Forbidden)
-        {
-            Content = new StringContent("Access Denied")
-        };
-        return RequestEventResponse.EarlyResponse(blockedResponse);
-    }
-    
-    // Modify request headers
-    e.Request.Headers.Add("X-Proxy-Agent", "Unobtanium");
-    
-    return RequestEventResponse.ContinueResponse();
-};
+## Creator
 
-// Handle responses with HttpResponseMessage  
-config.Events.OnResponse += async (sender, e, cancellationToken) =>
-{
-    Console.WriteLine($"Response: {e.Response.StatusCode} from {e.Request.RequestUri}");
-    return ResponseEventResponse.ContinueResponse();
-};
+Since this ended up to be a full rewrite I'll put myself as owner:
 
-var proxyServer = new ProxyServer(config);
+* [svrooij](https://github.com/svrooij)
 
-// Add endpoints
-var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000, true);
-proxyServer.AddEndPoint(explicitEndPoint);
+You contributions are more then welcome! Let's make this project great again!
 
-// Start the proxy
-await proxyServer.StartAsync();
+### Previous Collaborators
 
-Console.WriteLine($"Proxy listening on {explicitEndPoint.IpAddress}:{explicitEndPoint.Port}");
-
-// Set as system proxy
-proxyServer.SetAsSystemProxy(explicitEndPoint, ProxyProtocolType.AllHttp);
-
-// Stop when done
-proxyServer.Stop();
-```
-
-## Collaborators
-
-The owner of this project, [justcoding121](https://github.com/justcoding121), is considered to be inactive from this project due to his busy work schedule. See [project reboot](#project-reboot) for more information.
+The previous owner of this project, [justcoding121](https://github.com/justcoding121), is considered to be inactive from this project due to his busy work schedule. See [project reboot](#project-reboot) for more information.
 
 Previous contributors:
 
 * [justcoding121](https://github.com/justcoding121) *owner*
 * [honfika](https://github.com/honfika)
 
-Current contributors:
-
-* [svrooij](https://github.com/svrooij)
-
-You contributions are more then welcome! Let's make this project great again!
-
 ## Development environment
 
 Since this is a `dotnet` project I would suggest to use `Visual Studio 2022` or `Visual Studio Code` as your development environment. The project is set up to use the `dotnet` CLI, so you can also use that to build and run the project.
-
-### Console example application screenshot
-
-![alt tag](https://raw.githubusercontent.com/svrooij/Titanium-Web-Proxy/develop/examples/Titanium.Web.Proxy.Examples.Basic/Capture.PNG)
-
-### GUI example application screenshot
-
-![alt tag](https://raw.githubusercontent.com/svrooij/Titanium-Web-Proxy/develop/examples/Titanium.Web.Proxy.Examples.Wpf/Capture.PNG)
 
 [badge_issues]: https://img.shields.io/github/issues/svrooij/titanium-web-proxy?style=for-the-badge
 [badle_license]: https://img.shields.io/github/license/svrooij/titanium-web-proxy?style=for-the-badge

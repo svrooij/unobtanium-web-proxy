@@ -17,7 +17,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
     private readonly TimeProvider _timeProvider;
     private readonly CertificateManagerConfiguration _configuration;
     private readonly AsyncConcurrentDictionary<string, X509Certificate2> cachedCertificates = new();
-    public DefaultCertificateManager ( IOptions<CertificateManagerConfiguration>? options, ILogger<DefaultCertificateManager>? logger, TimeProvider? timeProvider )
+    public DefaultCertificateManager ( IOptions<CertificateManagerConfiguration>? options = null, ILogger<DefaultCertificateManager>? logger = null, TimeProvider? timeProvider = null )
     {
         _logger = logger ?? new NullLogger<DefaultCertificateManager>();
         _configuration = options?.Value ?? new CertificateManagerConfiguration();

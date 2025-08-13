@@ -9,7 +9,7 @@
     <VersionPrefix>0.1.0</VersionPrefix>
     <Title>Unobtanium Web Proxy Events</Title>
     <Description>All proxy events in a seperate package, for using in plugins that don't need the full package.</Description>
-    <Authors>svrooij,titanium007</Authors>
+    <Authors>svrooij</Authors>
     <PackageIcon>proxy-logo-128.png</PackageIcon>
     <PackageId>Unobtanium.Web.Proxy.Events</PackageId>
     <PackageProjectUrl>https://github.com/svrooij/unobtanium-web-proxy</PackageProjectUrl>

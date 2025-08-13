@@ -21,6 +21,11 @@ builder.Services.AddHttpClient(CustomProxyHttpClientFactory.CLIENT_NAME, client 
 builder.AddSensibleDefault();
 
 var events = new ProxyServerEvents();
+events.ShouldDecryptNewConnection = async (host, cts) =>
+{
+    // Log the new connection details
+    return host.Equals("graph.microsoft.com");
+};
 events.OnRequest += async (s, e, cancellationToken) =>
 {
     Console.WriteLine($"Request to: {e.Request.RequestUri}");
