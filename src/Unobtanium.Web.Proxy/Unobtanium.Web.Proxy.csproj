@@ -6,6 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
+      <OutputType>Library</OutputType>
     <LangVersion>latest</LangVersion>
     <VersionPrefix>0.1.0</VersionPrefix>
     <Title>Unobtanium Web Proxy (formerly known as Titanium)</Title>
@@ -27,12 +28,6 @@
     <NoWarn>1701;1702;CA1416;CS0618;CS8602</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
-  </ItemGroup>
-  <ItemGroup>
 	<None Include="..\..\README.md" Pack="true" PackagePath="\README.md" />
 	<None Include="..\..\artwork\proxy-logo-128.png" Pack="true" PackagePath="\proxy-logo-128.png" />
 	<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\LICENSE.txt" />
@@ -40,4 +35,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Unobtanium.Web.Proxy.Events\Unobtanium.Web.Proxy.Events.csproj" />
   </ItemGroup>
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
 </Project>
