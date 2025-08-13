@@ -45,7 +45,7 @@ internal static class AspireLikeServiceExtensions
             .WithTracing(tracing =>
             {
                 tracing
-                    .AddSource(ProxyServerDefaults.ActivitySourceName)
+                    .AddSource(ProxyServerDefaults.ACTIVITY_SOURCE_NAME)
                     //.AddAspNetCoreInstrumentation()
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()

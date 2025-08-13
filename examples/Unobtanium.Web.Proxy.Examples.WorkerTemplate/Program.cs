@@ -1,14 +1,13 @@
 using Unobtanium.Web.Proxy;
 using Unobtanium.Web.Proxy.Events;
 using Unobtanium.Web.Proxy.Examples.WorkerTemplate;
-using Unobtanium.Web.Proxy.Models;
 using Unobtanium.Web.Proxy.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddHttpClient("Unobtanium.Web.Proxy.Examples.WorkerTemplate", client =>
+builder.Services.AddHttpClient(CustomProxyHttpClientFactory.CLIENT_NAME, client =>
 {
     // Configure the HttpClient as needed, e.g., set base address, default headers, etc.
-    client.BaseAddress = new Uri("https://graph.microsoft.com/");
+    // client.BaseAddress = new Uri("https://graph.microsoft.com/");
 })
 .ConfigurePrimaryHttpMessageHandler(() =>
 {
@@ -21,21 +20,8 @@ builder.Services.AddHttpClient("Unobtanium.Web.Proxy.Examples.WorkerTemplate", c
 });
 builder.AddSensibleDefault();
 
-var config = new ProxyServerConfiguration()
-{
-    TcpTimeWaitSeconds = 10,
-    ConnectionTimeOutSeconds = 15,
-    EnableTcpServerConnectionPrefetch = false,
-    ReuseSocket = false,
-    EnableConnectionPool = true,
-    ForwardToUpstreamGateway = true,
-    CertificateTrustMode = ProxyCertificateTrustMode.UserTrust,
-    ShouldProxyRequest = async ( uri, cancellationToken ) => {
-        return uri.Host.Contains("graph.microsoft.com") || uri.Host.Contains("openai.azure.com");
-        //return !uri.Host.Contains("localhost");
-    }
-};
-config.Events.OnRequest += async (s, e, cancellationToken) =>
+var events = new ProxyServerEvents();
+events.OnRequest += async (s, e, cancellationToken) =>
 {
     Console.WriteLine($"Request to: {e.Request.RequestUri}");
     //if (e.Request.Content is not null)
@@ -76,7 +62,7 @@ config.Events.OnRequest += async (s, e, cancellationToken) =>
     return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
 };
 
-config.Events.OnResponse += async (s, e, cancellationToken) =>
+events.OnResponse += async (s, e, cancellationToken) =>
 {
     Console.WriteLine($"Response from: {e.Request.RequestUri}");
     //if (e.Response.Content is not null)
@@ -87,17 +73,23 @@ config.Events.OnResponse += async (s, e, cancellationToken) =>
     return ResponseEventResponse.ContinueResponse();
 };
 
-config.EndPoints = [new ExplicitProxyEndPoint(System.Net.IPAddress.Any, 8000)];
-builder.Services.AddSingleton(config);
-builder.Services.AddSingleton<ProxyServer>();
+builder.Services.AddProxyEvents(events);
 
 // Register the custom HttpClient factory for the proxy server to use
-builder.Services.AddSingleton<IProxyServerHttpClientFactory, CustomProxyHttpClientFactory>();
+builder.Services.AddSingleton<IProxyHttpClientFactory, CustomProxyHttpClientFactory>();
 
-// Register HttpClientService to handle outbound requests without using system proxy
-builder.Services.AddSingleton<HttpClientService>();
+builder.Services.Configure<ProxyServerOptions>(options =>
+{
+    options.Port = ProxyServerDefaults.DEFAULT_PORT; // Set the port for the proxy server
+    options.HttpsPort = ProxyServerDefaults.DEFAULT_HTTPS_PORT;
+});
 
-builder.Services.AddHostedService<Worker>();
+builder.Services.Configure<CertificateManagerConfiguration>(options =>
+{
+    options.CachePath = "c:\\temp\\certs"; // Set the path where certificates will be cached
+});
+
+builder.Services.AddProxyServices();
 
 var host = builder.Build();
 host.Run();
