@@ -61,4 +61,48 @@ public class ProxyTests
         var content = await response.Content.ReadAsStringAsync();
         Assert.IsTrue(content.Contains("<h1>Intercepted Response</h1>"), "Expected the response to contain the intercepted content.");
     }
+
+    [TestMethod]
+    public async Task ProxyServer_Should_NotIntercept_HttpsTraffic ()
+    {
+        // Arrange
+        var client = _proxyRunner!.CreateHttpClient();
+        var requestUri = "https://svrooij.io/";
+        // The proxy server is shared across tests, so we clear any previous events
+        _proxyRunner.ProxyServerEvents.ClearEvents();
+        _proxyRunner.ProxyServerEvents.ShouldDecryptNewConnection = (host, ct) =>
+        {
+           // Do not decrypt HTTPS traffic
+            return Task.FromResult(false);
+        };
+        // Act
+        var response = await client.GetAsync(requestUri);
+        // Assert
+        Assert.IsTrue(response.IsSuccessStatusCode, "Expected a successful response from the proxy server.");
+        Assert.AreEqual("text/html", response.Content.Headers.ContentType?.MediaType, "Expected HTML content type.");
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.IsTrue(content.Contains("Stephan van Rooij"), "Expected a regular response");
+    }
+
+    [TestMethod]
+    public async Task ProxyServer_Should_TryIntercept_HttpsTraffic ()
+    {
+        // Arrange
+        var client = _proxyRunner!.CreateHttpClient();
+        var requestUri = "https://svrooij.io/";
+        // The proxy server is shared across tests, so we clear any previous events
+        _proxyRunner.ProxyServerEvents.ClearEvents();
+        await Task.Delay(50, _testContext!.CancellationTokenSource.Token);
+        _proxyRunner.ProxyServerEvents.ShouldDecryptNewConnection = ( host, ct ) =>
+        {
+            // Do not decrypt HTTPS traffic
+            return Task.FromResult(host == "svrooij.io");
+        };
+        // Act & Assert
+        // I expect this to throw a certificate error, because we won't accept fake certificate for svrooij.io
+        await Assert.ThrowsExceptionAsync<HttpRequestException>(async () =>
+        {
+            await client.GetAsync(requestUri);
+        });
+    }
 }
