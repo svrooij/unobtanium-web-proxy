@@ -25,7 +25,7 @@
     <NoWarn>1701;1702;CA1416</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <NoWarn>1701;1702;CA1416;CS0618;CS8602</NoWarn>
+    <NoWarn>1701;1702;CA1416;CS0618;CS8602;SYSLIB0057;CS1998</NoWarn>
   </PropertyGroup>
   <ItemGroup>
 	<None Include="..\..\README.md" Pack="true" PackagePath="\README.md" />

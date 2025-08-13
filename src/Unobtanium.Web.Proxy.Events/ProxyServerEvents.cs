@@ -108,6 +108,6 @@ public class ProxyServerEvents
     {
         OnRequest = null;
         OnResponse = null;
-        ShouldDecryptNewConnection = null;
+        //ShouldDecryptNewConnection = null;
     }
 }
