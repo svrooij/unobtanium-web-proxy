@@ -177,9 +177,162 @@ internal class ProxyBackgroundService : BackgroundService
         // Add other services needed for the proxy
         proxyBuilder.Services.AddSingleton(TimeProvider.System);
 
+        proxyBuilder.Services.Configure<ProxyServerOptions>(options =>
+        {
+            options.Port = _options.Port;
+            options.HttpsPort = _options.HttpsPort;
+            //options.PreloadCertificates = _options.PreloadCertificates;
+        });
+
+        // Transfer OpenTelemetry services from the main application
+        TransferOpenTelemetryServices(proxyBuilder);
+
         // Configure logging to use the same logger as the main app
         proxyBuilder.Logging.ClearProviders();
         proxyBuilder.Logging.AddProvider(new ForwardingLoggerProvider(_serviceProvider));
+    }
+
+    /// <summary>
+    /// Transfers OpenTelemetry services and configuration from the main application 
+    /// to the proxy host to ensure distributed tracing and metrics work correctly.
+    /// </summary>
+    /// <param name="proxyBuilder">The WebApplicationBuilder for the proxy host</param>
+    private void TransferOpenTelemetryServices(WebApplicationBuilder proxyBuilder)
+    {
+        try
+        {
+            // Use a more comprehensive approach to transfer OpenTelemetry and related services
+            var servicesToTransfer = new[]
+            {
+                // OpenTelemetry core services
+                "OpenTelemetry.Trace.TracerProvider",
+                "OpenTelemetry.Metrics.MeterProvider",
+                "OpenTelemetry.OpenTelemetryLoggerProvider",
+                "OpenTelemetry.Logs.OpenTelemetryLoggerProvider",
+                
+                // .NET Activity and diagnostic services
+                "System.Diagnostics.DiagnosticSource",
+                "System.Diagnostics.ActivitySource"
+            };
+
+            foreach (var serviceTypeName in servicesToTransfer)
+            {
+                var serviceType = Type.GetType($"{serviceTypeName}, OpenTelemetry") 
+                                 ?? Type.GetType($"{serviceTypeName}, System.Diagnostics.DiagnosticSource");
+                
+                if (serviceType != null)
+                {
+                    var service = _serviceProvider.GetService(serviceType);
+                    if (service != null)
+                    {
+                        proxyBuilder.Services.AddSingleton(serviceType, service);
+                        _logger.LogDebug("Transferred {ServiceType} to proxy host", serviceType.Name);
+                    }
+                }
+            }
+
+            // Transfer OpenTelemetry-related ILoggerProvider services
+            var loggerProviders = _serviceProvider.GetServices<ILoggerProvider>();
+            foreach (var loggerProvider in loggerProviders)
+            {
+                var typeName = loggerProvider.GetType().FullName ?? string.Empty;
+                if (typeName.Contains("OpenTelemetry", StringComparison.OrdinalIgnoreCase))
+                {
+                    proxyBuilder.Services.AddSingleton<ILoggerProvider>(loggerProvider);
+                    _logger.LogDebug("Transferred OpenTelemetry LoggerProvider {TypeName} to proxy host", typeName);
+                }
+            }
+
+            // Register the proxy ActivitySource so it can be used for tracing
+            proxyBuilder.Services.AddSingleton(ProxyServerDefaults.ProxyActivitySource);
+            _logger.LogDebug("Registered ProxyActivitySource in proxy host");
+
+            // Transfer any additional OpenTelemetry instrumentation services
+            TransferInstrumentationServices(proxyBuilder);
+
+            // Try to transfer configuration options that might be OpenTelemetry related
+            TransferOpenTelemetryOptions(proxyBuilder);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to transfer some OpenTelemetry services to proxy host");
+        }
+    }
+
+    /// <summary>
+    /// Transfers OpenTelemetry instrumentation services that may be registered in the main application.
+    /// </summary>
+    /// <param name="proxyBuilder">The WebApplicationBuilder for the proxy host</param>
+    private void TransferInstrumentationServices(WebApplicationBuilder proxyBuilder)
+    {
+        try
+        {
+            // Look for common OpenTelemetry instrumentation services
+            var instrumentationTypes = new[]
+            {
+                "OpenTelemetry.Instrumentation.Http.HttpClientInstrumentation",
+                "OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreInstrumentation",
+                "OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentation"
+            };
+
+            foreach (var instrumentationTypeName in instrumentationTypes)
+            {
+                var instrumentationType = Type.GetType($"{instrumentationTypeName}, OpenTelemetry.Instrumentation.Http") 
+                                         ?? Type.GetType($"{instrumentationTypeName}, OpenTelemetry.Instrumentation.AspNetCore")
+                                         ?? Type.GetType($"{instrumentationTypeName}, OpenTelemetry.Instrumentation.Runtime");
+                
+                if (instrumentationType != null)
+                {
+                    var service = _serviceProvider.GetService(instrumentationType);
+                    if (service != null)
+                    {
+                        proxyBuilder.Services.AddSingleton(instrumentationType, service);
+                        _logger.LogDebug("Transferred instrumentation service {ServiceType} to proxy host", instrumentationType.Name);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to transfer some OpenTelemetry instrumentation services to proxy host");
+        }
+    }
+
+    /// <summary>
+    /// Transfers OpenTelemetry configuration options from the main application to the proxy host.
+    /// </summary>
+    /// <param name="proxyBuilder">The WebApplicationBuilder for the proxy host</param>
+    private void TransferOpenTelemetryOptions(WebApplicationBuilder proxyBuilder)
+    {
+        try
+        {
+            // Get all configured options and transfer those that might be OpenTelemetry related
+            var optionsTypes = new[]
+            {
+                "OpenTelemetry.Trace.TracerProviderBuilderOptions",
+                "OpenTelemetry.Metrics.MeterProviderOptions",
+                "OpenTelemetry.Logs.OpenTelemetryLoggerOptions"
+            };
+
+            foreach (var optionsTypeName in optionsTypes)
+            {
+                var optionsType = Type.GetType($"{optionsTypeName}, OpenTelemetry");
+                if (optionsType != null)
+                {
+                    var optionsServiceType = typeof(IOptions<>).MakeGenericType(optionsType);
+                    var options = _serviceProvider.GetService(optionsServiceType);
+                    if (options != null)
+                    {
+                        proxyBuilder.Services.AddSingleton(optionsServiceType, options);
+                        _logger.LogDebug("Transferred {OptionsType} to proxy host", optionsType.Name);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to transfer OpenTelemetry options to proxy host");
+        }
     }
 
     private void ConfigureProxyApp ( WebApplication proxyApp )

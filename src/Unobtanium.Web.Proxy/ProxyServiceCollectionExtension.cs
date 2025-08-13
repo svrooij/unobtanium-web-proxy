@@ -59,6 +59,12 @@ public static class ProxyServiceCollectionExtension
         // Add certificate mananger if not already registered
         services.AddSingletonIfMissing<ICertificateManager, DefaultCertificateManager>();
 
+
+        // Add the proxy server configuration if not already registered
+        // This is an IOptions<T> implementation how does this work?
+        // Check if the configuration is already registered
+
+
         // Add the proxy server!
         services.AddHostedService<ProxyBackgroundService>();
         return services;

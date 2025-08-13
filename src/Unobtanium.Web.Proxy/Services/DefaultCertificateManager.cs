@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -25,6 +26,8 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
 
     public async Task<X509Certificate2> GetCertificateAsync ( string host, CancellationToken cancellationToken )
     {
+        using var activity = ProxyServerDefaults.ProxyActivitySource.StartActivity(nameof(GetCertificateAsync), ActivityKind.Internal);
+
         var shouldSaveHostCertificate = false;
         // Remove strange characters from the host name for cache key and file name
         var sanitizedHost = host
