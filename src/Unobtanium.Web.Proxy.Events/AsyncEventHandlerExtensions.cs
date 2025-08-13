@@ -11,6 +11,7 @@ internal static class AsyncEventHandlerExtensions
     /// <param name="sender"></param>
     /// <param name="args">Event Arguments</param>
     /// <param name="logger">ILogger to use when this method throws an error.</param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     internal static async Task InvokeWithLoggerAsync<T> ( this AsyncEventHandler<T> callback, object sender, T args, ILogger? logger, CancellationToken cancellationToken)
     {

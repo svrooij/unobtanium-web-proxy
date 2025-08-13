@@ -43,6 +43,26 @@ public class RequestEventResponse : IDisposable
     /// <param name="earlyResponse"></param>
     public static RequestEventResponse EarlyResponse(HttpResponseMessage earlyResponse) => new RequestEventResponse(null, earlyResponse);
     
+    /// <summary>
+    /// Creates a response with the specified HTTP status code, optional reason phrase, and optional content.
+    /// </summary>
+    /// <remarks>The response content, if provided, is encoded as UTF-8 with a MIME type of
+    /// "text/plain".</remarks>
+    /// <param name="statusCode">The HTTP status code to set for the response.</param>
+    /// <param name="reasonPhrase">An optional reason phrase that provides additional context for the status code.  If null, no reason phrase is
+    /// set.</param>
+    /// <param name="content">An optional string representing the response content.  If null, the response will have no content.</param>
+    /// <returns>A <see cref="RequestEventResponse"/> containing the configured HTTP response.</returns>
+    public static RequestEventResponse StatusCodeResponse(System.Net.HttpStatusCode statusCode, string? reasonPhrase = null, string? content = null)
+    {
+        var response = new HttpResponseMessage(statusCode)
+        {
+            ReasonPhrase = reasonPhrase,
+            Content = content != null ? new StringContent(content, Encoding.UTF8, "text/plain") : null
+        };
+        return EarlyResponse(response);
+    }
+
     /// <inheritdoc />
     public void Dispose ()
     {

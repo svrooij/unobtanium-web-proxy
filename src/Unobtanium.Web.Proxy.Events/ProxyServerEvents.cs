@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.Events;
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unobtanium.Web.Proxy")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unobtanium.Web.Proxy.KestrelTests")]
 
 namespace Unobtanium.Web.Proxy.Events;
 /// <summary>
@@ -101,5 +102,12 @@ public class ProxyServerEvents
                 break;
         }
         return ResponseEventResponse.ContinueResponse();
+    }
+
+    internal void ClearEvents()
+    {
+        OnRequest = null;
+        OnResponse = null;
+        ShouldDecryptNewConnection = null;
     }
 }

@@ -38,6 +38,8 @@ public class ProxyTests
         // Arrange
         var client = _proxyRunner!.CreateHttpClient();
         var interceptUri = "http://fake.svrooij.io/intercepted";
+        // The proxy server is shared across tests, so we clear any previous events
+        _proxyRunner.ProxyServerEvents.ClearEvents();
         _proxyRunner.ProxyServerEvents.OnRequest += async (sender, args, cts) =>
         {
             // Log the response details

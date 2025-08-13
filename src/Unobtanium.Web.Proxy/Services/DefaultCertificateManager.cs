@@ -11,12 +11,24 @@ using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.Internal;
 
 namespace Unobtanium.Web.Proxy.Services;
+
+/// <summary>
+/// Implementation of <see cref="ICertificateManager"/> that manages X.509 certificates for secure communication and caches them to disk and in-memory
+/// </summary>
 public class DefaultCertificateManager : IDisposable, ICertificateManager
 {
     private readonly ILogger<DefaultCertificateManager> _logger;
     private readonly TimeProvider _timeProvider;
     private readonly CertificateManagerConfiguration _configuration;
     private readonly AsyncConcurrentDictionary<string, X509Certificate2> cachedCertificates = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DefaultCertificateManager"/> class with optional configuration,
+    /// logging, and time provider dependencies.
+    /// </summary>
+    /// <param name="options">The configuration options for the certificate manager. If null, a default configuration is used.</param>
+    /// <param name="logger">The logger instance used for logging operations. If null, a no-op logger is used.</param>
+    /// <param name="timeProvider">The time provider used for time-related operations. If null, the system time provider is used.</param>
     public DefaultCertificateManager ( IOptions<CertificateManagerConfiguration>? options = null, ILogger<DefaultCertificateManager>? logger = null, TimeProvider? timeProvider = null )
     {
         _logger = logger ?? new NullLogger<DefaultCertificateManager>();
@@ -24,6 +36,12 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
+    /// <summary>
+    /// Get a <see cref="X509Certificate2"/> for the specified host, signed by the root certificate.
+    /// </summary>
+    /// <param name="host">host to get a cert for</param>
+    /// <param name="cancellationToken"></param>
+    /// <remarks>This will check the in-memory (and disk when asked) cache, otherwise generate and start background task to save to disk</remarks>
     public async Task<X509Certificate2> GetCertificateAsync ( string host, CancellationToken cancellationToken )
     {
         using var activity = ProxyServerDefaults.ProxyActivitySource.StartActivity(nameof(GetCertificateAsync), ActivityKind.Internal);
@@ -78,6 +96,15 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
         return cert;
     }
 
+    /// <summary>
+    /// Asynchronously retrieves the root certificate, creating and caching it if necessary.
+    /// </summary>
+    /// <remarks>If a cached root certificate exists and caching is enabled, the certificate is loaded from
+    /// the cache.  Otherwise, a new root certificate is created. If caching is enabled and a new certificate is
+    /// created,  it is saved to the configured cache path asynchronously.</remarks>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the root certificate as an <see
+    /// cref="X509Certificate2"/> object.</returns>
     public async Task<X509Certificate2> GetRootCertificateAsync ( CancellationToken cancellationToken )
     {
         var shouldSaveRootCertificate = false;
@@ -216,18 +243,51 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
         await System.IO.File.WriteAllBytesAsync(path, certificate.Export(X509ContentType.Cert), cancellationToken);
     }
 
+    /// <summary>
+    /// Releases all resources used by the current instance of the class.
+    /// </summary>
+    /// <remarks>Call this method when the instance is no longer needed to free up resources.  After calling
+    /// <see cref="Dispose"/>, the instance is in an unusable state and  should not be used further. Always ensure to
+    /// release all references to the  instance after calling this method to allow the garbage collector to reclaim  the
+    /// memory.</remarks>
     public void Dispose ()
     {
         //throw new NotImplementedException();
     }
 }
 
+/// <summary>
+/// Configuration for DefaultCertificateManager.
+/// </summary>
+/// <remarks>Use services.Configure&lt;CertificateManagerConfiguration&gt;(....)</remarks>
 public class CertificateManagerConfiguration
 {
+    /// <summary>
+    /// Gets or sets the number of days for which a generated certificate remains valid.
+    /// </summary>
     public int CertificateLifetimeDays { get; set; } = 300;
+
+    /// <summary>
+    /// Gets or sets the file system path where cached data is stored.
+    /// </summary>
+    /// <remarks>The specified path should be a valid directory path. If the path is <see langword="null"/>,
+    /// caching functionality may be disabled or unavailable.</remarks>
     public string? CachePath { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the root certificate should be cached.
+    /// </summary>
     public bool CacheRootCertificate { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether host certificates should be cached.
+    /// </summary>
+    /// <remarks>Enabling this property can improve performance by reusing cached certificates,  but may
+    /// result in stale data if certificates are updated frequently.</remarks>
     public bool CacheHostCertificates { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets the name of the root certificate used for establishing trust.
+    /// </summary>
     public string RootCertificateName { get; set; } = "Unobtanium Root CA";
 }
