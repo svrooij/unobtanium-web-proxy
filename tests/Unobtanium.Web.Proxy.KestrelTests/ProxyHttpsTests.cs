@@ -5,14 +5,14 @@ namespace Unobtanium.Web.Proxy.KestrelTests;
 public class ProxyHttpsTests
 {
     private static ProxyRunner? _proxyRunner;
-    public TestContext? TestContext { get; set; }
+    private static TestContext? _testContext { get; set; }
 
     private static string _tempCacheDirectory = null!;
 
     [ClassInitialize]
     public static async Task InitializeAsync ( TestContext testContext )
     {
-        TestContext = testContext;
+        _testContext = testContext;
         _tempCacheDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempCacheDirectory);
         _proxyRunner = new ProxyRunner(8898, 8899, _tempCacheDirectory);
@@ -61,7 +61,7 @@ public class ProxyHttpsTests
             return RequestEventResponse.ContinueResponse();
         };
         // Act
-        var response = await client.GetAsync(interceptUri, TestContext!.CancellationTokenSource.Token);
+        var response = await client.GetAsync(interceptUri, _testContext!.CancellationTokenSource.Token);
         // Assert
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, "expected a successful response from the proxy server.");
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
@@ -93,7 +93,7 @@ public class ProxyHttpsTests
             return RequestEventResponse.ContinueResponse();
         };
         // Act
-        var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
+        var response = await client.GetAsync(requestUri, _testContext!.CancellationTokenSource.Token);
 
         // Assert
         response.Should().NotBeNull("expected a response from the proxy server.");
@@ -101,7 +101,7 @@ public class ProxyHttpsTests
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
 
         // Read the content and verify it contains the expected text
-        var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
+        var content = await response.Content.ReadAsStringAsync(_testContext!.CancellationTokenSource.Token);
         content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
         content.Should().Contain("<h1>Intercepted Response</h1>", "expect the intercepted content");
     }
@@ -115,7 +115,7 @@ public class ProxyHttpsTests
         _proxyRunner.ProxyServerEvents.ClearEvents();
 
         // Act
-        var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
+        var response = await client.GetAsync(requestUri, _testContext!.CancellationTokenSource.Token);
 
         // Assert
         response.Should().NotBeNull("expected a response from the proxy server.");
@@ -123,7 +123,7 @@ public class ProxyHttpsTests
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
 
         // Read the content and verify it contains the expected text
-        var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
+        var content = await response.Content.ReadAsStringAsync(_testContext!.CancellationTokenSource.Token);
         content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
         content.Should().Contain("Stephan van Rooij", "expected the response to contain the author's name.");
     }
@@ -137,7 +137,7 @@ public class ProxyHttpsTests
         _proxyRunner.ProxyServerEvents.ClearEvents();
 
         // Act
-        var act = () => client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
+        var act = () => client.GetAsync(requestUri, _testContext!.CancellationTokenSource.Token);
 
         // Assert
         // We will not accept the certificate for svrooij.io, so we expect a certificate error

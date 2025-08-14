@@ -5,12 +5,12 @@ namespace Unobtanium.Web.Proxy.KestrelTests;
 public class ProxyHttpTests
 {
     private static ProxyRunner? _proxyRunner;
-    public TestContext? TestContext { get; set; }
+    public static TestContext? _testContext { get; set; }
 
     [ClassInitialize]
     public static async Task InitializeAsync ( TestContext testContext )
     {
-        TestContext = testContext;
+        _testContext = testContext;
         _proxyRunner = new ProxyRunner(8888, 8889);
         await _proxyRunner.StartAsync(testContext.CancellationTokenSource.Token);
     }
@@ -48,7 +48,7 @@ public class ProxyHttpTests
             return RequestEventResponse.ContinueResponse();
         };
         // Act
-        var response = await client.GetAsync(interceptUri, TestContext!.CancellationTokenSource.Token);
+        var response = await client.GetAsync(interceptUri, _testContext!.CancellationTokenSource.Token);
         // Assert
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, "expected a successful response from the proxy server.");
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
@@ -72,14 +72,14 @@ public class ProxyHttpTests
             return Task.FromResult(false);
         };
         // Act
-        var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
+        var response = await client.GetAsync(requestUri, _testContext!.CancellationTokenSource.Token);
         // Assert
         response.Should().NotBeNull("expected a response from the proxy server.");
         response.IsSuccessStatusCode.Should().BeTrue("expected a successful response from the proxy server.");
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
 
         // Read the content and verify it contains the expected text
-        var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
+        var content = await response.Content.ReadAsStringAsync(_testContext!.CancellationTokenSource.Token);
         content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
         content.Should().Contain("Stephan van Rooij", "expected the response to contain the author's name.");
     }
