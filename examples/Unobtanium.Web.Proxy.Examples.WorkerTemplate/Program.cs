@@ -21,12 +21,12 @@ builder.Services.AddHttpClient(CustomProxyHttpClientFactory.CLIENT_NAME, client 
 builder.AddSensibleDefault();
 
 var events = new ProxyServerEvents();
-events.ShouldDecryptNewConnection = async (host, cts) =>
+events.ShouldDecryptNewConnection = async ( host, cts ) =>
 {
     // Log the new connection details
     return host.Equals("graph.microsoft.com");
 };
-events.OnRequest += async (s, e, cancellationToken) =>
+events.OnRequest += async ( s, e, cancellationToken ) =>
 {
     Console.WriteLine($"Request to: {e.Request.RequestUri}");
     //if (e.Request.Content is not null)
@@ -47,7 +47,8 @@ events.OnRequest += async (s, e, cancellationToken) =>
 		}
 	}
 }";
-        var response = new HttpResponseMessage {
+        var response = new HttpResponseMessage
+        {
             StatusCode = System.Net.HttpStatusCode.Unauthorized,
             Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
         };
@@ -67,7 +68,7 @@ events.OnRequest += async (s, e, cancellationToken) =>
     return Unobtanium.Web.Proxy.Events.RequestEventResponse.ContinueResponse();
 };
 
-events.OnResponse += async (s, e, cancellationToken) =>
+events.OnResponse += async ( s, e, cancellationToken ) =>
 {
     Console.WriteLine($"Response from: {e.Request.RequestUri}");
     //if (e.Response.Content is not null)

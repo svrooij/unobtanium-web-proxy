@@ -5,7 +5,7 @@ namespace Unobtanium.Web.Proxy.Events;
 /// <summary>
 /// Event arguments for the <see cref="ProxyServerEvents.OnResponse"/> event.
 /// </summary>
-public class ResponseEventArguments: RequestEventArguments
+public class ResponseEventArguments : RequestEventArguments
 {
     /// <summary>
     /// Constructor for the <see cref="ResponseEventArguments"/> class, which is used to pass the response and request information to the event handlers.
@@ -14,7 +14,7 @@ public class ResponseEventArguments: RequestEventArguments
     /// <param name="response"></param>
     /// <param name="requestActivity"></param>
     /// <param name="requestId"></param>
-    internal ResponseEventArguments (HttpRequestMessage request, HttpResponseMessage response, Activity? requestActivity, string? requestId = null ) : base(request, requestActivity, requestId)
+    internal ResponseEventArguments ( HttpRequestMessage request, HttpResponseMessage response, Activity? requestActivity, string? requestId = null ) : base(request, requestActivity, requestId)
     {
         Response = response;
     }

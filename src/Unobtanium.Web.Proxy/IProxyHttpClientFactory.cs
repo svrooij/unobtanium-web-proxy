@@ -20,5 +20,5 @@ public interface IProxyHttpClientFactory
     /// </summary>
     /// <param name="host">The host to which the <see cref="HttpClient"/> will connect. This may be used to configure the proxy settings or other client options.</param>
     /// <returns>A new <see cref="HttpClient"/> instance.</returns>
-    HttpClient CreateHttpClient (string host);
+    HttpClient CreateHttpClient ( string host );
 }

@@ -42,9 +42,16 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
     /// <param name="host">host to get a cert for</param>
     /// <param name="cancellationToken"></param>
     /// <remarks>This will check the in-memory (and disk when asked) cache, otherwise generate and start background task to save to disk</remarks>
+    /// <exception cref="ArgumentException">If invalid hostname is provided</exception>
     public async Task<X509Certificate2> GetCertificateAsync ( string host, CancellationToken cancellationToken )
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(host);
+        if (!IsValidHostnameOrIpAddress(host))
+        {
+            throw new ArgumentException("The provided host is not a valid hostname or IP address.", nameof(host));
+        }
         using var activity = ProxyServerDefaults.ProxyActivitySource.StartActivity(nameof(GetCertificateAsync), ActivityKind.Internal);
+        activity?.SetTag("proxy.cert.host", host);
 
         var shouldSaveHostCertificate = false;
         // Remove strange characters from the host name for cache key and file name
@@ -79,7 +86,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
         if (shouldSaveHostCertificate)
         {
             _logger.LogInformation("Certificate for {Host} created, saving to cache file.", host);
-            _ = Task.Run(async() =>
+            _ = Task.Run(async () =>
             {
                 try
                 {
@@ -119,6 +126,8 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
                     return new X509Certificate2(cacheFile, "", X509KeyStorageFlags.Exportable);
                 }
             }
+            // If we reach here, we need to create a new root certificate
+            // and possibly save it to the cache
             shouldSaveRootCertificate = _configuration.CachePath is not null && _configuration.CacheRootCertificate;
             _logger.LogInformation("Creating new root certificate with {RootCn}", _configuration.RootCertificateName);
             var rootCert = CreateRootCertificate(_configuration.RootCertificateName, 2048);
@@ -127,23 +136,38 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
         if (shouldSaveRootCertificate)
         {
             _logger.LogInformation("Root certificate created, saving to cache file.");
-            _ = Task.Run(async() =>
+            try
             {
-                try
-                {
-                    var cacheFile = System.IO.Path.Combine(_configuration.CachePath!, "root.pfx");
-                    _logger.LogInformation("Saving root certificate to file: {CacheFile}", cacheFile);
-                    await SaveCertificateToPathAsync(cert, cacheFile, CancellationToken.None);
-                    cacheFile = System.IO.Path.Combine(_configuration.CachePath!, "root.crt");
-                    await SaveRootCertificateToPathAsync(cert, cacheFile, CancellationToken.None);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to save root certificate to file.");
-                }
-            }, CancellationToken.None);
+                var cacheFile = System.IO.Path.Combine(_configuration.CachePath!, "root.pfx");
+                _logger.LogInformation("Saving root certificate to file: {CacheFile}", cacheFile);
+                await SaveCertificateToPathAsync(cert, cacheFile, cancellationToken);
+                cacheFile = System.IO.Path.Combine(_configuration.CachePath!, "root.crt");
+                await SaveRootCertificateToPathAsync(cert, cacheFile, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save root certificate to file.");
+            }
         }
         return cert;
+    }
+
+    /// <summary>
+    /// Validates if the provided string is a valid hostname or IP address.
+    /// </summary>
+    /// <param name="host">The host string to validate.</param>
+    /// <returns>True if the host is a valid hostname or IP address; otherwise, false.</returns>
+    private static bool IsValidHostnameOrIpAddress ( string host )
+    {
+        // Check if it's a valid IP address (IPv4 or IPv6)
+        if (IPAddress.TryParse(host, out _))
+        {
+            return true;
+        }
+
+        // Check if it's a valid hostname using Uri.CheckHostName
+        var hostNameType = Uri.CheckHostName(host);
+        return hostNameType == UriHostNameType.Dns || hostNameType == UriHostNameType.IPv4 || hostNameType == UriHostNameType.IPv6;
     }
 
     private X509Certificate2 CreateRootCertificate ( string subjectCn, int keySize = 2048 )
@@ -219,7 +243,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
         return new X509Certificate2(cert.Export(X509ContentType.Pfx), "", X509KeyStorageFlags.Exportable);
     }
 
-    private async Task SaveCertificateToPathAsync(X509Certificate2 certificate, string path, CancellationToken cancellationToken)
+    private async Task SaveCertificateToPathAsync ( X509Certificate2 certificate, string path, CancellationToken cancellationToken )
     {
         if (string.IsNullOrEmpty(path))
             throw new ArgumentException("Path cannot be null or empty.", nameof(path));
@@ -231,7 +255,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
         await System.IO.File.WriteAllBytesAsync(path, certificate.Export(X509ContentType.Pfx), cancellationToken);
     }
 
-    private async Task SaveRootCertificateToPathAsync(X509Certificate2 certificate, string path, CancellationToken cancellationToken)
+    private async Task SaveRootCertificateToPathAsync ( X509Certificate2 certificate, string path, CancellationToken cancellationToken )
     {
         if (string.IsNullOrEmpty(path))
             throw new ArgumentException("Path cannot be null or empty.", nameof(path));
@@ -290,4 +314,31 @@ public class CertificateManagerConfiguration
     /// Gets or sets the name of the root certificate used for establishing trust.
     /// </summary>
     public string RootCertificateName { get; set; } = "Unobtanium Root CA";
+}
+
+internal static class CertificateCombiner
+{
+    public static X509Certificate2 CreateChainedCertificate ( X509Certificate2 leafCertificate, X509Certificate2 rootCertificate )
+    {
+        ArgumentNullException.ThrowIfNull(leafCertificate);
+        ArgumentNullException.ThrowIfNull(rootCertificate);
+        // Create a new certificate with the leaf certificate's private key
+        var certCollection = new X509Certificate2Collection();
+        certCollection.Add(leafCertificate);
+        certCollection.Add(rootCertificate);
+        // Export the collection as a PFX file
+        var pfxData = certCollection.Export(X509ContentType.Pfx, null);
+        // Create a new X509Certificate2 from the PFX data
+        var chainedCertificate = new X509Certificate2(pfxData!, "", X509KeyStorageFlags.Exportable);
+        // Return the chained certificate
+        return chainedCertificate;
+    }
+
+    internal static X509Certificate2 StripPrivateKey ( X509Certificate2 certificate )
+    {
+        ArgumentNullException.ThrowIfNull(certificate);
+        // Create a new certificate without the private key
+        var certWithoutPrivateKey = new X509Certificate2(certificate.Export(X509ContentType.Cert));
+        return certWithoutPrivateKey;
+    }
 }

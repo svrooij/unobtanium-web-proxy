@@ -22,9 +22,9 @@ public class ProxyServerEvents
     /// returning <see langword="true"/> will result in the connection being decrypted and processed by the proxy server.<br/>
     /// </summary>
     /// <remarks>You will get the hostname and and a cancellation token source</remarks>
-    public Func<string,CancellationTokenSource, Task<bool>>? ShouldDecryptNewConnection;
+    public Func<string, CancellationTokenSource, Task<bool>>? ShouldDecryptNewConnection;
 
-    internal async Task<bool> InvokeShouldDecryptNewConnection (string hostname, CancellationTokenSource cancellationTokenSource )
+    internal async Task<bool> InvokeShouldDecryptNewConnection ( string hostname, CancellationTokenSource cancellationTokenSource )
     {
         if (ShouldDecryptNewConnection == null)
             return true; // Default to true if no handler is registered.
@@ -45,9 +45,9 @@ public class ProxyServerEvents
 
     internal bool HasOnRequest => OnRequest != null;
 
-    internal async Task<RequestEventResponse> InvokeOnRequest ( object sender, RequestEventArguments requestEventArguments, ILogger? logger, CancellationToken cancellationToken)
+    internal async Task<RequestEventResponse> InvokeOnRequest ( object sender, RequestEventArguments requestEventArguments, ILogger? logger, CancellationToken cancellationToken )
     {
-        if(OnRequest == null)
+        if (OnRequest == null)
             return RequestEventResponse.ContinueResponse();
 
         // Invoke on all registered handlers in a foreach loop
@@ -89,22 +89,22 @@ public class ProxyServerEvents
         // Invoke on all registered handlers in a foreach loop
         // if the result of InternalInvokeWithLoggerAsync is null, continue to the next handler.
         ResponseEventResponse? response = null;
-        foreach ( var handler in OnResponse.GetInvocationList() )
+        foreach (var handler in OnResponse.GetInvocationList())
         {
             response = await AsyncEventHandlerExtensions.InternalInvokeWithLoggerAsync((AsyncEventHandler<ResponseEventArguments, ResponseEventResponse>)handler, sender, responseEventArguments, logger, cancellationToken);
-            if ( response?.ModifiedResponse != null )
+            if (response?.ModifiedResponse != null)
             {
                 // If the response is not null, we can return early.
                 // This means that the user has modified the response and we should not continue processing.
                 return response;
             }
-            if ( cancellationToken.IsCancellationRequested )
+            if (cancellationToken.IsCancellationRequested)
                 break;
         }
         return ResponseEventResponse.ContinueResponse();
     }
 
-    internal void ClearEvents()
+    internal void ClearEvents ()
     {
         OnRequest = null;
         OnResponse = null;

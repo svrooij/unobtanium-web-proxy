@@ -20,10 +20,10 @@ namespace Unobtanium.Web.Proxy.Services.Proxy;
 internal static class ProxyEndpoints
 {
     internal static readonly ActivitySource activitySource = ProxyServerDefaults.ProxyActivitySource;
-    internal static void MapProxyEndpoints (this WebApplication app)
+    internal static void MapProxyEndpoints ( this WebApplication app )
     {
         // Map a proxy endpoint that handles all requests
-        app.Map("{**path}", async (HttpContext context, ProxyServerEvents serverEvents, ICertificateManager certManager, IProxyHttpClientFactory clientFactory, IOptions<ProxyServerOptions> options) =>
+        app.Map("{**path}", async ( HttpContext context, ProxyServerEvents serverEvents, ICertificateManager certManager, IProxyHttpClientFactory clientFactory, IOptions<ProxyServerOptions> options ) =>
         {
             //using var activity = activitySource.StartActivity("ProxyRequest", ActivityKind.Consumer);
             // Handle requests to the root path and any sub-paths
@@ -41,7 +41,7 @@ internal static class ProxyEndpoints
         });
     }
 
-    private static async Task HandleConnectMethod(HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, ICertificateManager certManager, ProxyServerOptions options)
+    private static async Task HandleConnectMethod ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, ICertificateManager certManager, ProxyServerOptions options )
     {
         using var activity = activitySource.StartActivity(nameof(HandleConnectMethod), ActivityKind.Consumer);
         // Check if we should decrypt this connection
@@ -50,11 +50,11 @@ internal static class ProxyEndpoints
         // Extract the original target server and port from the request
         string originalHost = context.Request.Host.Host;
         int originalPort = context.Request.Host.Port ?? 443; // Default to 443 if no port is specified
-        
-        
+
+
         // Fire and forget the certificate retrieval (background task)
         _ = Task.Run(async () => await certManager.GetCertificateAsync(originalHost, CancellationToken.None), CancellationToken.None);
-        
+
         var hostWithPort = originalPort != 443 ? $"{originalHost}:{originalPort}" : originalHost;
         using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
         var shouldDecrypt = await serverEvents.InvokeShouldDecryptNewConnection(hostWithPort, cts2);
@@ -71,7 +71,7 @@ internal static class ProxyEndpoints
         // Get the connection feature
         var connectionFeature = context.Features.Get<IConnectionLifetimeFeature>();
         var connectionTransportFeature = context.Features.Get<IConnectionTransportFeature>();
-        
+
         if (connectionTransportFeature == null)
         {
             _logger.LogError("Connection transport feature not available");
@@ -80,23 +80,23 @@ internal static class ProxyEndpoints
             await context.Response.WriteAsync("Failed to access transport connection");
             return;
         }
-        
+
         try
         {
             using var client = new TcpClient();
-            
+
             // Connect to our local Kestrel server instead of the original destination
             _logger.LogDebug("Establishing connection to {TargetHost}:{TargetPort} for {HostWithPort}", targetHost, targetPort, hostWithPort);
             await client.ConnectAsync(targetHost, targetPort);
             _logger.LogDebug("TCP Connection Established");
-            
+
             // Get the connection's transport
             var transport = connectionTransportFeature.Transport;
-            
+
             // Signal to the client that the tunnel is established
             context.Response.StatusCode = 200;
             await context.Response.CompleteAsync();
-            
+
             // Get network stream for the local Kestrel server
             using var stream = client.GetStream();
 
@@ -111,21 +111,21 @@ internal static class ProxyEndpoints
             // Create tasks for copying data in both directions
             var serverToClientTask = stream.CopyDataAsync(transport.Output, "server -> client", _logger, cts.Token);
             var clientToServerTask = transport.Input.CopyDataAsync(stream, "client -> server", _logger, cts.Token);
-            
+
             // Wait for any of the tasks to complete (or error)
             await Task.WhenAny(serverToClientTask, clientToServerTask);
-            
+
             // Cancel the token to stop the other task
             cts.Cancel();
-            
+
             // Wait for both tasks to finish (they should end quickly due to cancellation)
             await Task.WhenAll(serverToClientTask, clientToServerTask);
-            
+
             _logger.LogDebug("Tunnel closed for {HostWithPort}", hostWithPort);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling CONNECT tunnel to {HostWithPort}",hostWithPort);
+            _logger.LogError(ex, "Error handling CONNECT tunnel to {HostWithPort}", hostWithPort);
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             // If we haven't sent a response yet, send an error
             if (!context.Response.HasStarted)
@@ -135,8 +135,8 @@ internal static class ProxyEndpoints
             }
         }
     }
-    
-    private static async Task HandleProxyRequest(HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, IProxyHttpClientFactory clientFactory)
+
+    private static async Task HandleProxyRequest ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, IProxyHttpClientFactory clientFactory )
     {
         using var activity = activitySource.StartActivity(nameof(HandleProxyRequest), ActivityKind.Consumer);
         string? requestId = null;
@@ -191,7 +191,8 @@ internal static class ProxyEndpoints
                 _logger.LogInformation("Proxy modified response {Method} {TargetUrl} {RequestId}", requestMessage.Method.Method, targetUrl, arguments.RequestId); ;
                 activity?.SetTag("proxy.response.source", "OnResponse");
                 responseMessage = eventResponse.ModifiedResponse;
-            } else
+            }
+            else
             {
                 activity?.SetTag("proxy.response.source", "Remote");
             }
@@ -208,12 +209,12 @@ internal static class ProxyEndpoints
         }
     }
 
-    private static string ExtractTargetUrl(HttpContext context)
+    private static string ExtractTargetUrl ( HttpContext context )
     {
         return $"{context.Request.Scheme}://{context.Request.Host}{context.Request.Path}{context.Request.QueryString}";
     }
 
-    private static HttpRequestMessage CreateProxyRequest(HttpContext context, string targetUrl)
+    private static HttpRequestMessage CreateProxyRequest ( HttpContext context, string targetUrl )
     {
         var requestMessage = new HttpRequestMessage
         {
@@ -248,7 +249,7 @@ internal static class ProxyEndpoints
         return requestMessage;
     }
 
-    private static async Task CopyResponseToClient(HttpContext context, HttpResponseMessage responseMessage)
+    private static async Task CopyResponseToClient ( HttpContext context, HttpResponseMessage responseMessage )
     {
         // Copy status code
         context.Response.StatusCode = (int)responseMessage.StatusCode;

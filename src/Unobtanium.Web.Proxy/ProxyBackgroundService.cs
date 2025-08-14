@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Net;
+using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.Events;
@@ -28,7 +29,7 @@ internal class ProxyBackgroundService : BackgroundService
     private IHost? _proxyHost;
 
     public ProxyBackgroundService (
-        
+
         IServiceProvider serviceProvider,
         IOptions<ProxyServerOptions> options,
         ProxyServerEvents events,
@@ -122,7 +123,9 @@ internal class ProxyBackgroundService : BackgroundService
                                 .GetCertificateAsync(dnsName!, context?.ConnectionClosed ?? CancellationToken.None)
                                 .GetAwaiter()
                                 .GetResult();
-                            return cert;
+                            var rootCert = _certificateManager.GetRootCertificateAsync(context?.ConnectionClosed ?? default).GetAwaiter().GetResult();
+                            var combined = CertificateCombiner.CreateChainedCertificate(cert, rootCert);
+                            return combined;
                         };
                     });
                 });
@@ -199,7 +202,7 @@ internal class ProxyBackgroundService : BackgroundService
     /// to the proxy host to ensure distributed tracing and metrics work correctly.
     /// </summary>
     /// <param name="proxyBuilder">The WebApplicationBuilder for the proxy host</param>
-    private void TransferOpenTelemetryServices(WebApplicationBuilder proxyBuilder)
+    private void TransferOpenTelemetryServices ( WebApplicationBuilder proxyBuilder )
     {
         try
         {
@@ -219,9 +222,9 @@ internal class ProxyBackgroundService : BackgroundService
 
             foreach (var serviceTypeName in servicesToTransfer)
             {
-                var serviceType = Type.GetType($"{serviceTypeName}, OpenTelemetry") 
+                var serviceType = Type.GetType($"{serviceTypeName}, OpenTelemetry")
                                  ?? Type.GetType($"{serviceTypeName}, System.Diagnostics.DiagnosticSource");
-                
+
                 if (serviceType != null)
                 {
                     var service = _serviceProvider.GetService(serviceType);
@@ -265,7 +268,7 @@ internal class ProxyBackgroundService : BackgroundService
     /// Transfers OpenTelemetry instrumentation services that may be registered in the main application.
     /// </summary>
     /// <param name="proxyBuilder">The WebApplicationBuilder for the proxy host</param>
-    private void TransferInstrumentationServices(WebApplicationBuilder proxyBuilder)
+    private void TransferInstrumentationServices ( WebApplicationBuilder proxyBuilder )
     {
         try
         {
@@ -279,10 +282,10 @@ internal class ProxyBackgroundService : BackgroundService
 
             foreach (var instrumentationTypeName in instrumentationTypes)
             {
-                var instrumentationType = Type.GetType($"{instrumentationTypeName}, OpenTelemetry.Instrumentation.Http") 
+                var instrumentationType = Type.GetType($"{instrumentationTypeName}, OpenTelemetry.Instrumentation.Http")
                                          ?? Type.GetType($"{instrumentationTypeName}, OpenTelemetry.Instrumentation.AspNetCore")
                                          ?? Type.GetType($"{instrumentationTypeName}, OpenTelemetry.Instrumentation.Runtime");
-                
+
                 if (instrumentationType != null)
                 {
                     var service = _serviceProvider.GetService(instrumentationType);
@@ -304,7 +307,7 @@ internal class ProxyBackgroundService : BackgroundService
     /// Transfers OpenTelemetry configuration options from the main application to the proxy host.
     /// </summary>
     /// <param name="proxyBuilder">The WebApplicationBuilder for the proxy host</param>
-    private void TransferOpenTelemetryOptions(WebApplicationBuilder proxyBuilder)
+    private void TransferOpenTelemetryOptions ( WebApplicationBuilder proxyBuilder )
     {
         try
         {

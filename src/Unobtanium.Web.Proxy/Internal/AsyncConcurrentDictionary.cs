@@ -33,6 +33,8 @@ internal class AsyncConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TK
             return value;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Acquire the semaphore for the key to ensure single execution of the factory
         var semaphoreSlim = GetSemaphoreSlim(key);
         await semaphoreSlim.WaitAsync(cancellationToken);
@@ -44,6 +46,8 @@ internal class AsyncConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TK
             {
                 return value;
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Execute the factory method to create the value
             value = await factory(cancellationToken);

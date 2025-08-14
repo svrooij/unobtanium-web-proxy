@@ -29,20 +29,20 @@ public class RequestEventResponse : IDisposable
     /// <summary>
     /// The request was not modified, and the request should continue as normal.
     /// </summary>
-    public static RequestEventResponse ContinueResponse() => new RequestEventResponse(null, null);
+    public static RequestEventResponse ContinueResponse () => new RequestEventResponse(null, null);
 
     /// <summary>
     /// The request was modified, and the modified request should be used instead of the original request.
     /// </summary>
     /// <param name="modifiedRequest"></param>
-    public static RequestEventResponse ModifyRequest(HttpRequestMessage modifiedRequest) => new RequestEventResponse(modifiedRequest, null);
+    public static RequestEventResponse ModifyRequest ( HttpRequestMessage modifiedRequest ) => new RequestEventResponse(modifiedRequest, null);
 
     /// <summary>
     /// The request was not modified, but an early response should be returned to the client without sending the request to the server.
     /// </summary>
     /// <param name="earlyResponse"></param>
-    public static RequestEventResponse EarlyResponse(HttpResponseMessage earlyResponse) => new RequestEventResponse(null, earlyResponse);
-    
+    public static RequestEventResponse EarlyResponse ( HttpResponseMessage earlyResponse ) => new RequestEventResponse(null, earlyResponse);
+
     /// <summary>
     /// Creates a response with the specified HTTP status code, optional reason phrase, and optional content.
     /// </summary>
@@ -53,7 +53,7 @@ public class RequestEventResponse : IDisposable
     /// set.</param>
     /// <param name="content">An optional string representing the response content.  If null, the response will have no content.</param>
     /// <returns>A <see cref="RequestEventResponse"/> containing the configured HTTP response.</returns>
-    public static RequestEventResponse StatusCodeResponse(System.Net.HttpStatusCode statusCode, string? reasonPhrase = null, string? content = null)
+    public static RequestEventResponse StatusCodeResponse ( System.Net.HttpStatusCode statusCode, string? reasonPhrase = null, string? content = null )
     {
         var response = new HttpResponseMessage(statusCode)
         {

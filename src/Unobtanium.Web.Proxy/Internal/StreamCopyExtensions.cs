@@ -10,7 +10,7 @@ namespace Unobtanium.Web.Proxy.Internal;
 
 internal static class StreamCopyExtensions
 {
-    internal static async Task CopyDataAsync(this Stream source, PipeWriter destination, string direction, ILogger logger, CancellationToken cancellationToken)
+    internal static async Task CopyDataAsync ( this Stream source, PipeWriter destination, string direction, ILogger logger, CancellationToken cancellationToken )
     {
         const int bufferSize = 8192;
         try
@@ -40,7 +40,7 @@ internal static class StreamCopyExtensions
         }
     }
 
-    internal static async Task CopyDataAsync(this PipeReader source, Stream destination, string direction, ILogger logger, CancellationToken cancellationToken)
+    internal static async Task CopyDataAsync ( this PipeReader source, Stream destination, string direction, ILogger logger, CancellationToken cancellationToken )
     {
         try
         {

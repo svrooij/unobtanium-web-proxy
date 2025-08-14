@@ -22,7 +22,7 @@
     <RepositoryUrl>https://github.com/svrooij/unobtanium-web-proxy.git</RepositoryUrl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <NoWarn>1701;1702;CA1416</NoWarn>
+    <NoWarn>1701;1702;CA1416;SYSLIB0057</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <NoWarn>1701;1702;CA1416;CS0618;CS8602;SYSLIB0057;CS1998</NoWarn>

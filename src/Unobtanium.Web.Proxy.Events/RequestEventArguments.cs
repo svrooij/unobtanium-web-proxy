@@ -5,7 +5,7 @@ namespace Unobtanium.Web.Proxy.Events;
 /// <summary>
 /// Event arguments for the request event.
 /// </summary>
-public class RequestEventArguments: IDisposable
+public class RequestEventArguments : IDisposable
 {
     /// <summary>
     /// Event arguments for the <see cref="ProxyServerEvents.OnRequest"/> event."/>
@@ -34,7 +34,7 @@ public class RequestEventArguments: IDisposable
     /// </summary>
     public string RequestId { get; internal set; }
 
-    
+
     /// <inheritdoc/>
     public void Dispose ()
     {
