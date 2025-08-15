@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -13,8 +15,8 @@ using Unobtanium.Web.Proxy.Services;
 namespace Unobtanium.Web.Proxy.KestrelTests.TestHelpers;
 internal class ProxyRunner : IDisposable
 {
-    private readonly int _port;
-    private readonly int _httpsPort;
+    private int _port;
+    private int _httpsPort;
     private IServiceProvider? _serviceProvider;
     private ProxyServerEvents? _proxyServerEvents;
     private bool _isRunning;
@@ -32,7 +34,7 @@ internal class ProxyRunner : IDisposable
     {
         var services = new ServiceCollection();
         _proxyServerEvents = new ProxyServerEvents();
-        _proxyServerEvents.ShouldDecryptNewConnection = async ( host, cts ) =>
+        _proxyServerEvents.ShouldDecryptNewConnection = async ( host, details, cts ) =>
         {
             // Log the new connection details
             return host.Equals("graph.microsoft.com");
@@ -65,6 +67,13 @@ internal class ProxyRunner : IDisposable
 
         var proxyServer = _serviceProvider.GetRequiredService<IHostedService>();
         await proxyServer.StartAsync(cancellationToken);
+        if (_port == 0 || _httpsPort == 0)
+        {
+            var endpointResolver = _serviceProvider.GetRequiredService<IProxyEndpointResolver>();
+            _port = endpointResolver.Port!.Value;
+            _httpsPort = endpointResolver.HttpsPort!.Value;
+        }
+
         _isRunning = true;
     }
 

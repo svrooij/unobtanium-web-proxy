@@ -67,6 +67,8 @@ public static class ProxyServiceCollectionExtension
 
         // Add the proxy server!
         services.AddHostedService<ProxyBackgroundService>();
+
+        services.AddSingleton<IProxyEndpointResolver, ProxyEndpointResolver>();
         return services;
     }
 

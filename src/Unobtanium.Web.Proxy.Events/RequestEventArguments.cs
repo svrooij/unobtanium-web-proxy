@@ -45,6 +45,8 @@ public class RequestEventArguments : IDisposable
     /// <inheritdoc/>
     public void Dispose ()
     {
-        RequestActivity?.Dispose();
+        // TODO: Dispose of the request and activity if needed
+        //RequestActivity?.Dispose();
+        Request?.Dispose();
     }
 }

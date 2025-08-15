@@ -10,6 +10,8 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Net;
 using System.Net.Security;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.Events;
@@ -24,6 +26,7 @@ internal class ProxyBackgroundService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ProxyServerOptions _options;
     private readonly ICertificateManager _certificateManager;
+    private readonly IProxyEndpointResolver _proxyEndpointResolver;
     private readonly ProxyServerEvents _events;
     private readonly IProxyHttpClientFactory _proxyHttpClientFactory;
     private IHost? _proxyHost;
@@ -34,6 +37,7 @@ internal class ProxyBackgroundService : BackgroundService
         IOptions<ProxyServerOptions> options,
         ProxyServerEvents events,
         ICertificateManager certificateManager,
+        IProxyEndpointResolver proxyEndpointResolver,
         ILogger<ProxyBackgroundService>? logger = null,
         IProxyHttpClientFactory? proxyHttpClientFactory = null,
         TimeProvider? timeProvider = null
@@ -45,6 +49,8 @@ internal class ProxyBackgroundService : BackgroundService
         _certificateManager = certificateManager;
         _events = events;
         _proxyHttpClientFactory = proxyHttpClientFactory ?? new ProxyHttpClientFactory();
+        _proxyEndpointResolver = proxyEndpointResolver;
+        _proxyEndpointResolver.SetPorts(_options.Port, _options.HttpsPort);
     }
 
     /// <summary>
@@ -115,19 +121,38 @@ internal class ProxyBackgroundService : BackgroundService
                 // Configure HTTPS endpoint for intercepting
                 serverOptions.Listen(IPAddress.Loopback, _options.HttpsPort, listenOptions =>
                 {
-                    listenOptions.UseHttps(httpsOptions =>
+                    // Async callback to provide the server certificate
+                    // See https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-8.0#sni-with-serveroptionsselectioncallback
+                    // for more details on SNI and server certificate selection
+                    listenOptions.UseHttps(async ( stream, clientHelloInfo, state, cancellationToken ) =>
                     {
-                        httpsOptions.ServerCertificateSelector = ( context, dnsName ) =>
+                        var rootCert = await _certificateManager
+                            .GetRootCertificateAsync(cancellationToken);
+                        //rootCert = CertificateCombiner.StripPrivateKey(rootCert);
+                        var cert = await _certificateManager
+                            .GetCertificateAsync(clientHelloInfo.ServerName, cancellationToken);
+                        //var chain = new X509Certificate2Collection(rootCert);
+                        //var combined = CertificateCombiner.CreateChainedCertificate(cert, rootCert);
+                        var policy = new System.Security.Cryptography.X509Certificates.X509ChainPolicy
                         {
-                            var cert = _certificateManager
-                                .GetCertificateAsync(dnsName!, context?.ConnectionClosed ?? CancellationToken.None)
-                                .GetAwaiter()
-                                .GetResult();
-                            var rootCert = _certificateManager.GetRootCertificateAsync(context?.ConnectionClosed ?? default).GetAwaiter().GetResult();
-                            var combined = CertificateCombiner.CreateChainedCertificate(cert, rootCert);
-                            return combined;
+                            
+                            TrustMode = System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust,
+                            DisableCertificateDownloads = true,
+                            RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
+                            VerificationFlags = System.Security.Cryptography.X509Certificates.X509VerificationFlags.AllFlags
                         };
-                    });
+                        policy.CustomTrustStore.Add(rootCert);
+                        return new SslServerAuthenticationOptions
+                        {
+                            //ServerCertificate = combined,
+                            ServerCertificateSelectionCallback = ( _, _ ) => cert,
+                            //ServerCertificateContext = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                            //    ? SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(chain, false))
+                            //    : SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(chain, true)),
+                            CertificateChainPolicy = policy
+                        };
+                        
+                    }, state: null!);
                 });
 
                 // HTTP endpoint
@@ -148,10 +173,20 @@ internal class ProxyBackgroundService : BackgroundService
             var addresses = _proxyHost.Services.GetService<IServer>()?.Features?.Get<IServerAddressesFeature>()?.Addresses;
             if (addresses != null)
             {
+                var httpPort = 0;
+                var httpsPort = 0;
                 foreach (var address in addresses)
                 {
                     _logger.LogInformation("Proxy listening on: {Address}", address);
+                    if (address.StartsWith("https://"))
+                    {
+                        httpsPort = new Uri(address).Port;
+                    } else if (address.StartsWith("http://"))
+                    {
+                        httpPort = new Uri(address).Port;
+                    }
                 }
+                _proxyEndpointResolver.SetPorts(httpPort, httpsPort);
             }
 
             // Wait until the hosting application is stopping
@@ -182,6 +217,8 @@ internal class ProxyBackgroundService : BackgroundService
         // Add other services needed for the proxy
         proxyBuilder.Services.AddSingleton(TimeProvider.System);
         proxyBuilder.Services.AddSingleton<Internal.ConnectionMapper>();
+
+        proxyBuilder.Services.AddSingleton<IProxyEndpointResolver>(_proxyEndpointResolver);
 
         proxyBuilder.Services.Configure<ProxyServerOptions>(options =>
         {

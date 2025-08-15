@@ -4,28 +4,29 @@ namespace Unobtanium.Web.Proxy.KestrelTests;
 [TestClass]
 public class ProxyHttpsTests
 {
-    private static ProxyRunner? _proxyRunner;
-    private static TestContext? _testContext { get; set; }
+    private ProxyRunner? _proxyRunner;
+    public TestContext TestContext { get; set; }
 
-    private static string _tempCacheDirectory = null!;
-
-    [ClassInitialize]
-    public static async Task InitializeAsync ( TestContext testContext )
+    [TestInitialize]
+    public async Task Setup()
     {
-        _testContext = testContext;
-        _tempCacheDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(_tempCacheDirectory);
-        _proxyRunner = new ProxyRunner(8898, 8899, _tempCacheDirectory);
-        await _proxyRunner.StartAsync(testContext.CancellationTokenSource.Token);
-        _proxyRunner.ProxyServerEvents.ShouldDecryptNewConnection = ( host, ct ) =>
+        
+        _proxyRunner = new ProxyRunner(0, 0);
+        await _proxyRunner.StartAsync(TestContext.CancellationTokenSource.Token);
+        _proxyRunner.ProxyServerEvents.ShouldDecryptNewConnection = ( host, details, ct ) =>
         {
             // Accept all connections for testing purposes
+            if (host == "blocked.svrooij.io")
+            {
+                ct.Cancel();
+                return Task.FromResult(false);
+            }
             return Task.FromResult(true);
         };
     }
 
-    [ClassCleanup]
-    public static async Task CleanupAsync ()
+    [TestCleanup]
+    public async Task CleanupAsync ()
     {
         if (_proxyRunner != null)
         {
@@ -33,10 +34,7 @@ public class ProxyHttpsTests
             _proxyRunner.Dispose();
             _proxyRunner = null;
         }
-        if (Directory.Exists(_tempCacheDirectory))
-        {
-            Directory.Delete(_tempCacheDirectory, true);
-        }
+        
     }
 
     [TestMethod]
@@ -61,7 +59,7 @@ public class ProxyHttpsTests
             return RequestEventResponse.ContinueResponse();
         };
         // Act
-        var response = await client.GetAsync(interceptUri, _testContext!.CancellationTokenSource.Token);
+        var response = await client.GetAsync(interceptUri, TestContext!.CancellationTokenSource.Token);
         // Assert
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, "expected a successful response from the proxy server.");
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
@@ -72,13 +70,33 @@ public class ProxyHttpsTests
     }
 
     [TestMethod]
+    public async Task Https_request_should_be_blocked_during_connect()
+    {
+        // Arrange
+        var client = _proxyRunner!.CreateHttpClient();
+        var requestUri = "https://blocked.svrooij.io/whatever";
+        _proxyRunner.ProxyServerEvents.ClearEvents();
+        _proxyRunner.ProxyServerEvents.OnRequest += async ( sender, args, cts ) =>
+        {
+            throw new Exception("Should not be reached");
+        };
+
+        // Act
+        var act = () => client.GetAsync(requestUri);
+
+        // Assert
+        await act.Should()
+            .ThrowAsync<HttpRequestException>("because the connection should be closed by the cancellation")
+            .WithMessage("* failed with status code '503'*");
+    }
+
+    [TestMethod]
     public async Task Https_request_should_be_intercepted ()
     {
         // Arrange
         var client = _proxyRunner!.CreateHttpClient(ignoreAllCertificateErrors: true);
         var requestUri = "https://fake.svrooij.io/intercepted";
         // The proxy server is shared across tests, so we clear any previous events
-        _proxyRunner.ProxyServerEvents.ClearEvents();
         _proxyRunner.ProxyServerEvents.OnRequest += async ( sender, args, cts ) =>
         {
             // Log the response details
@@ -93,7 +111,7 @@ public class ProxyHttpsTests
             return RequestEventResponse.ContinueResponse();
         };
         // Act
-        var response = await client.GetAsync(requestUri, _testContext!.CancellationTokenSource.Token);
+        var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
 
         // Assert
         response.Should().NotBeNull("expected a response from the proxy server.");
@@ -101,9 +119,40 @@ public class ProxyHttpsTests
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
 
         // Read the content and verify it contains the expected text
-        var content = await response.Content.ReadAsStringAsync(_testContext!.CancellationTokenSource.Token);
+        var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
         content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
         content.Should().Contain("<h1>Intercepted Response</h1>", "expect the intercepted content");
+    }
+
+    [TestMethod]
+    public async Task Https_request_should_be_intercepted_with_status_code ()
+    {
+        // Arrange
+        var client = _proxyRunner!.CreateHttpClient(ignoreAllCertificateErrors: true);
+        var requestUri = "https://fake2.svrooij.io/intercepted-with-status";
+        var message = "Be gone, you shall not pass!";
+        
+        _proxyRunner.ProxyServerEvents.OnRequest += async ( sender, args, cts ) =>
+        {
+            // Log the response details
+            if (args.Request.RequestUri!.ToString() == requestUri)
+            {
+                return RequestEventResponse.StatusCodeResponse(System.Net.HttpStatusCode.Forbidden, "Be gone", message);
+            }
+            return RequestEventResponse.ContinueResponse();
+        };
+        // Act
+        var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
+
+        // Assert
+        response.Should().NotBeNull("expected a response from the proxy server.");
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden, "expected a successful response from the proxy server.");
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/plain", "expected plain content type.");
+
+        // Read the content and verify it contains the expected text
+        var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
+        content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
+        content.Should().Contain(message, "expect the intercepted content");
     }
 
     [TestMethod]
@@ -112,10 +161,9 @@ public class ProxyHttpsTests
         // Arrange
         var client = _proxyRunner!.CreateHttpClient(ignoreAllCertificateErrors: true);
         var requestUri = "https://svrooij.io/";
-        _proxyRunner.ProxyServerEvents.ClearEvents();
 
         // Act
-        var response = await client.GetAsync(requestUri, _testContext!.CancellationTokenSource.Token);
+        var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
 
         // Assert
         response.Should().NotBeNull("expected a response from the proxy server.");
@@ -123,7 +171,7 @@ public class ProxyHttpsTests
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
 
         // Read the content and verify it contains the expected text
-        var content = await response.Content.ReadAsStringAsync(_testContext!.CancellationTokenSource.Token);
+        var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
         content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
         content.Should().Contain("Stephan van Rooij", "expected the response to contain the author's name.");
     }
@@ -132,12 +180,12 @@ public class ProxyHttpsTests
     public async Task Https_request_should_fail_if_certificate_is_not_accepted ()
     {
         // Arrange
-        var client = _proxyRunner!.CreateHttpClient(acceptFakeRootAndNormalTrusted: true);
+        var client = _proxyRunner!.CreateHttpClient();
         var requestUri = "https://svrooij.io/";
         _proxyRunner.ProxyServerEvents.ClearEvents();
 
         // Act
-        var act = () => client.GetAsync(requestUri, _testContext!.CancellationTokenSource.Token);
+        var act = () => client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
 
         // Assert
         // We will not accept the certificate for svrooij.io, so we expect a certificate error

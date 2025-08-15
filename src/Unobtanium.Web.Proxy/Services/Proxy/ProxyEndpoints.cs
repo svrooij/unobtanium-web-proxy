@@ -14,6 +14,7 @@ using System.Net.Http;
 using System.Linq;
 using Microsoft.Extensions.Options;
 using System.Net;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 
 namespace Unobtanium.Web.Proxy.Services.Proxy;
 
@@ -23,9 +24,9 @@ internal static class ProxyEndpoints
     internal static void MapProxyEndpoints ( this WebApplication app )
     {
         // Map CONNECT method for HTTPS tunneling
-        app.MapMethods("{**path}", [HttpMethods.Connect], async ( HttpContext context, ProxyServerEvents serverEvents, ICertificateManager certManager, IOptions<ProxyServerOptions> options, ConnectionMapper connectionMapper ) =>
+        app.MapMethods("{**path}", [HttpMethods.Connect], async ( HttpContext context, ProxyServerEvents serverEvents, ICertificateManager certManager, IOptions<ProxyServerOptions> options, ConnectionMapper connectionMapper, IProxyEndpointResolver endpoints ) =>
         {
-            await HandleConnectMethod(context, app.Logger, serverEvents, certManager, options.Value, connectionMapper);
+            await HandleConnectMethod(context, app.Logger, serverEvents, certManager, options.Value, connectionMapper, endpoints);
         });
 
         // Map a proxy endpoint that handles all requests
@@ -46,7 +47,7 @@ internal static class ProxyEndpoints
     /// <param name="options"><see cref="ProxyServerOptions"/> to find out which port to proxy to</param>
     /// <param name="connectionMapper">Singleton dictionary for storing remote addresses and ports, this is used to keep record of incoming clients for HTTPS proxying</param>
     /// <returns></returns>
-    private static async Task HandleConnectMethod ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, ICertificateManager certManager, ProxyServerOptions options, ConnectionMapper connectionMapper )
+    private static async Task HandleConnectMethod ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, ICertificateManager certManager, ProxyServerOptions options, ConnectionMapper connectionMapper, IProxyEndpointResolver endpointResolver )
     {
         using var activity = activitySource.StartActivity(nameof(HandleConnectMethod), ActivityKind.Consumer);
         // Check if we should decrypt this connection
@@ -81,7 +82,7 @@ internal static class ProxyEndpoints
             return;
         }
         var targetHost = shouldDecrypt == true ? "localhost" : originalHost;
-        var targetPort = shouldDecrypt == true ? options.HttpsPort : originalPort; // Forward to local Kestrel if decrypting, otherwise use original port
+        int targetPort = shouldDecrypt == true ? endpointResolver.HttpsPort ?? options.HttpsPort : originalPort;
         _logger.LogInformation("CONNECT request received for {HostWithPort}, will intercept {Intercepting} {RemoteIp} {RemotePort}", hostWithPort, shouldDecrypt, clientInfo.Address, clientInfo.Port);
 
         // Get the connection feature
@@ -209,7 +210,7 @@ internal static class ProxyEndpoints
 
                 _logger.LogInformation("Proxy request {Method} {TargetUrl} {RemoteIp} {RemotePort}", requestMessage.Method.Method, targetUrl, clientDetails.Address, clientDetails.Port);
 
-                var arguments = new RequestEventArguments(requestMessage, clientDetails, activity, context.TraceIdentifier);
+                using var arguments = new RequestEventArguments(requestMessage, clientDetails, activity, context.TraceIdentifier);
                 requestId = arguments.RequestId;
                 if (activity is not null)
                 {
@@ -244,8 +245,8 @@ internal static class ProxyEndpoints
                 // Send request to target server
                 var _httpClient = clientFactory.CreateHttpClient(requestMessage.RequestUri!.Host);
                 var responseMessage = await _httpClient.SendAsync(requestMessage);
-
-                var eventResponse = await serverEvents.InvokeOnResponse(context, new ResponseEventArguments(requestMessage, responseMessage, clientDetails, activity, arguments.RequestId), _logger, context.RequestAborted);
+                using var onResponseArguments = new ResponseEventArguments(requestMessage, responseMessage, clientDetails, activity, arguments.RequestId);
+                var eventResponse = await serverEvents.InvokeOnResponse(context, onResponseArguments , _logger, context.RequestAborted);
 
                 if (eventResponse.ModifiedResponse is not null)
                 {
