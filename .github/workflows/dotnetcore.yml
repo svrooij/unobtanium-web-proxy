@@ -115,7 +115,7 @@ jobs:
 
     - name: 🚀 Publish
       run: |
-        dotnet nuget push **/*.{nupkg,snupkg} -s https://api.nuget.org/v3/index.json -k $NUGET_AUTH_TOKEN
+        dotnet nuget push **/*.{nupkg,snupkg} -s https://api.nuget.org/v3/index.json -k $NUGET_AUTH_TOKEN --skip-duplicate
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
     

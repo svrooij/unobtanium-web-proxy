@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Net.Sockets;
-using System.IO.Pipelines;
 using Microsoft.AspNetCore.Connections.Features;
 using System.Buffers;
 using Unobtanium.Web.Proxy.Events;
@@ -14,6 +13,7 @@ using System;
 using System.Net.Http;
 using System.Linq;
 using Microsoft.Extensions.Options;
+using System.Net;
 
 namespace Unobtanium.Web.Proxy.Services.Proxy;
 
@@ -22,26 +22,31 @@ internal static class ProxyEndpoints
     internal static readonly ActivitySource activitySource = ProxyServerDefaults.ProxyActivitySource;
     internal static void MapProxyEndpoints ( this WebApplication app )
     {
-        // Map a proxy endpoint that handles all requests
-        app.Map("{**path}", async ( HttpContext context, ProxyServerEvents serverEvents, ICertificateManager certManager, IProxyHttpClientFactory clientFactory, IOptions<ProxyServerOptions> options ) =>
+        // Map CONNECT method for HTTPS tunneling
+        app.MapMethods("{**path}", [HttpMethods.Connect], async ( HttpContext context, ProxyServerEvents serverEvents, ICertificateManager certManager, IOptions<ProxyServerOptions> options, ConnectionMapper connectionMapper ) =>
         {
-            //using var activity = activitySource.StartActivity("ProxyRequest", ActivityKind.Consumer);
-            // Handle requests to the root path and any sub-paths
-            if (context.Request.Method == HttpMethods.Connect)
-            {
-                // Handle CONNECT method for tunneling
-                // When the client asks to tunnel https traffic over an http proxy connection
-                await HandleConnectMethod(context, app.Logger, serverEvents, certManager, options.Value);
-            }
-            else
-            {
-                // Handle all other requests, proxying http traffic if just sending the same http request to the proxy server
-                await HandleProxyRequest(context, app.Logger, serverEvents, clientFactory);
-            }
+            await HandleConnectMethod(context, app.Logger, serverEvents, certManager, options.Value, connectionMapper);
+        });
+
+        // Map a proxy endpoint that handles all requests
+        app.Map("{**path}", async ( HttpContext context, ProxyServerEvents serverEvents, IProxyHttpClientFactory clientFactory, IOptions<ProxyServerOptions> options, ConnectionMapper connectionMapper ) =>
+        {
+            // Handle all other requests, proxying http traffic if just sending the same http request to the proxy server
+            await HandleProxyRequest(context, app.Logger, serverEvents, clientFactory, connectionMapper);
         });
     }
 
-    private static async Task HandleConnectMethod ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, ICertificateManager certManager, ProxyServerOptions options )
+    /// <summary>
+    /// Handle the CONNECT method for HTTPS tunneling.
+    /// </summary>
+    /// <param name="context">Incoming <see cref="HttpContext"/></param>
+    /// <param name="_logger">Proxy logger</param>
+    /// <param name="serverEvents">Event handler that decides to proxy the request</param>
+    /// <param name="certManager">Certificate manager to pre-load certificates</param>
+    /// <param name="options"><see cref="ProxyServerOptions"/> to find out which port to proxy to</param>
+    /// <param name="connectionMapper">Singleton dictionary for storing remote addresses and ports, this is used to keep record of incoming clients for HTTPS proxying</param>
+    /// <returns></returns>
+    private static async Task HandleConnectMethod ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, ICertificateManager certManager, ProxyServerOptions options, ConnectionMapper connectionMapper )
     {
         using var activity = activitySource.StartActivity(nameof(HandleConnectMethod), ActivityKind.Consumer);
         // Check if we should decrypt this connection
@@ -56,17 +61,28 @@ internal static class ProxyEndpoints
         _ = Task.Run(async () => await certManager.GetCertificateAsync(originalHost, CancellationToken.None), CancellationToken.None);
 
         var hostWithPort = originalPort != 443 ? $"{originalHost}:{originalPort}" : originalHost;
-        using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
-        var shouldDecrypt = await serverEvents.InvokeShouldDecryptNewConnection(hostWithPort, cts2);
+        var clientInfo = new ClientDetails(context.Connection.RemoteIpAddress!.ToString(), context.Connection.RemotePort, activity?.TraceId, activity?.SpanId);
+
+        var shouldDecrypt = await serverEvents.InvokeShouldDecryptNewConnection(hostWithPort, clientInfo, context.RequestAborted);
         if (activity is not null)
         {
             activity.SetTag("server.host", originalHost);
             activity.SetTag("server.post", originalPort);
-            activity.SetTag("proxy.intercept", shouldDecrypt);
+            activity.SetTag("proxy.intercept", shouldDecrypt.HasValue ? shouldDecrypt.Value : "blocked");
+            activity.SetTag("client.address", context.Connection.RemoteIpAddress);
+            activity.SetTag("client.port", context.Connection.RemotePort);
+
         }
-        var targetHost = shouldDecrypt ? "localhost" : originalHost;
-        var targetPort = shouldDecrypt ? options.HttpsPort : originalPort; // Forward to local Kestrel if decrypting, otherwise use original port
-        _logger.LogInformation("CONNECT request received for {HostWithPort}, will intercept {Intercepting}", hostWithPort, shouldDecrypt);
+        if (shouldDecrypt is null)
+        {
+            _logger.LogWarning("Connection decryption decision was canceled, terminating connection for {HostWithPort}", hostWithPort);
+            context.Response.StatusCode = 503; // Service Unavailable
+            await context.Response.WriteAsync("Request was blocked by application");
+            return;
+        }
+        var targetHost = shouldDecrypt == true ? "localhost" : originalHost;
+        var targetPort = shouldDecrypt == true ? options.HttpsPort : originalPort; // Forward to local Kestrel if decrypting, otherwise use original port
+        _logger.LogInformation("CONNECT request received for {HostWithPort}, will intercept {Intercepting} {RemoteIp} {RemotePort}", hostWithPort, shouldDecrypt, clientInfo.Address, clientInfo.Port);
 
         // Get the connection feature
         var connectionFeature = context.Features.Get<IConnectionLifetimeFeature>();
@@ -89,6 +105,20 @@ internal static class ProxyEndpoints
             _logger.LogDebug("Establishing connection to {TargetHost}:{TargetPort} for {HostWithPort}", targetHost, targetPort, hostWithPort);
             await client.ConnectAsync(targetHost, targetPort);
             _logger.LogDebug("TCP Connection Established");
+
+            if (shouldDecrypt == true)
+            {
+                // Save the connection in the mapper for later use
+                // Saving the ClientInfo of the incoming connection in the dictionary under the outbound port
+                // For the proxy it looks like a new connection, but we want to map it to the original client
+
+                var outboundPort = ((IPEndPoint)client!.Client.LocalEndPoint)?.Port ?? 0;
+                if (outboundPort > 0)
+                {
+                    connectionMapper.Connections.AddOrUpdate($"{outboundPort}", clientInfo, ( key, oldValue ) => clientInfo);
+                    _logger.LogDebug("Connection mapped for {HostWithPort} to {ClientInfo} on port {OutboundPort}", hostWithPort, clientInfo, outboundPort);
+                }
+            }
 
             // Get the connection's transport
             var transport = connectionTransportFeature.Transport;
@@ -136,84 +166,129 @@ internal static class ProxyEndpoints
         }
     }
 
-    private static async Task HandleProxyRequest ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, IProxyHttpClientFactory clientFactory )
+    /// <summary>
+    /// Handle all the incoming HTTP requests that are not using the <see cref="HttpMethod.Connect"/>
+    /// </summary>
+    /// <param name="context">Incoming <see cref="HttpContext"/></param>
+    /// <param name="_logger">An instance of a logger</param>
+    /// <param name="serverEvents">Event handlers that control the proxy</param>
+    /// <param name="clientFactory">Client factory to create a new HttpClient for backchannel requests Proxy -> Remote Server</param>
+    /// <param name="connectionMapper">Singleton dictionary for storing remote addresses and ports, this is used to keep record of incoming clients for HTTPS proxying</param>
+    /// <returns></returns>
+    private static async Task HandleProxyRequest ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, IProxyHttpClientFactory clientFactory, ConnectionMapper connectionMapper )
     {
-        using var activity = activitySource.StartActivity(nameof(HandleProxyRequest), ActivityKind.Consumer);
-        string? requestId = null;
-        try
+        ClientDetails clientDetails = connectionMapper.Connections
+            .FirstOrDefault(x => x.Key == context.Connection.RemotePort.ToString()).Value
+            ?? new ClientDetails(context.Connection.RemoteIpAddress!.ToString(), context.Connection.RemotePort);
+        Activity? activity = null;
+        if (activitySource.HasListeners())
         {
-            // Extract target URL
-            var targetUrl = ExtractTargetUrl(context);
-            // Create HttpRequestMessage from the incoming request
-            var requestMessage = CreateProxyRequest(context, targetUrl);
-
-            _logger.LogInformation("Proxy request {Method} {TargetUrl}", requestMessage.Method.Method, targetUrl);
-
-            var arguments = new RequestEventArguments(requestMessage, activity);
-            requestId = arguments.RequestId;
-            if (activity is not null)
+            // Create link to ConnectActivity using the connection trace ID if available
+            if (clientDetails.ConnectionSpanId is not null && clientDetails.ConnectionTraceId is not null)
             {
-                activity.SetTag("http.request.method", requestMessage.Method.Method);
-                activity.SetTag("url.full", requestMessage.RequestUri?.ToString());
-                activity.SetTag("proxy.requestId", requestId);
-                if (requestMessage.RequestUri?.Host != null)
-                {
-                    activity.SetTag("server.host", requestMessage.RequestUri.Host);
-                    activity.SetTag("server.port", requestMessage.RequestUri.Port);
-                }
-            }
-            var responseEvent = await serverEvents.InvokeOnRequest(context, arguments, _logger, context.RequestAborted);
-            if (responseEvent.Response != null)
+                activity = activitySource.StartActivity(nameof(HandleProxyRequest), ActivityKind.Consumer, null, links: [
+                    new ActivityLink(new ActivityContext(clientDetails.ConnectionTraceId.Value, clientDetails.ConnectionSpanId.Value, ActivityTraceFlags.Recorded))
+                    ]);
+            } else
             {
-                // If the event handler returned a response, send it back to the client
-                _logger.LogInformation("Proxy early response {Method} {TargetUrl} {RequestId}", requestMessage.Method.Method, targetUrl, arguments.RequestId); ;
-                activity?.SetTag("proxy.response.source", "OnRequest");
-                await CopyResponseToClient(context, responseEvent.Response);
-                return;
+                activity = activitySource.StartActivity(nameof(HandleProxyRequest), ActivityKind.Consumer);
             }
-            if (responseEvent.ModifiedRequest != null)
-            {
-                // If the request was modified, use the modified request
-                requestMessage = responseEvent.ModifiedRequest;
-                activity?.SetTag("proxy.request.source", "OnRequest");
-                _logger.LogInformation("Proxy modified request {Method} {TargetUrl} {RequestId}", requestMessage.Method.Method, targetUrl, arguments.RequestId);
-            }
-
-            // Send request to target server
-            var _httpClient = clientFactory.CreateHttpClient(requestMessage.RequestUri!.Host);
-            var responseMessage = await _httpClient.SendAsync(requestMessage);
-
-            var eventResponse = await serverEvents.InvokeOnResponse(context, new ResponseEventArguments(requestMessage, responseMessage, activity, arguments.RequestId), _logger, context.RequestAborted);
-
-            if (eventResponse.ModifiedResponse is not null)
-            {
-                // If the event handler modified the response, use the modified response
-                _logger.LogInformation("Proxy modified response {Method} {TargetUrl} {RequestId}", requestMessage.Method.Method, targetUrl, arguments.RequestId); ;
-                activity?.SetTag("proxy.response.source", "OnResponse");
-                responseMessage = eventResponse.ModifiedResponse;
-            }
-            else
-            {
-                activity?.SetTag("proxy.response.source", "Remote");
-            }
-
-            // Return the response to the client
-            await CopyResponseToClient(context, responseMessage);
+                // Start a new activity for distributed tracing if there are listeners
+                
         }
-        catch (Exception ex)
+
+        using (activity)
         {
-            _logger.LogError(ex, "Error handling proxy request {RequestId}", requestId);
-            context.Response.StatusCode = 500;
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            await context.Response.WriteAsync("Proxy error: " + ex.Message);
+            string? requestId = null;
+            try
+            {
+                // Extract target URL
+                var targetUrl = ExtractTargetUrl(context);
+                // Create HttpRequestMessage from the incoming request
+                var requestMessage = CreateProxyRequest(context, targetUrl);
+
+                _logger.LogInformation("Proxy request {Method} {TargetUrl} {RemoteIp} {RemotePort}", requestMessage.Method.Method, targetUrl, clientDetails.Address, clientDetails.Port);
+
+                var arguments = new RequestEventArguments(requestMessage, clientDetails, activity);
+                requestId = arguments.RequestId;
+                if (activity is not null)
+                {
+                    activity.SetTag("http.request.method", requestMessage.Method.Method);
+                    activity.SetTag("url.full", requestMessage.RequestUri?.ToString());
+                    activity.SetTag("proxy.requestId", requestId);
+                    activity.SetTag("proxy.connectionTraceId", clientDetails.ConnectionTraceId);
+                    if (requestMessage.RequestUri?.Host != null)
+                    {
+                        activity.SetTag("server.host", requestMessage.RequestUri.Host);
+                        activity.SetTag("server.port", requestMessage.RequestUri.Port);
+                    }
+                    activity.SetTag("client.address", clientDetails.Address);
+                    activity.SetTag("client.port", clientDetails.Port);
+                }
+                var responseEvent = await serverEvents.InvokeOnRequest(context, arguments, _logger, context.RequestAborted);
+                if (responseEvent.Response != null)
+                {
+                    // If the event handler returned a response, send it back to the client
+                    _logger.LogInformation("Proxy early response {Method} {TargetUrl} {RequestId}", requestMessage.Method.Method, targetUrl, arguments.RequestId); ;
+                    activity?.SetTag("proxy.response.source", "OnRequest");
+                    await CopyResponseToClient(context, responseEvent.Response);
+                    return;
+                }
+                if (responseEvent.ModifiedRequest != null)
+                {
+                    // If the request was modified, use the modified request
+                    requestMessage = responseEvent.ModifiedRequest;
+                    activity?.SetTag("proxy.request.source", "OnRequest");
+                    _logger.LogInformation("Proxy modified request {Method} {TargetUrl} {RequestId}", requestMessage.Method.Method, targetUrl, arguments.RequestId);
+                }
+
+                // Send request to target server
+                var _httpClient = clientFactory.CreateHttpClient(requestMessage.RequestUri!.Host);
+                var responseMessage = await _httpClient.SendAsync(requestMessage);
+
+                var eventResponse = await serverEvents.InvokeOnResponse(context, new ResponseEventArguments(requestMessage, responseMessage, clientDetails, activity, arguments.RequestId), _logger, context.RequestAborted);
+
+                if (eventResponse.ModifiedResponse is not null)
+                {
+                    // If the event handler modified the response, use the modified response
+                    _logger.LogInformation("Proxy modified response {Method} {TargetUrl} {RequestId}", requestMessage.Method.Method, targetUrl, arguments.RequestId); ;
+                    activity?.SetTag("proxy.response.source", "OnResponse");
+                    responseMessage = eventResponse.ModifiedResponse;
+                }
+                else
+                {
+                    activity?.SetTag("proxy.response.source", "Remote");
+                }
+
+                // Return the response to the client
+                await CopyResponseToClient(context, responseMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling proxy request {RequestId}", requestId);
+                context.Response.StatusCode = 500;
+                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                await context.Response.WriteAsync("Proxy error: " + ex.Message);
+            }
         }
     }
 
+    /// <summary>
+    /// Create full url from the incoming <see cref="HttpContext"/>.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     private static string ExtractTargetUrl ( HttpContext context )
     {
         return $"{context.Request.Scheme}://{context.Request.Host}{context.Request.Path}{context.Request.QueryString}";
     }
 
+    /// <summary>
+    /// Create a new <see cref="HttpRequestMessage"/> based on the incoming HTTP request."/>
+    /// </summary>
+    /// <param name="context">Incoming <see cref="HttpContent"/></param>
+    /// <param name="targetUrl">Extracted full target url</param>
+    /// <returns></returns>
     private static HttpRequestMessage CreateProxyRequest ( HttpContext context, string targetUrl )
     {
         var requestMessage = new HttpRequestMessage
@@ -249,6 +324,12 @@ internal static class ProxyEndpoints
         return requestMessage;
     }
 
+    /// <summary>
+    /// Write the proxy response back to the <see cref="HttpContext.Response"/>.
+    /// </summary>
+    /// <param name="context">Incoming <see cref="HttpContent"/></param>
+    /// <param name="responseMessage">The proxied <see cref="HttpResponseMessage"/> either from HttpClient or generated</param>
+    /// <returns></returns>
     private static async Task CopyResponseToClient ( HttpContext context, HttpResponseMessage responseMessage )
     {
         // Copy status code

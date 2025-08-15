@@ -12,9 +12,10 @@ public class ResponseEventArguments : RequestEventArguments
     /// </summary>
     /// <param name="request"></param>
     /// <param name="response"></param>
+    /// <param name="clientDetails"></param>
     /// <param name="requestActivity"></param>
     /// <param name="requestId"></param>
-    internal ResponseEventArguments ( HttpRequestMessage request, HttpResponseMessage response, Activity? requestActivity, string? requestId = null ) : base(request, requestActivity, requestId)
+    internal ResponseEventArguments ( HttpRequestMessage request, HttpResponseMessage response, ClientDetails clientDetails, Activity? requestActivity, string? requestId = null ) : base(request, clientDetails, requestActivity, requestId)
     {
         Response = response;
     }

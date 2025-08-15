@@ -20,15 +20,19 @@ public class ProxyServerEvents
     /// You can use this event to decide wheter or not this connection should be decrypted or forwarded as is.<br/><br/>
     /// returning <see langword="false"/> will result in the connection being forwarded as is, without decryption.<br/>
     /// returning <see langword="true"/> will result in the connection being decrypted and processed by the proxy server.<br/>
+    /// Cancelling the <see cref="CancellationTokenSource"/> will terminate the connection without processing it.<br/>
     /// </summary>
     /// <remarks>You will get the hostname and and a cancellation token source</remarks>
-    public Func<string, CancellationTokenSource, Task<bool>>? ShouldDecryptNewConnection;
+    public Func<string, ClientDetails, CancellationTokenSource, Task<bool>>? ShouldDecryptNewConnection;
 
-    internal async Task<bool> InvokeShouldDecryptNewConnection ( string hostname, CancellationTokenSource cancellationTokenSource )
+    internal async Task<bool?> InvokeShouldDecryptNewConnection ( string hostname, ClientDetails clientDetails, CancellationToken cancellationToken )
     {
         if (ShouldDecryptNewConnection == null)
             return true; // Default to true if no handler is registered.
-        return await ShouldDecryptNewConnection.Invoke(hostname, cancellationTokenSource);
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var result = await ShouldDecryptNewConnection.Invoke(hostname, clientDetails, cancellationTokenSource);
+
+        return cancellationTokenSource.IsCancellationRequested ? null : result;
     }
 
     /// <summary>

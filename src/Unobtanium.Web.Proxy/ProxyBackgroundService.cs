@@ -181,6 +181,7 @@ internal class ProxyBackgroundService : BackgroundService
 
         // Add other services needed for the proxy
         proxyBuilder.Services.AddSingleton(TimeProvider.System);
+        proxyBuilder.Services.AddSingleton<Internal.ConnectionMapper>();
 
         proxyBuilder.Services.Configure<ProxyServerOptions>(options =>
         {
