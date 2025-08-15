@@ -19,7 +19,7 @@ public class RequestEventArguments : IDisposable
         Request = request;
         ClientDetails = clientDetails;
         RequestActivity = requestActivity;
-        RequestId = requestActivity?.Id ?? requestId ?? Guid.NewGuid().ToString();
+        RequestId = requestActivity?.TraceId.ToString() ?? requestId ?? Guid.NewGuid().ToString();
     }
     /// <summary>
     /// Incoming HTTP request message that is being processed by the proxy server.

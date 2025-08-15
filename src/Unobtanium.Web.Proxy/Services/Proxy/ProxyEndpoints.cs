@@ -209,14 +209,13 @@ internal static class ProxyEndpoints
 
                 _logger.LogInformation("Proxy request {Method} {TargetUrl} {RemoteIp} {RemotePort}", requestMessage.Method.Method, targetUrl, clientDetails.Address, clientDetails.Port);
 
-                var arguments = new RequestEventArguments(requestMessage, clientDetails, activity);
+                var arguments = new RequestEventArguments(requestMessage, clientDetails, activity, context.TraceIdentifier);
                 requestId = arguments.RequestId;
                 if (activity is not null)
                 {
                     activity.SetTag("http.request.method", requestMessage.Method.Method);
                     activity.SetTag("url.full", requestMessage.RequestUri?.ToString());
                     activity.SetTag("proxy.requestId", requestId);
-                    activity.SetTag("proxy.connectionTraceId", clientDetails.ConnectionTraceId);
                     if (requestMessage.RequestUri?.Host != null)
                     {
                         activity.SetTag("server.host", requestMessage.RequestUri.Host);
