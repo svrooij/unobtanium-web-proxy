@@ -113,7 +113,7 @@ public class CertificateManagerTests
         using var manager = new DefaultCertificateManager(Options.Create(config));
 
         // Act
-        var rootCert = await manager.GetRootCertificateAsync(CancellationToken.None);
+        var rootCert = await manager.GetRootCertificateAsync(true, CancellationToken.None);
 
         // Assert
         Assert.IsNotNull(rootCert);
@@ -133,8 +133,8 @@ public class CertificateManagerTests
         using var manager = new DefaultCertificateManager();
 
         // Act
-        var rootCert1 = await manager.GetRootCertificateAsync(CancellationToken.None);
-        var rootCert2 = await manager.GetRootCertificateAsync(CancellationToken.None);
+        var rootCert1 = await manager.GetRootCertificateAsync(true, CancellationToken.None);
+        var rootCert2 = await manager.GetRootCertificateAsync(true, CancellationToken.None);
 
         // Assert
         Assert.IsNotNull(rootCert1);
@@ -154,7 +154,7 @@ public class CertificateManagerTests
         using var manager = new DefaultCertificateManager(Options.Create(config), timeProvider: timeProvider);
 
         // Act
-        var rootCert = await manager.GetRootCertificateAsync(CancellationToken.None);
+        var rootCert = await manager.GetRootCertificateAsync(true, CancellationToken.None);
 
         // Assert
         Assert.IsNotNull(rootCert);
@@ -183,7 +183,7 @@ public class CertificateManagerTests
         using (var manager1 = new DefaultCertificateManager(Options.Create(config)))
         {
             // Act - Create and cache certificate
-            var rootCert1 = await manager1.GetRootCertificateAsync(CancellationToken.None);
+            var rootCert1 = await manager1.GetRootCertificateAsync(true, CancellationToken.None);
             certThumbprint = rootCert1.Thumbprint;
             // Wait a bit for the background save task to complete
             await Task.Delay(100);
@@ -199,7 +199,7 @@ public class CertificateManagerTests
         using (var manager2 = new DefaultCertificateManager(Options.Create(config)))
         {
             // Act - Load from cache
-            var rootCert2 = await manager2.GetRootCertificateAsync(CancellationToken.None);
+            var rootCert2 = await manager2.GetRootCertificateAsync(true, CancellationToken.None);
 
             // Assert - Should be loaded from disk
             rootCert2.Should().NotBeNull("because the root certificate should be loaded from cache");
@@ -220,7 +220,7 @@ public class CertificateManagerTests
         using var manager = new DefaultCertificateManager(Options.Create(config));
 
         // Act
-        var rootCert = await manager.GetRootCertificateAsync(CancellationToken.None);
+        var rootCert = await manager.GetRootCertificateAsync(true, CancellationToken.None);
 
         // Wait a bit to ensure no background save occurs
         await Task.Delay(100);
@@ -241,7 +241,7 @@ public class CertificateManagerTests
 
         // Act & Assert
         await Assert.ThrowsExactlyAsync<OperationCanceledException>(
-            () => manager.GetRootCertificateAsync(cts.Token));
+            () => manager.GetRootCertificateAsync(true, cts.Token));
     }
 
     #endregion
@@ -257,7 +257,7 @@ public class CertificateManagerTests
 
         // Act
         var hostCert = await manager.GetCertificateAsync(hostname, CancellationToken.None);
-        var rootCert = await manager.GetRootCertificateAsync(CancellationToken.None);
+        var rootCert = await manager.GetRootCertificateAsync(true, CancellationToken.None);
 
         // Assert
         Assert.IsNotNull(hostCert);
@@ -400,7 +400,7 @@ public class CertificateManagerTests
         var config = new CertificateManagerConfiguration { CertificateLifetimeDays = 30 };
 
         using var manager = new DefaultCertificateManager(Options.Create(config), timeProvider: timeProvider);
-        var rootCert = await manager.GetRootCertificateAsync(CancellationToken.None);
+        var rootCert = await manager.GetRootCertificateAsync(true, CancellationToken.None);
 
         // Act
         var hostCert = await manager.GetCertificateAsync("test.com", CancellationToken.None);
@@ -429,7 +429,7 @@ public class CertificateManagerTests
         using var manager = new DefaultCertificateManager(Options.Create(config), timeProvider: timeProvider);
 
         // Get root certificate first
-        var rootCert = await manager.GetRootCertificateAsync(CancellationToken.None);
+        var rootCert = await manager.GetRootCertificateAsync(true, CancellationToken.None);
 
         // Move time forward and try to create leaf certificate with longer lifetime
         timeProvider.SetCurrentTime(fixedTime.AddDays(5));
@@ -470,7 +470,7 @@ public class CertificateManagerTests
         using var manager = new DefaultCertificateManager();
 
         // Act
-        var rootCert = await manager.GetRootCertificateAsync(CancellationToken.None);
+        var rootCert = await manager.GetRootCertificateAsync(true, CancellationToken.None);
         var leafCert = await manager.GetCertificateAsync("test.com", CancellationToken.None);
 
         // Assert - Root certificate should have CA key usage

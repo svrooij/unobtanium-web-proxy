@@ -79,7 +79,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
             }
             shouldSaveHostCertificate = _configuration.CachePath is not null && _configuration.CacheHostCertificates;
             _logger.LogInformation("Creating new certificate for {Host}", host);
-            var rootCert = await GetRootCertificateAsync(ct);
+            var rootCert = await GetRootCertificateAsync(true, ct);
             var leafCert = CreateLeafCertificate(host, rootCert);
             return leafCert;
         }, cancellationToken);
@@ -109,10 +109,11 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
     /// <remarks>If a cached root certificate exists and caching is enabled, the certificate is loaded from
     /// the cache.  Otherwise, a new root certificate is created. If caching is enabled and a new certificate is
     /// created,  it is saved to the configured cache path asynchronously.</remarks>
+    /// <param name="includePrivateKey">Should the certificate include it's private key?</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the root certificate as an <see
     /// cref="X509Certificate2"/> object.</returns>
-    public async Task<X509Certificate2> GetRootCertificateAsync ( CancellationToken cancellationToken )
+    public async Task<X509Certificate2> GetRootCertificateAsync (bool includePrivateKey, CancellationToken cancellationToken )
     {
         var shouldSaveRootCertificate = false;
         var cert = await cachedCertificates.GetOrAddAsync("root", async ( ct ) =>
@@ -148,6 +149,12 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
             {
                 _logger.LogError(ex, "Failed to save root certificate to file.");
             }
+        }
+        if (!includePrivateKey)
+        {
+            // If the caller does not want the private key, we strip it from the certificate
+            _logger.LogInformation("Stripping private key from root certificate.");
+            cert = CertificateCombiner.StripPrivateKey(cert);
         }
         return cert;
     }
@@ -327,7 +334,7 @@ internal static class CertificateCombiner
         certCollection.Add(leafCertificate);
         certCollection.Add(rootCertificate);
         // Export the collection as a PFX file
-        var pfxData = certCollection.Export(X509ContentType.Pfx, null);
+        var pfxData = certCollection.Export(X509ContentType.Pfx, "");
         // Create a new X509Certificate2 from the PFX data
         var chainedCertificate = new X509Certificate2(pfxData!, "", X509KeyStorageFlags.Exportable);
         // Return the chained certificate
@@ -340,5 +347,17 @@ internal static class CertificateCombiner
         // Create a new certificate without the private key
         var certWithoutPrivateKey = new X509Certificate2(certificate.Export(X509ContentType.Cert));
         return certWithoutPrivateKey;
+    }
+}
+
+internal static class  ICertificateManagerExtensions
+{
+    internal static async Task<X509Certificate2> GetCertificateChainAsync( this ICertificateManager certificateManager, string host, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(certificateManager);
+        ArgumentNullException.ThrowIfNullOrEmpty(host);
+        var leafCert = await certificateManager.GetCertificateAsync(host, cancellationToken);
+        var rootCert = await certificateManager.GetRootCertificateAsync(false, cancellationToken);
+        return CertificateCombiner.CreateChainedCertificate(leafCert, rootCert);
     }
 }

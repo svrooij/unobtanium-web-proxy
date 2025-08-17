@@ -4,18 +4,19 @@ namespace Unobtanium.Web.Proxy.KestrelTests;
 [TestClass]
 public class ProxyHttpsTests
 {
-    private ProxyRunner? _proxyRunner;
+    private static ProxyRunner? _proxyRunner;
     public TestContext TestContext { get; set; }
 
-    [TestInitialize]
-    public async Task Setup()
+    [ClassInitialize]
+    public static async Task Setup(TestContext testContext)
     {
         
         _proxyRunner = new ProxyRunner(0, 0);
-        await _proxyRunner.StartAsync(TestContext.CancellationTokenSource.Token);
+        await _proxyRunner.StartAsync(testContext.CancellationTokenSource.Token);
         _proxyRunner.ProxyServerEvents.ShouldDecryptNewConnection = ( host, details, ct ) =>
         {
             // Accept all connections for testing purposes
+            // and cancel the connection if the host is blocked
             if (host == "blocked.svrooij.io")
             {
                 ct.Cancel();
@@ -25,8 +26,8 @@ public class ProxyHttpsTests
         };
     }
 
-    [TestCleanup]
-    public async Task CleanupAsync ()
+    [ClassCleanup]
+    public static async Task CleanupAsync ()
     {
         if (_proxyRunner != null)
         {
@@ -95,7 +96,7 @@ public class ProxyHttpsTests
     {
         // Arrange
         var client = _proxyRunner!.CreateHttpClient(ignoreAllCertificateErrors: true);
-        var requestUri = "https://fake.svrooij.io/intercepted";
+        var requestUri = "https://fake.svrooij.io/intercepted-https";
         // The proxy server is shared across tests, so we clear any previous events
         _proxyRunner.ProxyServerEvents.OnRequest += async ( sender, args, cts ) =>
         {

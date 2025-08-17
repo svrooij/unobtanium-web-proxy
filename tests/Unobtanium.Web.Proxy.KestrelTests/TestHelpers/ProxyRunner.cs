@@ -20,7 +20,7 @@ internal class ProxyRunner : IDisposable
     private IServiceProvider? _serviceProvider;
     private ProxyServerEvents? _proxyServerEvents;
     private bool _isRunning;
-    private X509Certificate2? _rootCertificate;
+    internal X509Certificate2? _rootCertificate;
 
 
     public ProxyRunner ( int port, int httpsPort, string? cachePath = null )
@@ -63,7 +63,7 @@ internal class ProxyRunner : IDisposable
     {
         if (_serviceProvider == null)
             throw new InvalidOperationException("Service provider is not initialized.");
-        _rootCertificate = await _serviceProvider.GetRequiredService<ICertificateManager>().GetRootCertificateAsync(cancellationToken);
+        _rootCertificate = await _serviceProvider.GetRequiredService<ICertificateManager>().GetRootCertificateAsync(false, cancellationToken);
 
         var proxyServer = _serviceProvider.GetRequiredService<IHostedService>();
         await proxyServer.StartAsync(cancellationToken);
@@ -103,11 +103,16 @@ internal class ProxyRunner : IDisposable
             handler.ServerCertificateCustomValidationCallback = ( message, cert, chain, errors ) =>
             {
                 // Accept the certificate if it's the root certificate or a normal trusted certificate
-                return errors == System.Net.Security.SslPolicyErrors.None || chain!.ChainElements.Any(c => c.Certificate.Thumbprint == _rootCertificate!.Thumbprint);
+                if (errors == System.Net.Security.SslPolicyErrors.None)
+                {
+                    return true; // No errors, certificate is valid
+                }
+                chain.Should().NotBeNull("Chain should not be null");
+                chain!.ChainElements.Count.Should().BeGreaterThan(1, "Chain should have at least two element");
+                return chain!.ChainElements.Any(c => c.Certificate.Thumbprint == _rootCertificate!.Thumbprint);
             };
         }
-        else
-        if (ignoreAllCertificateErrors)
+        else if (ignoreAllCertificateErrors)
         {
             handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
         }

@@ -62,7 +62,7 @@ internal class ProxyBackgroundService : BackgroundService
     {
         _logger.LogDebug($"{nameof(ProxyBackgroundService)}.{nameof(StartAsync)} called");
         // Ensure the certificate manager is initialized
-        var rootCert = await _certificateManager.GetRootCertificateAsync(cancellationToken);
+        _ = await _certificateManager.GetRootCertificateAsync(false, cancellationToken);
         if (_options.PreloadCertificates != null)
         {
             foreach (var cert in _options.PreloadCertificates)
@@ -124,35 +124,44 @@ internal class ProxyBackgroundService : BackgroundService
                     // Async callback to provide the server certificate
                     // See https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-8.0#sni-with-serveroptionsselectioncallback
                     // for more details on SNI and server certificate selection
-                    listenOptions.UseHttps(async ( stream, clientHelloInfo, state, cancellationToken ) =>
-                    {
-                        var rootCert = await _certificateManager
-                            .GetRootCertificateAsync(cancellationToken);
-                        //rootCert = CertificateCombiner.StripPrivateKey(rootCert);
-                        var cert = await _certificateManager
-                            .GetCertificateAsync(clientHelloInfo.ServerName, cancellationToken);
-                        //var chain = new X509Certificate2Collection(rootCert);
-                        //var combined = CertificateCombiner.CreateChainedCertificate(cert, rootCert);
-                        var policy = new System.Security.Cryptography.X509Certificates.X509ChainPolicy
-                        {
+                    //listenOptions.UseHttps(async ( stream, clientHelloInfo, state, cancellationToken ) =>
+                    //{
+                    //    var rootCert = await _certificateManager
+                    //        .GetRootCertificateAsync(false, cancellationToken);
+                    //    //rootCert = CertificateCombiner.StripPrivateKey(rootCert);
+                    //    var cert = await _certificateManager
+                    //        .GetCertificateAsync(clientHelloInfo.ServerName, cancellationToken);
+                    //    //var chain = new X509Certificate2Collection(rootCert);
+                    //    //var combined = CertificateCombiner.CreateChainedCertificate(cert, rootCert);
+                    //    var policy = new System.Security.Cryptography.X509Certificates.X509ChainPolicy
+                    //    {
                             
-                            TrustMode = System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust,
-                            DisableCertificateDownloads = true,
-                            RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
-                            VerificationFlags = System.Security.Cryptography.X509Certificates.X509VerificationFlags.AllFlags
-                        };
-                        policy.CustomTrustStore.Add(rootCert);
-                        return new SslServerAuthenticationOptions
-                        {
-                            //ServerCertificate = combined,
-                            ServerCertificateSelectionCallback = ( _, _ ) => cert,
-                            //ServerCertificateContext = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                            //    ? SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(chain, false))
-                            //    : SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(chain, true)),
-                            CertificateChainPolicy = policy
-                        };
+                    //        TrustMode = System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust,
+                    //        DisableCertificateDownloads = true,
+                    //        RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
+                    //        VerificationFlags = System.Security.Cryptography.X509Certificates.X509VerificationFlags.AllFlags
+                    //    };
+                    //    policy.CustomTrustStore.Add(rootCert);
+                    //    return new SslServerAuthenticationOptions
+                    //    {
+                    //        //ServerCertificate = combined,
+                    //        ServerCertificateSelectionCallback = ( _, _ ) => cert,
+                    //        //ServerCertificateContext = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    //        //    ? SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(chain, false))
+                    //        //    : SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(chain, true)),
+                    //        CertificateChainPolicy = policy
+                    //    };
                         
-                    }, state: null!);
+                    //}, state: null!);
+                    listenOptions.UseHttps(httpsOptions =>
+                    {
+                        httpsOptions.ServerCertificateSelector = (context, name) =>
+                        {
+                            // Use the certificate manager to get the certificate for the requested host
+                            var certChain = _certificateManager.GetCertificateChainAsync(name!, CancellationToken.None).GetAwaiter().GetResult();
+                            return certChain;
+                        };
+                    });
                 });
 
                 // HTTP endpoint
