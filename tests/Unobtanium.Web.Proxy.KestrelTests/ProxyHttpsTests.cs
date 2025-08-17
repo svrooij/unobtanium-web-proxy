@@ -11,7 +11,7 @@ public class ProxyHttpsTests
     public static async Task Setup(TestContext testContext)
     {
         
-        _proxyRunner = new ProxyRunner(0, 0);
+        _proxyRunner = new ProxyRunner(testContext, 0, 0);
         await _proxyRunner.StartAsync(testContext.CancellationTokenSource.Token);
         _proxyRunner.ProxyServerEvents.ShouldDecryptNewConnection = ( host, details, ct ) =>
         {

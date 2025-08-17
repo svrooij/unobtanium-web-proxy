@@ -46,6 +46,7 @@ internal static class ProxyEndpoints
     /// <param name="certManager">Certificate manager to pre-load certificates</param>
     /// <param name="options"><see cref="ProxyServerOptions"/> to find out which port to proxy to</param>
     /// <param name="connectionMapper">Singleton dictionary for storing remote addresses and ports, this is used to keep record of incoming clients for HTTPS proxying</param>
+    /// <param name="endpointResolver"></param>
     /// <returns></returns>
     private static async Task HandleConnectMethod ( HttpContext context, ILogger _logger, ProxyServerEvents serverEvents, ICertificateManager certManager, ProxyServerOptions options, ConnectionMapper connectionMapper, IProxyEndpointResolver endpointResolver )
     {
@@ -113,7 +114,7 @@ internal static class ProxyEndpoints
                 // Saving the ClientInfo of the incoming connection in the dictionary under the outbound port
                 // For the proxy it looks like a new connection, but we want to map it to the original client
 
-                var outboundPort = ((IPEndPoint)client!.Client.LocalEndPoint)?.Port ?? 0;
+                var outboundPort = ((IPEndPoint)client!.Client.LocalEndPoint!)?.Port ?? 0;
                 if (outboundPort > 0)
                 {
                     connectionMapper.Connections.AddOrUpdate($"{outboundPort}", clientInfo, ( key, oldValue ) => clientInfo);
@@ -266,8 +267,8 @@ internal static class ProxyEndpoints
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling proxy request {RequestId}", requestId);
-                context.Response.StatusCode = 500;
                 activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                context.Response.StatusCode = 500;
                 await context.Response.WriteAsync("Proxy error: " + ex.Message);
             }
         }

@@ -1,15 +1,8 @@
-﻿using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using Unobtanium.Web.Proxy.Events;
 using Unobtanium.Web.Proxy.Services;
 
 namespace Unobtanium.Web.Proxy.KestrelTests.TestHelpers;
@@ -23,16 +16,23 @@ internal class ProxyRunner : IDisposable
     internal X509Certificate2? _rootCertificate;
 
 
-    public ProxyRunner ( int port, int httpsPort, string? cachePath = null )
+    public ProxyRunner (TestContext testContext, int port, int httpsPort, string? cachePath = null )
     {
         _port = port;
         _httpsPort = httpsPort;
-        BuildProxyServiceProvider(cachePath);
+        BuildProxyServiceProvider(testContext, cachePath);
     }
 
-    private void BuildProxyServiceProvider ( string? cachePath = null )
+    private void BuildProxyServiceProvider (TestContext testContext, string? cachePath = null )
     {
         var services = new ServiceCollection();
+        // Add logging stuff, to get better insights.
+        services.AddLogging(logger =>
+        {
+            logger.SetMinimumLevel(LogLevel.Warning);
+        });
+        services.AddSingleton<ILoggerProvider>(new MsTestLoggerProvider(testContext));
+
         _proxyServerEvents = new ProxyServerEvents();
         _proxyServerEvents.ShouldDecryptNewConnection = async ( host, details, cts ) =>
         {

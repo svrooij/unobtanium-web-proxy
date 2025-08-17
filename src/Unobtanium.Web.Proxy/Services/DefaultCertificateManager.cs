@@ -116,7 +116,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
     public async Task<X509Certificate2> GetRootCertificateAsync (bool includePrivateKey, CancellationToken cancellationToken )
     {
         var shouldSaveRootCertificate = false;
-        var cert = await cachedCertificates.GetOrAddAsync("root", async ( ct ) =>
+        var cert = await cachedCertificates.GetOrAddAsync("root", ( ct ) =>
         {
             if (_configuration.CachePath is not null && _configuration.CacheRootCertificate)
             {
@@ -124,7 +124,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
                 if (System.IO.File.Exists(cacheFile))
                 {
                     _logger.LogInformation("Loading root certificate from file: {CacheFile}", cacheFile);
-                    return new X509Certificate2(cacheFile, "", X509KeyStorageFlags.Exportable);
+                    return Task.FromResult(new X509Certificate2(cacheFile, "", X509KeyStorageFlags.Exportable));
                 }
             }
             // If we reach here, we need to create a new root certificate
@@ -132,7 +132,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
             shouldSaveRootCertificate = _configuration.CachePath is not null && _configuration.CacheRootCertificate;
             _logger.LogInformation("Creating new root certificate with {RootCn}", _configuration.RootCertificateName);
             var rootCert = CreateRootCertificate(_configuration.RootCertificateName, 2048);
-            return rootCert;
+            return Task.FromResult(rootCert);
         }, cancellationToken);
         if (shouldSaveRootCertificate)
         {

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="[6.12.2]" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="MSTest" Version="3.10.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
@@ -37,7 +38,7 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
       <Using Include="Unobtanium.Web.Proxy.Events" />
       <Using Include="Unobtanium.Web.Proxy.KestrelTests.TestHelpers" />
-      <Using Include="FluentAssertions"/>
+      <Using Include="FluentAssertions" />
   </ItemGroup>
 
 </Project>
