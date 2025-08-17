@@ -10,7 +10,7 @@ public class ProxyHttpTests
     [ClassInitialize]
     public static async Task InitializeAsync ( TestContext testContext )
     {
-        _proxyRunner = new ProxyRunner(8888, 8889);
+        _proxyRunner = new ProxyRunner(0, 0);
         await _proxyRunner.StartAsync(testContext.CancellationTokenSource.Token);
     }
 
