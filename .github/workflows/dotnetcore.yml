@@ -14,8 +14,11 @@ on:
       
 jobs:
   build:
-    name: 🔨 Build and Test
-    runs-on: ubuntu-latest
+    name: "🔨 Build and Test (${{ matrix.os }})"
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - name: 👨‍💻 Check-out code
       uses: actions/checkout@v4
@@ -56,7 +59,7 @@ jobs:
         dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.*
         reportgenerator -reports:${{github.workspace}}/coverage.net8.0.cobertura.xml -targetdir:${{github.workspace}}/report -reporttypes:MarkdownSummaryGithub -filefilters:-*.g.cs "-classfilters:-Unobtanium.Web.Proxy.Network.WinAuth.*" -verbosity:Warning
         $report = Get-Content ${{github.workspace}}/report/SummaryGithub.md -Raw
-        $report = $report.Replace('# Summary', '## 📝 Code Coverage').Replace('## Coverage', '### 📝 Code Coverage details')
+        $report = $report.Replace('# Summary', '## 📝 Code Coverage ${{ matrix.os }}').Replace('## Coverage', '### 📝 Code Coverage details')
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $report
       env:
         REPORTGENERATOR_LICENSE: ${{ secrets.REPORTGENERATOR_LICENSE }}
