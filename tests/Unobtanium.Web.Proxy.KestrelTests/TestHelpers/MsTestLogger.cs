@@ -17,9 +17,9 @@ public class MsTestLogger : ILogger, IDisposable
     {
         _output = output;
     }
-    public void Log<TState> ( LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter )
+    public void Log<TState> ( LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter )
     {
-        _output.WriteLine("{0}: {1}\n{2}", logLevel, state, (exception == null) ? string.Empty : exception.ToString());
+        _output.WriteLine("{0}: {1}", logLevel, formatter(state, exception));
     }
 
     public bool IsEnabled ( LogLevel logLevel )
@@ -27,7 +27,7 @@ public class MsTestLogger : ILogger, IDisposable
         return true;
     }
 
-    public IDisposable BeginScope<TState> ( TState state )
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
     {
         return this;
     }

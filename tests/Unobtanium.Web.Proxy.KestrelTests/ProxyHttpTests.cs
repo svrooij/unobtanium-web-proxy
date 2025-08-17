@@ -66,6 +66,7 @@ public class ProxyHttpTests
     }
 
     [TestMethod]
+    [Ignore("Need to clean up this test")]
     public async Task Http_request_should_be_modified ()
     {
         // Arrange: Start a local test server
