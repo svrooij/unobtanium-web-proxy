@@ -42,7 +42,7 @@ internal static class ICertificateManagerExtensions
             //ServerCertificateSelectionCallback = ( sender, hostName ) => combined,
             ServerCertificateContext = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(rootCollection, false))
-                : SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(rootCollection, true)),
+                : SslStreamCertificateContext.Create(cert, rootCollection, offline: true, SslCertificateTrust.CreateForX509Collection(rootCollection, false)),
             EnabledSslProtocols = System.Security.Authentication.SslProtocols.None, // Maybe force some protocol here
             ClientCertificateRequired = false,
             //CertificateRevocationCheckMode = X509RevocationMode.NoCheck,

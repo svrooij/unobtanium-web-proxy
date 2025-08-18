@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using Unobtanium.Web.Proxy.Services;
 
@@ -98,7 +99,12 @@ internal class ProxyRunner : IDisposable
             UseProxy = true,
             Proxy = new WebProxy($"http://localhost:{_port}")
         };
-        if (acceptFakeRootAndNormalTrusted)
+        if (ignoreAllCertificateErrors || (acceptFakeRootAndNormalTrusted && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)))
+        {
+            // The current proxy configuration does not support sending a certificate chain to the client.
+            handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        }
+        else if (acceptFakeRootAndNormalTrusted)
         {
             handler.ServerCertificateCustomValidationCallback = ( message, cert, chain, errors ) =>
             {
@@ -111,10 +117,6 @@ internal class ProxyRunner : IDisposable
                 chain!.ChainElements.Count.Should().BeGreaterThan(1, "Chain should have at least two element");
                 return chain!.ChainElements.Any(c => c.Certificate.Thumbprint == _rootCertificate!.Thumbprint);
             };
-        }
-        else if (ignoreAllCertificateErrors)
-        {
-            handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
         }
         return new HttpClient(handler);
 
