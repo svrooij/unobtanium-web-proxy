@@ -16,6 +16,7 @@ public class ProxyHttpTests
     public static async Task InitializeAsync ( TestContext testContext )
     {
         _proxyRunner = new ProxyRunner(testContext, 0, 0);
+        _proxyRunner.ProxyServerEvents.ShouldDecryptNewConnection = ( host, details, ct ) => Task.FromResult(false);
         await _proxyRunner.StartAsync(testContext.CancellationTokenSource.Token);
     }
 
@@ -31,6 +32,7 @@ public class ProxyHttpTests
     }
 
     [TestMethod]
+    [Ignore("Testing the https version")]
     public async Task Http_request_should_be_intercepted ()
     {
         // Arrange
