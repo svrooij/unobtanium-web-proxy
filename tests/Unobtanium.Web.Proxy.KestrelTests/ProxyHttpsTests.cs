@@ -2,15 +2,16 @@
 
 namespace Unobtanium.Web.Proxy.KestrelTests;
 [TestClass]
+[DoNotParallelize]
 public class ProxyHttpsTests
 {
     private static ProxyRunner? _proxyRunner;
     public TestContext TestContext { get; set; }
 
     [ClassInitialize]
-    public static async Task Setup(TestContext testContext)
+    public static async Task Setup ( TestContext testContext )
     {
-        
+
         _proxyRunner = new ProxyRunner(testContext, 0, 0);
         await _proxyRunner.StartAsync(testContext.CancellationTokenSource.Token);
         _proxyRunner.ProxyServerEvents.ShouldDecryptNewConnection = ( host, details, ct ) =>
@@ -35,7 +36,7 @@ public class ProxyHttpsTests
             _proxyRunner.Dispose();
             _proxyRunner = null;
         }
-        
+
     }
 
     [TestMethod]
@@ -62,16 +63,16 @@ public class ProxyHttpsTests
         // Act
         var response = await client.GetAsync(interceptUri, TestContext!.CancellationTokenSource.Token);
         // Assert
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, "expected a successful response from the proxy server.");
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, "expected a successful response from the proxy server");
         response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
 
         // Read the content and verify it contains the intercepted response
-        var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("<h1>Intercepted Response</h1>", "expected the response to contain the intercepted content.");
+        var content = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        content.Should().Contain("<h1>Intercepted Response</h1>", "expected the response to contain the intercepted content");
     }
 
     [TestMethod]
-    public async Task Https_request_should_be_blocked_during_connect()
+    public async Task Https_request_should_be_blocked_during_connect ()
     {
         // Arrange
         var client = _proxyRunner!.CreateHttpClient();
@@ -95,7 +96,7 @@ public class ProxyHttpsTests
     public async Task Https_request_should_be_intercepted ()
     {
         // Arrange
-        var client = _proxyRunner!.CreateHttpClient(ignoreAllCertificateErrors: true);
+        var client = _proxyRunner!.CreateHttpClient(acceptFakeRootAndNormalTrusted: true);
         var requestUri = "https://fake.svrooij.io/intercepted-https";
         // The proxy server is shared across tests, so we clear any previous events
         _proxyRunner.ProxyServerEvents.OnRequest += async ( sender, args, cts ) =>
@@ -115,13 +116,13 @@ public class ProxyHttpsTests
         var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
 
         // Assert
-        response.Should().NotBeNull("expected a response from the proxy server.");
-        response.IsSuccessStatusCode.Should().BeTrue("expected a successful response from the proxy server.");
-        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
+        response.Should().NotBeNull("expected a response from the proxy server");
+        response.IsSuccessStatusCode.Should().BeTrue("expected a successful response from the proxy server");
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type");
 
         // Read the content and verify it contains the expected text
         var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
-        content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
+        content.Should().NotBeNullOrEmpty("expected the response content to be non-empty");
         content.Should().Contain("<h1>Intercepted Response</h1>", "expect the intercepted content");
     }
 
@@ -129,10 +130,10 @@ public class ProxyHttpsTests
     public async Task Https_request_should_be_intercepted_with_status_code ()
     {
         // Arrange
-        var client = _proxyRunner!.CreateHttpClient(ignoreAllCertificateErrors: true);
+        var client = _proxyRunner!.CreateHttpClient(acceptFakeRootAndNormalTrusted: true);
         var requestUri = "https://fake2.svrooij.io/intercepted-with-status";
         var message = "Be gone, you shall not pass!";
-        
+
         _proxyRunner.ProxyServerEvents.OnRequest += async ( sender, args, cts ) =>
         {
             // Log the response details
@@ -146,13 +147,13 @@ public class ProxyHttpsTests
         var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
 
         // Assert
-        response.Should().NotBeNull("expected a response from the proxy server.");
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden, "expected a successful response from the proxy server.");
-        response.Content.Headers.ContentType?.MediaType.Should().Be("text/plain", "expected plain content type.");
+        response.Should().NotBeNull("expected a response from the proxy server");
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden, "expected a successful response from the proxy server");
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/plain", "expected plain content type");
 
         // Read the content and verify it contains the expected text
         var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
-        content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
+        content.Should().NotBeNullOrEmpty("expected the response content to be non-empty");
         content.Should().Contain(message, "expect the intercepted content");
     }
 
@@ -160,21 +161,21 @@ public class ProxyHttpsTests
     public async Task Https_request_should_return_server_response_if_no_interceptions_are_configured ()
     {
         // Arrange
-        var client = _proxyRunner!.CreateHttpClient(ignoreAllCertificateErrors: true);
+        var client = _proxyRunner!.CreateHttpClient(acceptFakeRootAndNormalTrusted: true);
         var requestUri = "https://svrooij.io/";
 
         // Act
         var response = await client.GetAsync(requestUri, TestContext!.CancellationTokenSource.Token);
 
         // Assert
-        response.Should().NotBeNull("expected a response from the proxy server.");
-        response.IsSuccessStatusCode.Should().BeTrue("expected a successful response from the proxy server.");
-        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type.");
+        response.Should().NotBeNull("expected a response from the proxy server");
+        response.IsSuccessStatusCode.Should().BeTrue("expected a successful response from the proxy server");
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/html", "expected HTML content type");
 
         // Read the content and verify it contains the expected text
         var content = await response.Content.ReadAsStringAsync(TestContext!.CancellationTokenSource.Token);
-        content.Should().NotBeNullOrEmpty("expected the response content to be non-empty.");
-        content.Should().Contain("Stephan van Rooij", "expected the response to contain the author's name.");
+        content.Should().NotBeNullOrEmpty("expected the response content to be non-empty");
+        content.Should().Contain("Stephan van Rooij", "expected the response to contain the author's name");
     }
 
     [TestMethod]
@@ -190,7 +191,7 @@ public class ProxyHttpsTests
 
         // Assert
         // We will not accept the certificate for svrooij.io, so we expect a certificate error
-        await act.Should().ThrowAsync<HttpRequestException>("expected an exception due to certificate validation failure.")
-            .WithMessage("*The SSL connection could not be established, see inner exception.*", "expected a specific error message indicating SSL connection failure.");
+        await act.Should().ThrowAsync<HttpRequestException>("expected an exception due to certificate validation failure")
+            .WithMessage("*The SSL connection could not be established, see inner exception.*", "expected a specific error message indicating SSL connection failure");
     }
 }

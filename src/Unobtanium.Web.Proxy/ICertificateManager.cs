@@ -21,7 +21,7 @@ public interface ICertificateManager
     /// <param name="cancellationToken">A token to monitor for cancellation requests. Passing a canceled token will result in the task being canceled.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the root certificate as an <see
     /// cref="X509Certificate2"/> object.</returns>
-    public Task<X509Certificate2> GetRootCertificateAsync (bool includePrivateKey, CancellationToken cancellationToken );
+    public Task<X509Certificate2> GetRootCertificateAsync ( bool includePrivateKey, CancellationToken cancellationToken );
 
     /// <summary>
     /// Asynchronously retrieves an X.509 certificate for the specified host.

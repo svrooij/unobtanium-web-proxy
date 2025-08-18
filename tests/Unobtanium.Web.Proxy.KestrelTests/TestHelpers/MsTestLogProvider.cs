@@ -19,17 +19,17 @@ internal sealed class MsTestLoggerProvider : ILoggerProvider
     private ILogger? _logger;
 
     public MsTestLoggerProvider (
-        TestContext testContext)
+        TestContext testContext )
     {
         _testContext = testContext ?? throw new ArgumentNullException(nameof(testContext));
     }
 
-    public ILogger CreateLogger ( string categoryName ) => 
+    public ILogger CreateLogger ( string categoryName ) =>
         _logger ??= new MsTestLogger(_testContext);
 
 
     public void Dispose ()
     {
-       
+
     }
 }

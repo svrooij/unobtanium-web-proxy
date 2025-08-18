@@ -38,7 +38,7 @@ public class ProxyHttpTests
         var interceptUri = "http://fake.svrooij.io/intercepted";
         AsyncEventHandler<RequestEventArguments, RequestEventResponse> handler = async ( sender, args, cancellationToken ) =>
         {
-            if (args.Request.RequestUri!.ToString() == interceptUri)
+            if (args.Request.RequestUri?.ToString() == interceptUri)
             {
                 return RequestEventResponse.EarlyResponse(new HttpResponseMessage
                 {

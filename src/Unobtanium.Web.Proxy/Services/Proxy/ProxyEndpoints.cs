@@ -77,7 +77,7 @@ internal static class ProxyEndpoints
         }
         if (shouldDecrypt is null)
         {
-            _logger.LogWarning("Connection decryption decision was canceled, terminating connection for {HostWithPort}", hostWithPort);
+            _logger.LogInformation("Connection decryption decision was canceled, terminating connection for {HostWithPort}", hostWithPort);
             context.Response.StatusCode = 503; // Service Unavailable
             await context.Response.WriteAsync("Request was blocked by application");
             return;
@@ -93,8 +93,8 @@ internal static class ProxyEndpoints
         if (connectionTransportFeature == null)
         {
             _logger.LogError("Connection transport feature not available");
-            context.Response.StatusCode = 500;
             activity?.SetStatus(ActivityStatusCode.Error, "Connection transport feature");
+            context.Response.StatusCode = 503; // Service Unavailable
             await context.Response.WriteAsync("Failed to access transport connection");
             return;
         }
@@ -141,8 +141,8 @@ internal static class ProxyEndpoints
                 connectionFeature?.ConnectionClosed ?? CancellationToken.None);
 
             // Create tasks for copying data in both directions
-            var serverToClientTask = stream.CopyDataAsync(transport.Output, "server -> client", _logger, cts.Token);
-            var clientToServerTask = transport.Input.CopyDataAsync(stream, "client -> server", _logger, cts.Token);
+            var serverToClientTask = stream.CopyDataAsync(transport.Output, $"server ({hostWithPort}) -> client ({clientInfo})", _logger, cts.Token);
+            var clientToServerTask = transport.Input.CopyDataAsync(stream, $"client ({clientInfo}) -> server ({hostWithPort})", _logger, cts.Token);
 
             // Wait for any of the tasks to complete (or error)
             await Task.WhenAny(serverToClientTask, clientToServerTask);
@@ -191,12 +191,13 @@ internal static class ProxyEndpoints
                 activity = activitySource.StartActivity(nameof(HandleProxyRequest), ActivityKind.Consumer, null, links: [
                     new ActivityLink(new ActivityContext(clientDetails.ConnectionTraceId.Value, clientDetails.ConnectionSpanId.Value, ActivityTraceFlags.Recorded))
                     ]);
-            } else
+            }
+            else
             {
                 activity = activitySource.StartActivity(nameof(HandleProxyRequest), ActivityKind.Consumer);
             }
-                // Start a new activity for distributed tracing if there are listeners
-                
+            // Start a new activity for distributed tracing if there are listeners
+
         }
 
         using (activity)
@@ -247,7 +248,7 @@ internal static class ProxyEndpoints
                 var _httpClient = clientFactory.CreateHttpClient(requestMessage.RequestUri!.Host);
                 var responseMessage = await _httpClient.SendAsync(requestMessage);
                 using var onResponseArguments = new ResponseEventArguments(requestMessage, responseMessage, clientDetails, activity, arguments.RequestId);
-                var eventResponse = await serverEvents.InvokeOnResponse(context, onResponseArguments , _logger, context.RequestAborted);
+                var eventResponse = await serverEvents.InvokeOnResponse(context, onResponseArguments, _logger, context.RequestAborted);
 
                 if (eventResponse.ModifiedResponse is not null)
                 {
@@ -268,7 +269,7 @@ internal static class ProxyEndpoints
             {
                 _logger.LogError(ex, "Error handling proxy request {RequestId}", requestId);
                 activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                context.Response.StatusCode = 500;
+                context.Response.StatusCode = 504;
                 await context.Response.WriteAsync("Proxy error: " + ex.Message);
             }
         }

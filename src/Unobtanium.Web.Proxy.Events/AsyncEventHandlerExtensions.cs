@@ -15,11 +15,19 @@ internal static class AsyncEventHandlerExtensions
         {
             return await callback(sender, args, cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            // Handle cancellation gracefully
+            return default; // Return default value if the operation was cancelled
+        }
         catch (Exception e)
         {
             // Log the exception
-            logger?.LogError(e, "An error occurred while invoking an event handler.");
+            logger?.LogError(e,
+                             "Exception of type {ExceptionType} occurred in event handler for arguments of type {ArgumentsType}.",
+                             e.GetType().Name,
+                             typeof(TArguments).FullName);
         }
-        return default(TOutput); // Return default value if an exception occurs
+        return default; // Return default value if an exception occurs
     }
 }

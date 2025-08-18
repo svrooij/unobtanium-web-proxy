@@ -19,15 +19,29 @@ public class MsTestLogger : ILogger, IDisposable
     }
     public void Log<TState> ( LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter )
     {
-        _output.WriteLine("{0}: {1}", logLevel, formatter(state, exception));
+        var message = formatter(state, exception);
+        //_output.WriteLine("{0}: {1}", logLevel, message);
+        _output.DisplayMessage(ToMessageLevel(logLevel), message);
+
     }
+
+    private static MessageLevel ToMessageLevel ( LogLevel logLevel ) => logLevel switch
+    {
+        LogLevel.Trace => MessageLevel.Informational,
+        LogLevel.Debug => MessageLevel.Informational,
+        LogLevel.Information => MessageLevel.Informational,
+        LogLevel.Warning => MessageLevel.Warning,
+        LogLevel.Error => MessageLevel.Warning,
+        LogLevel.Critical => MessageLevel.Warning,
+        _ => MessageLevel.Informational
+    };
 
     public bool IsEnabled ( LogLevel logLevel )
     {
         return true;
     }
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    public IDisposable? BeginScope<TState> ( TState state ) where TState : notnull
     {
         return this;
     }

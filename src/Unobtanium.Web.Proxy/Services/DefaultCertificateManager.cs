@@ -4,6 +4,8 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Security;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -113,7 +115,7 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the root certificate as an <see
     /// cref="X509Certificate2"/> object.</returns>
-    public async Task<X509Certificate2> GetRootCertificateAsync (bool includePrivateKey, CancellationToken cancellationToken )
+    public async Task<X509Certificate2> GetRootCertificateAsync ( bool includePrivateKey, CancellationToken cancellationToken )
     {
         var shouldSaveRootCertificate = false;
         var cert = await cachedCertificates.GetOrAddAsync("root", ( ct ) =>
@@ -153,8 +155,8 @@ public class DefaultCertificateManager : IDisposable, ICertificateManager
         if (!includePrivateKey)
         {
             // If the caller does not want the private key, we strip it from the certificate
-            _logger.LogInformation("Stripping private key from root certificate.");
-            cert = CertificateCombiner.StripPrivateKey(cert);
+            _logger.LogDebug("Stripping private key from root certificate.");
+            cert = CertificateUtils.StripPrivateKey(cert);
         }
         return cert;
     }
@@ -321,43 +323,4 @@ public class CertificateManagerConfiguration
     /// Gets or sets the name of the root certificate used for establishing trust.
     /// </summary>
     public string RootCertificateName { get; set; } = "Unobtanium Root CA";
-}
-
-internal static class CertificateCombiner
-{
-    public static X509Certificate2 CreateChainedCertificate ( X509Certificate2 leafCertificate, X509Certificate2 rootCertificate )
-    {
-        ArgumentNullException.ThrowIfNull(leafCertificate);
-        ArgumentNullException.ThrowIfNull(rootCertificate);
-        // Create a new certificate with the leaf certificate's private key
-        var certCollection = new X509Certificate2Collection();
-        certCollection.Add(leafCertificate);
-        certCollection.Add(rootCertificate);
-        // Export the collection as a PFX file
-        var pfxData = certCollection.Export(X509ContentType.Pfx, "");
-        // Create a new X509Certificate2 from the PFX data
-        var chainedCertificate = new X509Certificate2(pfxData!, "", X509KeyStorageFlags.Exportable);
-        // Return the chained certificate
-        return chainedCertificate;
-    }
-
-    internal static X509Certificate2 StripPrivateKey ( X509Certificate2 certificate )
-    {
-        ArgumentNullException.ThrowIfNull(certificate);
-        // Create a new certificate without the private key
-        var certWithoutPrivateKey = new X509Certificate2(certificate.Export(X509ContentType.Cert));
-        return certWithoutPrivateKey;
-    }
-}
-
-internal static class  ICertificateManagerExtensions
-{
-    internal static async Task<X509Certificate2> GetCertificateChainAsync( this ICertificateManager certificateManager, string host, CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(certificateManager);
-        ArgumentNullException.ThrowIfNullOrEmpty(host);
-        var leafCert = await certificateManager.GetCertificateAsync(host, cancellationToken);
-        var rootCert = await certificateManager.GetRootCertificateAsync(false, cancellationToken);
-        return CertificateCombiner.CreateChainedCertificate(leafCert, rootCert);
-    }
 }

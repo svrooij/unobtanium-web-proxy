@@ -156,7 +156,7 @@ public sealed class ServiceRegistrationTests
             throw new NotImplementedException();
         }
 
-        public Task<System.Security.Cryptography.X509Certificates.X509Certificate2> GetRootCertificateAsync (bool includePriveteKey, CancellationToken cancellationToken = default )
+        public Task<System.Security.Cryptography.X509Certificates.X509Certificate2> GetRootCertificateAsync ( bool includePriveteKey, CancellationToken cancellationToken = default )
         {
             throw new NotImplementedException();
         }

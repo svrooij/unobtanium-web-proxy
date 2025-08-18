@@ -23,7 +23,7 @@ internal static class StreamCopyExtensions
 
                 await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
                 await destination.FlushAsync(cancellationToken);
-                logger.LogDebug($"Copied {bytesRead} bytes {direction}");
+                logger.LogDebug("Copied {BytesRead} bytes {Direction}", bytesRead, direction);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -32,7 +32,7 @@ internal static class StreamCopyExtensions
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"Error copying data {direction}");
+            logger.LogError(ex, "Error copying data {Direction}", direction);
         }
         finally
         {
@@ -60,7 +60,7 @@ internal static class StreamCopyExtensions
                 }
 
                 await destination.FlushAsync(cancellationToken);
-                logger.LogDebug($"Copied {buffer.Length} bytes {direction}");
+                logger.LogDebug("Copied {BytesRead} bytes {Direction}", buffer.Length, direction);
 
                 source.AdvanceTo(buffer.End);
 
@@ -76,7 +76,7 @@ internal static class StreamCopyExtensions
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"Error copying data {direction}");
+            logger.LogError(ex, "Error copying data {Direction}", direction);
         }
         finally
         {

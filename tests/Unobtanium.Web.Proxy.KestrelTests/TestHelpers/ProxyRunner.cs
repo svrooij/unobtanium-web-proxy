@@ -16,14 +16,14 @@ internal class ProxyRunner : IDisposable
     internal X509Certificate2? _rootCertificate;
 
 
-    public ProxyRunner (TestContext testContext, int port, int httpsPort, string? cachePath = null )
+    public ProxyRunner ( TestContext testContext, int port, int httpsPort, string? cachePath = null )
     {
         _port = port;
         _httpsPort = httpsPort;
         BuildProxyServiceProvider(testContext, cachePath);
     }
 
-    private void BuildProxyServiceProvider (TestContext testContext, string? cachePath = null )
+    private void BuildProxyServiceProvider ( TestContext testContext, string? cachePath = null )
     {
         var services = new ServiceCollection();
         // Add logging stuff, to get better insights.

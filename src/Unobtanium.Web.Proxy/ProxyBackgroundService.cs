@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -9,12 +10,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Net;
-using System.Net.Security;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Unobtanium.Web.Proxy.Events;
+using Unobtanium.Web.Proxy.Internal;
 using Unobtanium.Web.Proxy.Services;
 using Unobtanium.Web.Proxy.Services.Proxy;
 
@@ -118,6 +117,7 @@ internal class ProxyBackgroundService : BackgroundService
             // Configure Kestrel
             proxyBuilder.WebHost.ConfigureKestrel(serverOptions =>
             {
+
                 // Configure HTTPS endpoint for intercepting
                 serverOptions.Listen(IPAddress.Loopback, _options.HttpsPort, listenOptions =>
                 {
@@ -135,7 +135,7 @@ internal class ProxyBackgroundService : BackgroundService
                     //    //var combined = CertificateCombiner.CreateChainedCertificate(cert, rootCert);
                     //    var policy = new System.Security.Cryptography.X509Certificates.X509ChainPolicy
                     //    {
-                            
+
                     //        TrustMode = System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust,
                     //        DisableCertificateDownloads = true,
                     //        RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
@@ -151,16 +151,31 @@ internal class ProxyBackgroundService : BackgroundService
                     //        //    : SslStreamCertificateContext.Create(cert, null, offline: true, SslCertificateTrust.CreateForX509Collection(chain, true)),
                     //        CertificateChainPolicy = policy
                     //    };
-                        
+
                     //}, state: null!);
-                    listenOptions.UseHttps(httpsOptions =>
+                    //listenOptions.UseHttps(httpsOptions =>
+                    //{
+                    //    httpsOptions.OnAuthenticate = async (context, authOptions) =>
+                    //    {
+                    //        // Use the certificate manager to get the certificate for the requested host
+                    //        var cert = await _certificateManager.GetCertificateAsync(context., CancellationToken.None);
+                    //        //var certChain = await _certificateManager.GetCertificateChainAsync(context.!, CancellationToken.None).GetAwaiter().GetResult();
+                    //        //if (certChain == null)
+                    //        //{
+                    //        //    _logger.LogWarning("No certificate found for SNI host: {SniHostName}", context.SniHostName);
+                    //        //    return Task.CompletedTask;
+                    //        //}
+                    //        // Set the server certificate
+                    //        authOptions.ServerCertificate = cert;
+
+                    //    };
+                    //});
+                    listenOptions.UseHttps(new TlsHandshakeCallbackOptions
                     {
-                        httpsOptions.ServerCertificateSelector = (context, name) =>
+                        OnConnection = async context =>
                         {
-                            // Use the certificate manager to get the certificate for the requested host
-                            var certChain = _certificateManager.GetCertificateChainAsync(name!, CancellationToken.None).GetAwaiter().GetResult();
-                            return certChain;
-                        };
+                            return await _certificateManager.GetSslServerAuthenticationOptionsAsync(context.ClientHelloInfo.ServerName, context.CancellationToken);
+                        }
                     });
                 });
 
@@ -190,7 +205,8 @@ internal class ProxyBackgroundService : BackgroundService
                     if (address.StartsWith("https://"))
                     {
                         httpsPort = new Uri(address).Port;
-                    } else if (address.StartsWith("http://"))
+                    }
+                    else if (address.StartsWith("http://"))
                     {
                         httpPort = new Uri(address).Port;
                     }
